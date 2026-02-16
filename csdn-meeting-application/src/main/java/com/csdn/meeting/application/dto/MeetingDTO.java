@@ -1,7 +1,5 @@
 package com.csdn.meeting.application.dto;
 
-import com.csdn.meeting.domain.entity.Meeting;
-
 import java.time.LocalDateTime;
 import java.util.List;
 

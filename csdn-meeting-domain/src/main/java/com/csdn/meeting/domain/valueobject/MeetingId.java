@@ -8,7 +8,7 @@ public class MeetingId implements Serializable {
     private final String value;
 
     public MeetingId(String value) {
-        if (value == null || value.isBlank()) {
+        if (value == null || value.trim().isEmpty()) {
             throw new IllegalArgumentException("会议ID不能为空");
         }
         this.value = value;
