@@ -1,9 +1,11 @@
 package com.csdn.meeting.domain.service;
 
 import com.csdn.meeting.domain.repository.MeetingRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+@Service
 public class MeetingDomainService {
 
     private final MeetingRepository meetingRepository;
