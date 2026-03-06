@@ -1,17 +1,18 @@
 package com.csdn.meeting.application.service;
 
-import com.csdn.meeting.application.dto.CreateMeetingCommand;
-import com.csdn.meeting.application.dto.JoinMeetingCommand;
-import com.csdn.meeting.application.dto.MeetingDTO;
-import com.csdn.meeting.application.dto.ParticipantDTO;
-import com.csdn.meeting.domain.entity.Meeting;
-import com.csdn.meeting.domain.entity.Participant;
+import com.csdn.meeting.application.dto.*;
+import com.csdn.meeting.domain.entity.*;
+import com.csdn.meeting.domain.event.MeetingStatusChangedEvent;
 import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.domain.repository.ParticipantRepository;
 import com.csdn.meeting.domain.service.MeetingDomainService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,30 +23,144 @@ public class MeetingApplicationService {
     private final MeetingRepository meetingRepository;
     private final ParticipantRepository participantRepository;
     private final MeetingDomainService meetingDomainService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public MeetingApplicationService(MeetingRepository meetingRepository,
                                      ParticipantRepository participantRepository,
-                                     MeetingDomainService meetingDomainService) {
+                                     MeetingDomainService meetingDomainService,
+                                     ApplicationEventPublisher eventPublisher) {
         this.meetingRepository = meetingRepository;
         this.participantRepository = participantRepository;
         this.meetingDomainService = meetingDomainService;
+        this.eventPublisher = eventPublisher;
+    }
+
+    /**
+     * 创建草稿：仅校验 title 非空，日程可为空
+     */
+    @Transactional
+    public MeetingDTO createDraft(CreateMeetingCommand command) {
+        if (command.getTitle() == null || command.getTitle().isBlank()) {
+            throw new IllegalArgumentException("会议标题不能为空");
+        }
+        Meeting meeting = new Meeting();
+        meeting.setMeetingId(meetingDomainService.generateMeetingId());
+        applyCreateCommandToMeeting(meeting, command);
+        meeting.setStatus(Meeting.MeetingStatus.DRAFT);
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        return toMeetingDTO(savedMeeting);
+    }
+
+    /**
+     * 更新会议：仅 DRAFT/REJECTED 可编辑
+     */
+    @Transactional
+    public MeetingDTO update(String meetingId, UpdateMeetingCommand command) {
+        Meeting meeting = meetingRepository.findByMeetingId(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        if (meeting.getStatus() != Meeting.MeetingStatus.DRAFT
+                && meeting.getStatus() != Meeting.MeetingStatus.REJECTED) {
+            throw new IllegalStateException("只有草稿或已拒绝状态才能编辑");
+        }
+        applyUpdateCommandToMeeting(meeting, command);
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        return toMeetingDTO(savedMeeting);
+    }
+
+    /**
+     * 提交审核：先校验四级日程完整性，再 meeting.submit()
+     * AgendaIntegrityException 向上传播，由 GlobalExceptionHandler 转为 400 响应
+     */
+    @Transactional
+    public MeetingDTO submit(String meetingId) {
+        Meeting meeting = meetingRepository.findByMeetingId(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        meetingDomainService.validateAgendaIntegrity(meeting);
+        meeting.submit();
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        return toMeetingDTO(savedMeeting);
+    }
+
+    /**
+     * 撤回审核：PENDING_REVIEW -> DRAFT
+     */
+    @Transactional
+    public MeetingDTO withdraw(String meetingId) {
+        Meeting meeting = meetingRepository.findByMeetingId(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        Meeting.MeetingStatus from = meeting.getStatus();
+        meeting.withdraw();
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        publishStatusChanged(meetingId, from, savedMeeting.getStatus(), null);
+        return toMeetingDTO(savedMeeting);
+    }
+
+    /**
+     * 审核通过：PENDING_REVIEW -> PUBLISHED
+     */
+    @Transactional
+    public MeetingDTO approve(String meetingId) {
+        Meeting meeting = meetingRepository.findByMeetingId(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        Meeting.MeetingStatus from = meeting.getStatus();
+        meeting.approve();
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        publishStatusChanged(meetingId, from, savedMeeting.getStatus(), null);
+        return toMeetingDTO(savedMeeting);
+    }
+
+    /**
+     * 审核拒绝：PENDING_REVIEW -> REJECTED
+     *
+     * @param reason 拒绝原因，不能为空
+     */
+    @Transactional
+    public MeetingDTO reject(String meetingId, String reason) {
+        Meeting meeting = meetingRepository.findByMeetingId(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        Meeting.MeetingStatus from = meeting.getStatus();
+        meeting.reject(reason);
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        publishStatusChanged(meetingId, from, savedMeeting.getStatus(), null);
+        return toMeetingDTO(savedMeeting);
+    }
+
+    /**
+     * 主动下架：PUBLISHED / IN_PROGRESS -> OFFLINE
+     *
+     * @param reason 下架原因，不能为空
+     */
+    @Transactional
+    public MeetingDTO takedown(String meetingId, String reason) {
+        Meeting meeting = meetingRepository.findByMeetingId(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        Meeting.MeetingStatus from = meeting.getStatus();
+        meeting.takedown(reason);
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        publishStatusChanged(meetingId, from, savedMeeting.getStatus(), null);
+        return toMeetingDTO(savedMeeting);
+    }
+
+    /**
+     * 逻辑删除：DRAFT / ENDED / OFFLINE / REJECTED -> DELETED
+     */
+    @Transactional
+    public void deleteMeeting(String meetingId) {
+        Meeting meeting = meetingRepository.findByMeetingId(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        meeting.delete();
+        meetingRepository.save(meeting);
+    }
+
+    private void publishStatusChanged(String meetingId, Meeting.MeetingStatus from,
+                                      Meeting.MeetingStatus to, String actor) {
+        eventPublisher.publishEvent(
+                new MeetingStatusChangedEvent(meetingId, from, to, LocalDateTime.now(), actor));
     }
 
     @Transactional
     public MeetingDTO createMeeting(CreateMeetingCommand command) {
-        Meeting meeting = new Meeting();
-        meeting.setMeetingId(meetingDomainService.generateMeetingId());
-        meeting.setTitle(command.getTitle());
-        meeting.setDescription(command.getDescription());
-        meeting.setCreatorId(command.getCreatorId());
-        meeting.setCreatorName(command.getCreatorName());
-        meeting.setStartTime(command.getStartTime());
-        meeting.setEndTime(command.getEndTime());
-        meeting.setMaxParticipants(command.getMaxParticipants());
-        meeting.setStatus(Meeting.MeetingStatus.CREATED);
-
-        Meeting savedMeeting = meetingRepository.save(meeting);
-        return toMeetingDTO(savedMeeting);
+        return createDraft(command);
     }
 
     @Transactional
@@ -53,8 +168,10 @@ public class MeetingApplicationService {
         Meeting meeting = meetingRepository.findByMeetingId(command.getMeetingId())
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + command.getMeetingId()));
 
-        if (meeting.getStatus() == Meeting.MeetingStatus.ENDED || meeting.getStatus() == Meeting.MeetingStatus.CANCELLED) {
-            throw new IllegalStateException("会议已结束或已取消");
+        if (meeting.getStatus() == Meeting.MeetingStatus.ENDED
+                || meeting.getStatus() == Meeting.MeetingStatus.OFFLINE
+                || meeting.getStatus() == Meeting.MeetingStatus.DELETED) {
+            throw new IllegalStateException("会议已结束、已下架或已删除");
         }
 
         Optional<Participant> existingParticipant = participantRepository
@@ -114,7 +231,17 @@ public class MeetingApplicationService {
     public MeetingDTO getMeetingDetail(String meetingId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在"));
+        return toMeetingDTOWithParticipants(meeting, meetingId);
+    }
 
+    public MeetingDTO getMeetingDetailById(Long id) {
+        Meeting meeting = meetingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("会议不存在"));
+        String meetingId = meeting.getMeetingId();
+        return toMeetingDTOWithParticipants(meeting, meetingId);
+    }
+
+    private MeetingDTO toMeetingDTOWithParticipants(Meeting meeting, String meetingId) {
         MeetingDTO dto = toMeetingDTO(meeting);
         List<Participant> participants = participantRepository.findByMeetingId(meetingId);
         dto.setParticipants(participants.stream()
@@ -135,6 +262,123 @@ public class MeetingApplicationService {
                 .collect(Collectors.toList());
     }
 
+    private void applyCreateCommandToMeeting(Meeting meeting, CreateMeetingCommand cmd) {
+        meeting.setTitle(cmd.getTitle());
+        meeting.setDescription(cmd.getDescription());
+        meeting.setCreatorId(cmd.getCreatorId());
+        meeting.setCreatorName(cmd.getCreatorName());
+        meeting.setStartTime(cmd.getStartTime());
+        meeting.setEndTime(cmd.getEndTime());
+        meeting.setMaxParticipants(cmd.getMaxParticipants());
+        meeting.setOrganizer(cmd.getOrganizer());
+        meeting.setFormat(parseFormat(cmd.getFormat()));
+        meeting.setScene(cmd.getScene());
+        meeting.setVenue(cmd.getVenue());
+        meeting.setRegions(cmd.getRegions());
+        meeting.setCoverImage(cmd.getCoverImage());
+        meeting.setTags(cmd.getTags());
+        meeting.setTargetAudience(cmd.getTargetAudience());
+        meeting.setIsPremium(cmd.getIsPremium());
+        meeting.setScheduleDays(toScheduleDays(cmd.getScheduleDays()));
+    }
+
+    private void applyUpdateCommandToMeeting(Meeting meeting, UpdateMeetingCommand cmd) {
+        if (cmd.getTitle() != null) meeting.setTitle(cmd.getTitle());
+        if (cmd.getDescription() != null) meeting.setDescription(cmd.getDescription());
+        if (cmd.getStartTime() != null) meeting.setStartTime(cmd.getStartTime());
+        if (cmd.getEndTime() != null) meeting.setEndTime(cmd.getEndTime());
+        if (cmd.getMaxParticipants() != null) meeting.setMaxParticipants(cmd.getMaxParticipants());
+        if (cmd.getOrganizer() != null) meeting.setOrganizer(cmd.getOrganizer());
+        if (cmd.getFormat() != null) meeting.setFormat(parseFormat(cmd.getFormat()));
+        if (cmd.getScene() != null) meeting.setScene(cmd.getScene());
+        if (cmd.getVenue() != null) meeting.setVenue(cmd.getVenue());
+        if (cmd.getRegions() != null) meeting.setRegions(cmd.getRegions());
+        if (cmd.getCoverImage() != null) meeting.setCoverImage(cmd.getCoverImage());
+        if (cmd.getTags() != null) meeting.setTags(cmd.getTags());
+        if (cmd.getTargetAudience() != null) meeting.setTargetAudience(cmd.getTargetAudience());
+        if (cmd.getIsPremium() != null) meeting.setIsPremium(cmd.getIsPremium());
+        if (cmd.getScheduleDays() != null) meeting.setScheduleDays(toScheduleDays(cmd.getScheduleDays()));
+    }
+
+    private MeetingFormat parseFormat(String format) {
+        if (format == null || format.isBlank()) return null;
+        try {
+            return MeetingFormat.valueOf(format.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private List<ScheduleDay> toScheduleDays(List<ScheduleDayDTO> dtos) {
+        if (dtos == null || dtos.isEmpty()) return new ArrayList<>();
+        return dtos.stream().map(this::toScheduleDay).collect(Collectors.toList());
+    }
+
+    private ScheduleDay toScheduleDay(ScheduleDayDTO dto) {
+        List<Session> sessions = dto.getSessions() == null ? Collections.emptyList()
+                : dto.getSessions().stream().map(this::toSession).collect(Collectors.toList());
+        return new ScheduleDay(dto.getScheduleDate(), dto.getDayLabel(), sessions);
+    }
+
+    private Session toSession(SessionDTO dto) {
+        List<SubVenue> subVenues = dto.getSubVenues() == null ? Collections.emptyList()
+                : dto.getSubVenues().stream().map(this::toSubVenue).collect(Collectors.toList());
+        return new Session(
+                dto.getSessionName(),
+                dto.getStartTime() != null ? dto.getStartTime() : java.time.LocalTime.MIDNIGHT,
+                dto.getEndTime() != null ? dto.getEndTime() : java.time.LocalTime.of(23, 59),
+                subVenues
+        );
+    }
+
+    private SubVenue toSubVenue(SubVenueDTO dto) {
+        List<Topic> topics = dto.getTopics() == null ? Collections.emptyList()
+                : dto.getTopics().stream().map(this::toTopic).collect(Collectors.toList());
+        return new SubVenue(dto.getSubVenueName(), topics);
+    }
+
+    private Topic toTopic(TopicDTO dto) {
+        return new Topic(dto.getTitle(), dto.getTopicIntro(), dto.getInvolvedProducts(), dto.getGuests());
+    }
+
+    private List<ScheduleDayDTO> toScheduleDayDTOs(List<ScheduleDay> days) {
+        if (days == null || days.isEmpty()) return Collections.emptyList();
+        return days.stream().map(this::toScheduleDayDTO).collect(Collectors.toList());
+    }
+
+    private ScheduleDayDTO toScheduleDayDTO(ScheduleDay day) {
+        ScheduleDayDTO dto = new ScheduleDayDTO();
+        dto.setScheduleDate(day.getScheduleDate());
+        dto.setDayLabel(day.getDayLabel());
+        dto.setSessions(day.getSessions().stream().map(this::toSessionDTO).collect(Collectors.toList()));
+        return dto;
+    }
+
+    private SessionDTO toSessionDTO(Session s) {
+        SessionDTO dto = new SessionDTO();
+        dto.setSessionName(s.getSessionName());
+        dto.setStartTime(s.getStartTime());
+        dto.setEndTime(s.getEndTime());
+        dto.setSubVenues(s.getSubVenues().stream().map(this::toSubVenueDTO).collect(Collectors.toList()));
+        return dto;
+    }
+
+    private SubVenueDTO toSubVenueDTO(SubVenue v) {
+        SubVenueDTO dto = new SubVenueDTO();
+        dto.setSubVenueName(v.getSubVenueName());
+        dto.setTopics(v.getTopics().stream().map(this::toTopicDTO).collect(Collectors.toList()));
+        return dto;
+    }
+
+    private TopicDTO toTopicDTO(Topic t) {
+        TopicDTO dto = new TopicDTO();
+        dto.setTitle(t.getTitle());
+        dto.setTopicIntro(t.getTopicIntro());
+        dto.setInvolvedProducts(t.getInvolvedProducts());
+        dto.setGuests(t.getGuests());
+        return dto;
+    }
+
     private MeetingDTO toMeetingDTO(Meeting meeting) {
         MeetingDTO dto = new MeetingDTO();
         dto.setId(meeting.getId());
@@ -147,6 +391,18 @@ public class MeetingApplicationService {
         dto.setEndTime(meeting.getEndTime());
         dto.setStatus(meeting.getStatus().name());
         dto.setMaxParticipants(meeting.getMaxParticipants());
+        dto.setOrganizer(meeting.getOrganizer());
+        dto.setFormat(meeting.getFormat() != null ? meeting.getFormat().name() : null);
+        dto.setScene(meeting.getScene());
+        dto.setVenue(meeting.getVenue());
+        dto.setRegions(meeting.getRegions());
+        dto.setCoverImage(meeting.getCoverImage());
+        dto.setTags(meeting.getTags());
+        dto.setTargetAudience(meeting.getTargetAudience());
+        dto.setIsPremium(meeting.getIsPremium());
+        dto.setTakedownReason(meeting.getTakedownReason());
+        dto.setRejectReason(meeting.getRejectReason());
+        dto.setScheduleDays(toScheduleDayDTOs(meeting.getScheduleDays()));
         return dto;
     }
 

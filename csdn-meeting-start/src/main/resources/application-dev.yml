@@ -1,0 +1,11 @@
+# 开发环境配置 - 本地 MySQL (docker-compose 或本地安装)
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/csdn_meeting?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+
+  jpa:
+    hibernate:
+      ddl-auto: none   # 由 Flyway 管理 schema
+    show-sql: true

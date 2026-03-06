@@ -5,6 +5,7 @@ public class ApiResponse<T> {
     private int code;
     private String message;
     private T data;
+    private String field;
 
     public static <T> ApiResponse<T> success(T data) {
         ApiResponse<T> response = new ApiResponse<>();
@@ -18,6 +19,14 @@ public class ApiResponse<T> {
         ApiResponse<T> response = new ApiResponse<>();
         response.setCode(code);
         response.setMessage(message);
+        return response;
+    }
+
+    public static <T> ApiResponse<T> error(int code, String message, String field) {
+        ApiResponse<T> response = new ApiResponse<>();
+        response.setCode(code);
+        response.setMessage(message);
+        response.setField(field);
         return response;
     }
 
@@ -43,5 +52,13 @@ public class ApiResponse<T> {
 
     public void setData(T data) {
         this.data = data;
+    }
+
+    public String getField() {
+        return field;
+    }
+
+    public void setField(String field) {
+        this.field = field;
     }
 }

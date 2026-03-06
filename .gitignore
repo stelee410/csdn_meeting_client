@@ -1,3 +1,7 @@
+#cursor ignore
+.cursor/
+.cursorrules
+
 # Compiled class file
 *.class
 
