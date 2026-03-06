@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.csdn.meeting.infrastructure.repository.mapper.MeetingSearchMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="MeetingResultMap" type="com.csdn.meeting.infrastructure.po.MeetingPO">
+        <id column="id" property="id"/>
+        <result column="meeting_id" property="meetingId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="poster_url" property="posterUrl"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="creator_name" property="creatorName"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="status" property="status"/>
+        <result column="format" property="format"/>
+        <result column="meeting_type" property="meetingType"/>
+        <result column="scene" property="scene"/>
+        <result column="city_code" property="cityCode"/>
+        <result column="city_name" property="cityName"/>
+        <result column="venue" property="venue"/>
+        <result column="hot_score" property="hotScore"/>
+        <result column="current_participants" property="currentParticipants"/>
+        <result column="max_participants" property="maxParticipants"/>
+        <result column="organizer_id" property="organizerId"/>
+        <result column="organizer_name" property="organizerName"/>
+        <result column="organizer_avatar" property="organizerAvatar"/>
+        <result column="create_time" property="createTime"/>
+        <result column="create_by" property="createBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <!-- 分页查询会议列表（支持多维度筛选） -->
+    <select id="selectMeetingList" resultMap="MeetingResultMap">
+        SELECT
+            m.*
+        FROM t_meeting m
+        <where>
+            <!-- 只展示已发布、进行中、已结束的会议 -->
+            m.status IN ('PUBLISHED', 'ONGOING', 'ENDED')
+            AND m.is_deleted = 0
+
+            <!-- 会议形式筛选 -->
+            <if test="format != null">
+                AND m.format = #{format}
+            </if>
+
+            <!-- 会议类型筛选 -->
+            <if test="meetingType != null">
+                AND m.meeting_type = #{meetingType}
+            </if>
+
+            <!-- 会议场景筛选 -->
+            <if test="scene != null">
+                AND m.scene = #{scene}
+            </if>
+
+            <!-- 召开时间范围筛选 -->
+            <if test="startTimeFrom != null and startTimeFrom != ''">
+                AND m.start_time &gt;= #{startTimeFrom}
+            </if>
+            <if test="startTimeTo != null and startTimeTo != ''">
+                AND m.start_time &lt;= #{startTimeTo}
+            </if>
+
+            <!-- 关键词搜索（标题、标签、主办方） -->
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    m.title LIKE CONCAT('%', #{keyword}, '%')
+                    OR m.description LIKE CONCAT('%', #{keyword}, '%')
+                    OR m.organizer_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR m.city_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR EXISTS (
+                        SELECT 1 FROM t_meeting_tag mt
+                        INNER JOIN t_tag t ON mt.tag_id = t.id
+                        WHERE mt.meeting_id = m.meeting_id
+                          AND mt.is_deleted = 0
+                          AND t.is_deleted = 0
+                          AND t.tag_name LIKE CONCAT('%', #{keyword}, '%')
+                    )
+                )
+            </if>
+        </where>
+        <!-- 排序：热度降序 > 开始时间降序 -->
+        ORDER BY m.hot_score DESC, m.start_time DESC, m.id DESC
+    </select>
+
+    <!-- 根据会议ID查询详情 -->
+    <select id="selectByMeetingId" resultMap="MeetingResultMap">
+        SELECT * FROM t_meeting
+        WHERE meeting_id = #{meetingId}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 增加会议热度分数 -->
+    <update id="incrementHotScore">
+        UPDATE t_meeting
+        SET hot_score = hot_score + #{score},
+            update_time = NOW()
+        WHERE meeting_id = #{meetingId}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 更新当前报名人数 -->
+    <update id="updateCurrentParticipants">
+        UPDATE t_meeting
+        SET current_participants = current_participants + #{delta},
+            update_time = NOW()
+        WHERE meeting_id = #{meetingId}
+          AND is_deleted = 0
+    </update>
+
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.csdn.meeting.infrastructure.repository.mapper.UserTagSubscribeMapper">
+
+    <!-- 分页查询用户订阅的标签 -->
+    <select id="selectPageByUserId" resultType="com.csdn.meeting.infrastructure.po.UserTagSubscribePO">
+        SELECT * FROM t_user_tag_subscribe
+        WHERE user_id = #{userId} AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据标签ID列表查询订阅用户ID（去重） -->
+    <select id="selectUserIdsByTagIds" resultType="java.lang.Long">
+        SELECT DISTINCT user_id FROM t_user_tag_subscribe
+        WHERE tag_id IN
+        <foreach collection="tagIds" item="tagId" open="(" separator="," close=")">
+            #{tagId}
+        </foreach>
+        AND is_deleted = 0
+    </select>
+
+    <!-- 查询用户在给定标签ID列表中已订阅的标签ID -->
+    <select id="selectSubscribedTagIdsByUserIdAndTagIds" resultType="java.lang.Long">
+        SELECT tag_id FROM t_user_tag_subscribe
+        WHERE user_id = #{userId}
+        AND tag_id IN
+        <foreach collection="tagIds" item="tagId" open="(" separator="," close=")">
+            #{tagId}
+        </foreach>
+        AND is_deleted = 0
+    </select>
+
+</mapper>

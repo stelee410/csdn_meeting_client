@@ -1,159 +1,154 @@
 package com.csdn.meeting.infrastructure.po;
 
-import javax.persistence.*;
+import com.baomidou.mybatisplus.annotation.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "t_meeting")
+/**
+ * 会议持久化对象 - MyBatisPlus版本
+ * 对应数据库表 t_meeting
+ */
+@Data
+@TableName("t_meeting")
 public class MeetingPO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "meeting_id", unique = true, nullable = false, length = 20)
+    @TableField("meeting_id")
     private String meetingId;
 
-    @Column(name = "title", nullable = false, length = 200)
+    @TableField("title")
     private String title;
 
-    @Column(name = "description", length = 1000)
+    @TableField("description")
     private String description;
 
-    @Column(name = "creator_id", nullable = false)
+    /**
+     * 海报地址
+     */
+    @TableField("poster_url")
+    private String posterUrl;
+
+    @TableField("creator_id")
     private Long creatorId;
 
-    @Column(name = "creator_name", length = 100)
+    @TableField("creator_name")
     private String creatorName;
 
-    @Column(name = "start_time")
+    @TableField("start_time")
     private LocalDateTime startTime;
 
-    @Column(name = "end_time")
+    @TableField("end_time")
     private LocalDateTime endTime;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 20)
-    private MeetingStatus status;
+    /**
+     * 会议状态：CREATED-已创建, PUBLISHED-已发布, ONGOING-进行中, ENDED-已结束, CANCELLED-已取消
+     */
+    @TableField("status")
+    private String status;
 
-    @Column(name = "max_participants")
+    /**
+     * 会议形式：1-线上, 2-线下, 3-混合
+     */
+    @TableField("format")
+    private Integer format;
+
+    /**
+     * 会议类型：1-技术峰会, 2-技术沙龙, 3-技术研讨会
+     */
+    @TableField("meeting_type")
+    private Integer meetingType;
+
+    /**
+     * 会议场景：1-开发者会议, 2-产业会议, 3-产品发布, 4-区域营销, 5-高校会议
+     */
+    @TableField("scene")
+    private Integer scene;
+
+    /**
+     * 城市编码
+     */
+    @TableField("city_code")
+    private String cityCode;
+
+    /**
+     * 城市名称（冗余存储）
+     */
+    @TableField("city_name")
+    private String cityName;
+
+    /**
+     * 场馆地址
+     */
+    @TableField("venue")
+    private String venue;
+
+    /**
+     * 热度分数
+     */
+    @TableField("hot_score")
+    private Integer hotScore;
+
+    /**
+     * 当前报名人数
+     */
+    @TableField("current_participants")
+    private Integer currentParticipants;
+
+    /**
+     * 最大参与人数
+     */
+    @TableField("max_participants")
     private Integer maxParticipants;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    /**
+     * 主办方ID
+     */
+    @TableField("organizer_id")
+    private Long organizerId;
 
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    /**
+     * 主办方名称
+     */
+    @TableField("organizer_name")
+    private String organizerName;
 
-    public enum MeetingStatus {
-        CREATED, STARTED, ENDED, CANCELLED
-    }
+    /**
+     * 主办方头像
+     */
+    @TableField("organizer_avatar")
+    private String organizerAvatar;
 
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
+    /**
+     * 创建时间
+     */
+    @TableField(value = "create_time", fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
 
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
+    /**
+     * 创建人ID
+     */
+    @TableField(value = "create_by", fill = FieldFill.INSERT)
+    private Long createBy;
 
-    public Long getId() {
-        return id;
-    }
+    /**
+     * 更新时间
+     */
+    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    /**
+     * 更新人ID
+     */
+    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
+    private Long updateBy;
 
-    public String getMeetingId() {
-        return meetingId;
-    }
-
-    public void setMeetingId(String meetingId) {
-        this.meetingId = meetingId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Long getCreatorId() {
-        return creatorId;
-    }
-
-    public void setCreatorId(Long creatorId) {
-        this.creatorId = creatorId;
-    }
-
-    public String getCreatorName() {
-        return creatorName;
-    }
-
-    public void setCreatorName(String creatorName) {
-        this.creatorName = creatorName;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public MeetingStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(MeetingStatus status) {
-        this.status = status;
-    }
-
-    public Integer getMaxParticipants() {
-        return maxParticipants;
-    }
-
-    public void setMaxParticipants(Integer maxParticipants) {
-        this.maxParticipants = maxParticipants;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    /**
+     * 软删除标志：0-未删除, 1-已删除
+     */
+    @TableField(value = "is_deleted", fill = FieldFill.INSERT)
+    @TableLogic
+    private Integer isDeleted;
 }

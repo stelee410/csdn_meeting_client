@@ -9,6 +9,7 @@ import com.csdn.meeting.domain.entity.Participant;
 import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.domain.repository.ParticipantRepository;
 import com.csdn.meeting.domain.service.MeetingDomainService;
+import com.csdn.meeting.domain.valueobject.MeetingStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +43,7 @@ public class MeetingApplicationService {
         meeting.setStartTime(command.getStartTime());
         meeting.setEndTime(command.getEndTime());
         meeting.setMaxParticipants(command.getMaxParticipants());
-        meeting.setStatus(Meeting.MeetingStatus.CREATED);
+        meeting.setStatus(MeetingStatus.CREATED);
 
         Meeting savedMeeting = meetingRepository.save(meeting);
         return toMeetingDTO(savedMeeting);
@@ -53,7 +54,7 @@ public class MeetingApplicationService {
         Meeting meeting = meetingRepository.findByMeetingId(command.getMeetingId())
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + command.getMeetingId()));
 
-        if (meeting.getStatus() == Meeting.MeetingStatus.ENDED || meeting.getStatus() == Meeting.MeetingStatus.CANCELLED) {
+        if (meeting.getStatus() == MeetingStatus.ENDED || meeting.getStatus() == MeetingStatus.CANCELLED) {
             throw new IllegalStateException("会议已结束或已取消");
         }
 

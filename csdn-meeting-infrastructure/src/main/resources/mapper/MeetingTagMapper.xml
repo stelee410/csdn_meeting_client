@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.csdn.meeting.infrastructure.repository.mapper.MeetingTagMapper">
+
+    <!-- 批量插入会议标签关联 -->
+    <insert id="batchInsert">
+        INSERT INTO t_meeting_tag (meeting_id, tag_id, create_time, create_by, update_time, update_by, is_deleted)
+        VALUES
+        <foreach collection="meetingTags" item="item" separator=",">
+            (#{item.meetingId}, #{item.tagId}, #{item.createTime}, #{item.createBy}, #{item.updateTime}, #{item.updateBy}, #{item.isDeleted})
+        </foreach>
+    </insert>
+
+    <!-- 根据会议ID删除所有标签关联（软删除） -->
+    <update id="deleteByMeetingId">
+        UPDATE t_meeting_tag
+        SET is_deleted = 1,
+            update_time = NOW()
+        WHERE meeting_id = #{meetingId}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 根据会议ID列表批量查询标签关联 -->
+    <select id="selectByMeetingIds" resultType="com.csdn.meeting.infrastructure.po.MeetingTagPO">
+        SELECT * FROM t_meeting_tag
+        WHERE meeting_id IN
+        <foreach collection="meetingIds" item="meetingId" open="(" separator="," close=")">
+            #{meetingId}
+        </foreach>
+        AND is_deleted = 0
+    </select>
+
+    <!-- 按标签分组统计指定标签列表下、指定时间之后新增的会议数量 -->
+    <select id="countNewMeetingsByTagIdsSince" resultType="com.csdn.meeting.infrastructure.po.TagNewMeetingCountPO">
+        SELECT
+            mt.tag_id AS tagId,
+            COUNT(DISTINCT mt.meeting_id) AS newMeetingCount
+        FROM t_meeting_tag mt
+        INNER JOIN t_meeting m ON mt.meeting_id = m.meeting_id AND m.is_deleted = 0
+        WHERE mt.tag_id IN
+        <foreach collection="tagIds" item="tagId" open="(" separator="," close=")">
+            #{tagId}
+        </foreach>
+        AND mt.is_deleted = 0
+        AND m.create_time &gt;= #{since}
+        GROUP BY mt.tag_id
+    </select>
+
+</mapper>

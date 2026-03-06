@@ -1,92 +1,84 @@
 package com.csdn.meeting.infrastructure.repository.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.repository.MeetingRepository;
+import com.csdn.meeting.infrastructure.converter.MeetingConverter;
 import com.csdn.meeting.infrastructure.po.MeetingPO;
-import com.csdn.meeting.infrastructure.repository.MeetingJpaRepository;
+import com.csdn.meeting.infrastructure.repository.mapper.MeetingBaseMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * 会议仓储实现（MyBatisPlus版本）
+ * 用于与原有Meeting实体的兼容
+ */
 @Repository
 public class MeetingRepositoryImpl implements MeetingRepository {
 
-    private final MeetingJpaRepository jpaRepository;
+    private final MeetingBaseMapper meetingBaseMapper;
 
-    public MeetingRepositoryImpl(MeetingJpaRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public MeetingRepositoryImpl(MeetingBaseMapper meetingBaseMapper) {
+        this.meetingBaseMapper = meetingBaseMapper;
     }
 
     @Override
     public Meeting save(Meeting meeting) {
-        MeetingPO po = toPO(meeting);
-        MeetingPO saved = jpaRepository.save(po);
-        return toEntity(saved);
+        MeetingPO po = MeetingConverter.INSTANCE.entityToPo(meeting);
+        if (po.getId() == null) {
+            meetingBaseMapper.insert(po);
+        } else {
+            meetingBaseMapper.updateById(po);
+        }
+        return MeetingConverter.INSTANCE.poToEntity(po);
     }
 
     @Override
     public Optional<Meeting> findById(Long id) {
-        return jpaRepository.findById(id).map(this::toEntity);
+        MeetingPO po = meetingBaseMapper.selectById(id);
+        return Optional.ofNullable(po).map(MeetingConverter.INSTANCE::poToEntity);
     }
 
     @Override
     public Optional<Meeting> findByMeetingId(String meetingId) {
-        return jpaRepository.findByMeetingId(meetingId).map(this::toEntity);
+        LambdaQueryWrapper<MeetingPO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(MeetingPO::getMeetingId, meetingId)
+                .eq(MeetingPO::getIsDeleted, 0);
+        MeetingPO po = meetingBaseMapper.selectOne(wrapper);
+        return Optional.ofNullable(po).map(MeetingConverter.INSTANCE::poToEntity);
     }
 
     @Override
     public List<Meeting> findByCreatorId(Long creatorId) {
-        return jpaRepository.findByCreatorId(creatorId).stream()
-                .map(this::toEntity)
+        LambdaQueryWrapper<MeetingPO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(MeetingPO::getCreatorId, creatorId)
+                .eq(MeetingPO::getIsDeleted, 0);
+        List<MeetingPO> poList = meetingBaseMapper.selectList(wrapper);
+        return poList.stream()
+                .map(MeetingConverter.INSTANCE::poToEntity)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<Meeting> findAll() {
-        return jpaRepository.findAll().stream()
-                .map(this::toEntity)
+        List<MeetingPO> poList = meetingBaseMapper.selectList(
+                new LambdaQueryWrapper<MeetingPO>().eq(MeetingPO::getIsDeleted, 0)
+        );
+        return poList.stream()
+                .map(MeetingConverter.INSTANCE::poToEntity)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(Long id) {
-        jpaRepository.deleteById(id);
+        meetingBaseMapper.deleteById(id);
     }
 
     @Override
     public void delete(Meeting meeting) {
-        jpaRepository.deleteById(meeting.getId());
-    }
-
-    private MeetingPO toPO(Meeting meeting) {
-        MeetingPO po = new MeetingPO();
-        po.setId(meeting.getId());
-        po.setMeetingId(meeting.getMeetingId());
-        po.setTitle(meeting.getTitle());
-        po.setDescription(meeting.getDescription());
-        po.setCreatorId(meeting.getCreatorId());
-        po.setCreatorName(meeting.getCreatorName());
-        po.setStartTime(meeting.getStartTime());
-        po.setEndTime(meeting.getEndTime());
-        po.setStatus(MeetingPO.MeetingStatus.valueOf(meeting.getStatus().name()));
-        po.setMaxParticipants(meeting.getMaxParticipants());
-        return po;
-    }
-
-    private Meeting toEntity(MeetingPO po) {
-        Meeting meeting = new Meeting();
-        meeting.setId(po.getId());
-        meeting.setMeetingId(po.getMeetingId());
-        meeting.setTitle(po.getTitle());
-        meeting.setDescription(po.getDescription());
-        meeting.setCreatorId(po.getCreatorId());
-        meeting.setCreatorName(po.getCreatorName());
-        meeting.setStartTime(po.getStartTime());
-        meeting.setEndTime(po.getEndTime());
-        meeting.setStatus(Meeting.MeetingStatus.valueOf(po.getStatus().name()));
-        meeting.setMaxParticipants(po.getMaxParticipants());
-        return meeting;
+        meetingBaseMapper.deleteById(meeting.getId());
     }
 }

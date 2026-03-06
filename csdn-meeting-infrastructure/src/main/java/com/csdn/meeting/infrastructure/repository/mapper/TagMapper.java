@@ -1,0 +1,40 @@
+package com.csdn.meeting.infrastructure.repository.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.csdn.meeting.infrastructure.po.TagPO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
+
+/**
+ * 标签Mapper接口
+ */
+@Mapper
+public interface TagMapper extends BaseMapper<TagPO> {
+
+    /**
+     * 根据会议ID查询关联的标签列表
+     */
+    @Select("SELECT t.* FROM t_tag t " +
+            "INNER JOIN t_meeting_tag mt ON t.id = mt.tag_id " +
+            "WHERE mt.meeting_id = #{meetingId} AND mt.is_deleted = 0 AND t.is_deleted = 0")
+    List<TagPO> selectByMeetingId(@Param("meetingId") String meetingId);
+
+    /**
+     * 根据标签名称查询标签
+     */
+    @Select("SELECT * FROM t_tag WHERE tag_name = #{tagName} AND is_deleted = 0 LIMIT 1")
+    TagPO selectByTagName(@Param("tagName") String tagName);
+
+    /**
+     * 根据标签名称列表批量查询
+     */
+    List<TagPO> selectByTagNamesIn(@Param("tagNames") List<String> tagNames);
+
+    /**
+     * 批量插入或更新标签（忽略重复）
+     */
+    int batchInsertOrIgnore(@Param("tags") List<TagPO> tags);
+}
