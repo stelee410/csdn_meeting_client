@@ -21,6 +21,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * 会议仓储实现（MyBatisPlus版本）
+ * 用于与原有Meeting实体的兼容
+ */
 @Repository
 public class MeetingRepositoryImpl implements MeetingRepository {
 

@@ -7,8 +7,20 @@ import com.baomidou.mybatisplus.annotation.TableName;
 
 import java.time.LocalDateTime;
 
+/**
+ * 参与者持久化对象 - MyBatisPlus版本
+ * 对应数据库表 t_participant (V4 migration)
+ */
 @TableName("t_participant")
 public class ParticipantPO {
+
+    public enum ParticipantRole {
+        HOST, CO_HOST, ATTENDEE
+    }
+
+    public enum ParticipantStatus {
+        INVITED, JOINED, LEFT, REJECTED
+    }
 
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -33,14 +45,6 @@ public class ParticipantPO {
 
     @TableField("updated_at")
     private LocalDateTime updatedAt;
-
-    public enum ParticipantRole {
-        HOST, CO_HOST, ATTENDEE
-    }
-
-    public enum ParticipantStatus {
-        INVITED, JOINED, LEFT, REJECTED
-    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

@@ -1,7 +1,7 @@
 package com.csdn.meeting.infrastructure.mapper;
 
 import com.csdn.meeting.domain.entity.Meeting;
-import com.csdn.meeting.domain.entity.MeetingFormat;
+import com.csdn.meeting.domain.valueobject.MeetingFormat;
 import com.csdn.meeting.infrastructure.po.MeetingPO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -39,16 +39,11 @@ public interface MeetingMapper {
 
     @Named("formatToString")
     default String formatToString(MeetingFormat format) {
-        return format == null ? null : format.name();
+        return format == null ? null : format.getValue();
     }
 
     @Named("stringToFormat")
     default MeetingFormat stringToFormat(String s) {
-        if (s == null || s.isEmpty()) return null;
-        try {
-            return MeetingFormat.valueOf(s);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        return MeetingFormat.of(s);
     }
 }

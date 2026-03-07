@@ -22,6 +22,7 @@ import com.csdn.meeting.application.service.MyMeetingsUseCase;
 import com.csdn.meeting.application.service.TagSuggestionUseCase;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.Registration;
+import io.swagger.annotations.Api;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,6 +34,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 会议控制器
+ * 提供会议管理、列表查询、筛选、搜索等功能
+ */
+@Api(tags = "会议接口")
 @RestController
 @RequestMapping("/api/meetings")
 public class MeetingController {

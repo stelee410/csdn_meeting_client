@@ -1,25 +1,104 @@
 package com.csdn.meeting.domain.entity;
 
+import com.csdn.meeting.domain.valueobject.MeetingFormat;
+import com.csdn.meeting.domain.valueobject.MeetingType;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 会议实体 - 聚合根
+ */
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class Meeting extends BaseEntity {
 
+    /**
+     * 会议业务ID
+     */
     private String meetingId;
+
+    /**
+     * 会议标题
+     */
     private String title;
+
+    /**
+     * 会议描述
+     */
     private String description;
+
+    /**
+     * 海报地址
+     */
+    private String posterUrl;
+
+    /**
+     * 创建人ID
+     */
     private Long creatorId;
+
+    /**
+     * 创建人名称
+     */
     private String creatorName;
+
+    /**
+     * 开始时间
+     */
     private LocalDateTime startTime;
+
+    /**
+     * 结束时间
+     */
     private LocalDateTime endTime;
+
+    /**
+     * 会议状态
+     */
     private MeetingStatus status;
+
+    /**
+     * 会议形式：ONLINE/OFFLINE/HYBRID
+     */
+    private MeetingFormat format;
+
+    /**
+     * 会议类型：SUMMIT/SALON/WORKSHOP
+     */
+    private MeetingType meetingType;
+
+    /**
+     * 城市编码
+     */
+    private String cityCode;
+
+    /**
+     * 城市名称
+     */
+    private String cityName;
+
+    /**
+     * 热度分数
+     */
+    private Integer hotScore;
+
+    /**
+     * 当前报名人数
+     */
+    private Integer currentParticipants;
+
+    /**
+     * 最大参与人数
+     */
     private Integer maxParticipants;
 
     // 新增字段（agent.prd §1.1）
     private String organizer;
-    private MeetingFormat format;
     private String scene;
     private String venue;
     private String regions;           // JSON
@@ -51,6 +130,24 @@ public class Meeting extends BaseEntity {
 
         public int getCode() {
             return code;
+        }
+
+        public boolean isVisibleInList() {
+            return this == PUBLISHED || this == IN_PROGRESS || this == ENDED;
+        }
+
+        public String getDisplayName() {
+            switch (this) {
+                case DRAFT: return "草稿";
+                case PENDING_REVIEW: return "待审核";
+                case PUBLISHED: return "已发布";
+                case IN_PROGRESS: return "进行中";
+                case ENDED: return "已结束";
+                case REJECTED: return "已拒绝";
+                case OFFLINE: return "已下架";
+                case DELETED: return "已删除";
+                default: return name();
+            }
         }
     }
 
@@ -226,78 +323,56 @@ public class Meeting extends BaseEntity {
         }
     }
 
-    // ---- getters / setters ----
-
-    public String getMeetingId() {
-        return meetingId;
+    /**
+     * 增加报名人数
+     */
+    public void incrementParticipants() {
+        if (this.currentParticipants == null) {
+            this.currentParticipants = 0;
+        }
+        if (this.maxParticipants != null && this.currentParticipants >= this.maxParticipants) {
+            throw new IllegalStateException("报名人数已满");
+        }
+        this.currentParticipants++;
     }
 
-    public void setMeetingId(String meetingId) {
-        this.meetingId = meetingId;
+    /**
+     * 减少报名人数
+     */
+    public void decrementParticipants() {
+        if (this.currentParticipants != null && this.currentParticipants > 0) {
+            this.currentParticipants--;
+        }
     }
 
-    public String getTitle() {
-        return title;
+    /**
+     * 获取报名进度显示
+     */
+    public String getParticipantsDisplay() {
+        if (this.currentParticipants == null || this.maxParticipants == null) {
+            return "";
+        }
+        return String.format("%d / %d 人", this.currentParticipants, this.maxParticipants);
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    /**
+     * 获取热度显示
+     */
+    public String getHotScoreDisplay() {
+        if (this.hotScore == null || this.hotScore == 0) {
+            return "";
+        }
+        if (this.hotScore >= 1000) {
+            return String.format("%.1fk人感兴趣", this.hotScore / 1000.0);
+        }
+        return this.hotScore + "人感兴趣";
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Long getCreatorId() {
-        return creatorId;
-    }
-
-    public void setCreatorId(Long creatorId) {
-        this.creatorId = creatorId;
-    }
-
-    public String getCreatorName() {
-        return creatorName;
-    }
-
-    public void setCreatorName(String creatorName) {
-        this.creatorName = creatorName;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    public MeetingStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(MeetingStatus status) {
-        this.status = status;
-    }
-
-    public Integer getMaxParticipants() {
-        return maxParticipants;
-    }
-
-    public void setMaxParticipants(Integer maxParticipants) {
-        this.maxParticipants = maxParticipants;
+    /**
+     * 是否可以在列表中展示
+     */
+    public boolean isVisibleInList() {
+        return this.status != null && this.status.isVisibleInList();
     }
 
     public String getOrganizer() {

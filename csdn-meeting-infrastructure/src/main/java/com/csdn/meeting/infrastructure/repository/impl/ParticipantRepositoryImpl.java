@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * 参与者仓储实现（MyBatisPlus版本）
+ */
 @Repository
 public class ParticipantRepositoryImpl implements ParticipantRepository {
 
