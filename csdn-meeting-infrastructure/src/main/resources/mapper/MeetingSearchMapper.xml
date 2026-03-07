@@ -67,9 +67,6 @@
             <if test="keyword != null and keyword != ''">
                 AND (
                     m.title LIKE CONCAT('%', #{keyword}, '%')
-                    OR m.description LIKE CONCAT('%', #{keyword}, '%')
-                    OR m.organizer_name LIKE CONCAT('%', #{keyword}, '%')
-                    OR m.city_name LIKE CONCAT('%', #{keyword}, '%')
                     OR EXISTS (
                         SELECT 1 FROM t_meeting_tag mt
                         INNER JOIN t_tag t ON mt.tag_id = t.id
@@ -78,6 +75,8 @@
                           AND t.is_deleted = 0
                           AND t.tag_name LIKE CONCAT('%', #{keyword}, '%')
                     )
+                    OR m.organizer_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR m.description LIKE CONCAT('%', #{keyword}, '%')
                 )
             </if>
         </where>
