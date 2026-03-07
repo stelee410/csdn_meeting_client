@@ -180,7 +180,7 @@ public class MeetingController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Registration.RegistrationStatus regStatus = null;
-        if (status != null && !status.isBlank()) {
+        if (status != null && !status.trim().isEmpty()) {
             try {
                 regStatus = Registration.RegistrationStatus.valueOf(status.toUpperCase());
             } catch (IllegalArgumentException ignored) {
@@ -247,7 +247,7 @@ public class MeetingController {
     public ResponseEntity<MeetingDTO> reject(@PathVariable Long id, @RequestBody ReasonRequest request) {
         ensureAdmin();
         String reason = request != null ? request.getReason() : null;
-        if (reason == null || reason.isBlank()) {
+        if (reason == null || reason.trim().isEmpty()) {
             throw new IllegalArgumentException("拒绝原因不能为空");
         }
         MeetingDTO meeting = meetingApplicationService.reject(String.valueOf(id), reason);
@@ -258,7 +258,7 @@ public class MeetingController {
     @PostMapping("/{id}/takedown")
     public ResponseEntity<MeetingDTO> takedown(@PathVariable Long id, @RequestBody ReasonRequest request) {
         String reason = request != null ? request.getReason() : null;
-        if (reason == null || reason.isBlank()) {
+        if (reason == null || reason.trim().isEmpty()) {
             throw new IllegalArgumentException("下架原因不能为空");
         }
         MeetingDTO meeting = meetingApplicationService.takedown(String.valueOf(id), reason);

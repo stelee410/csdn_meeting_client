@@ -199,7 +199,7 @@ public class Meeting extends BaseEntity {
             throw new IllegalStateException(
                 "只有待审核状态才能审核拒绝，当前状态: " + this.status);
         }
-        if (reason == null || reason.isBlank()) {
+        if (reason == null || reason.trim().isEmpty()) {
             throw new IllegalArgumentException("拒绝原因不能为空");
         }
         this.rejectReason = reason;
@@ -230,7 +230,7 @@ public class Meeting extends BaseEntity {
             throw new IllegalStateException(
                 "只有已发布或进行中状态才能下架，当前状态: " + this.status);
         }
-        if (reason == null || reason.isBlank()) {
+        if (reason == null || reason.trim().isEmpty()) {
             throw new IllegalArgumentException("下架原因不能为空");
         }
         this.takedownReason = reason;

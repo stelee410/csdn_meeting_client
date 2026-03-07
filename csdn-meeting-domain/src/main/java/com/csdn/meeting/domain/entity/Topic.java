@@ -41,6 +41,6 @@ public class Topic implements Serializable {
     }
 
     public boolean hasValidTitle() {
-        return title != null && !title.isBlank();
+        return title != null && !title.trim().isEmpty();
     }
 }

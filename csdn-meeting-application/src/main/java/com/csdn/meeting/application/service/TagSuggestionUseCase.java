@@ -40,7 +40,7 @@ public class TagSuggestionUseCase {
                 return new TagSuggestionDTO(new java.util.ArrayList<>(FALLBACK_TAGS));
             }
             List<String> tags = suggested.stream()
-                    .filter(t -> t != null && !t.isBlank())
+                    .filter(t -> t != null && !t.trim().isEmpty())
                     .limit(5)
                     .collect(Collectors.toList());
             if (tags.size() < 3) {

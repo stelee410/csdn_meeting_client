@@ -46,7 +46,7 @@ public class MeetingApplicationService {
      */
     @Transactional
     public MeetingDTO createDraft(CreateMeetingCommand command) {
-        if (command.getTitle() == null || command.getTitle().isBlank()) {
+        if (command.getTitle() == null || command.getTitle().trim().isEmpty()) {
             throw new IllegalArgumentException("会议标题不能为空");
         }
         Meeting meeting = new Meeting();
@@ -307,7 +307,7 @@ public class MeetingApplicationService {
     }
 
     private MeetingFormat parseFormat(String format) {
-        if (format == null || format.isBlank()) return null;
+        if (format == null || format.trim().isEmpty()) return null;
         try {
             return MeetingFormat.valueOf(format.toUpperCase());
         } catch (IllegalArgumentException e) {

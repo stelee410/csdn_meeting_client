@@ -127,7 +127,7 @@ public class AIParsingUseCase {
     }
 
     private boolean isFilled(String s) {
-        return s != null && !s.isBlank();
+        return s != null && !s.trim().isEmpty();
     }
 
     private MeetingDTO toMeetingDTO(AIParseResult r) {
