@@ -5,6 +5,7 @@ import com.csdn.meeting.application.utils.TimeRangeCalculator;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.domain.repository.MeetingSearchRepository;
+import com.csdn.meeting.domain.repository.PageResult;
 import com.csdn.meeting.domain.valueobject.MeetingFormat;
 import com.csdn.meeting.domain.valueobject.MeetingScene;
 import com.csdn.meeting.domain.valueobject.MeetingTypeEnum;
@@ -66,27 +67,18 @@ public class MeetingListUseCase {
         LocalDateTime startTimeFrom = timeRange != null ? timeRange[0] : null;
         LocalDateTime startTimeTo = timeRange != null ? timeRange[1] : null;
 
-        // 查询数据
-        List<Meeting> meetings = meetingSearchRepository.findMeetingList(
+        // 一次分页查询（MyBatis-Plus IPage 返回列表 + 总数）
+        PageResult<Meeting> pageResult = meetingSearchRepository.findMeetingList(
                 formatCode, typeCode, sceneCode,
                 startTimeFrom, startTimeTo,
                 query.getKeyword(),
-                query.getPage(), query.getSize()
-        );
+                query.getPage(), query.getSize());
 
-        // 查询总数
-        long total = meetingSearchRepository.countMeetingList(
-                formatCode, typeCode, sceneCode,
-                startTimeFrom, startTimeTo,
-                query.getKeyword()
-        );
-
-        // 转换结果
-        if (meetings.isEmpty()) {
+        if (pageResult.getContent().isEmpty()) {
             return MeetingListResultDTO.empty(query.getViewMode(), "暂无相关会议，可进入感兴趣的会议详情页订阅标签获取推送");
         }
 
-        return buildResult(query, meetings, total);
+        return buildResult(query, pageResult);
     }
 
     /**
@@ -141,18 +133,16 @@ public class MeetingListUseCase {
     /**
      * 构建查询结果
      */
-    private MeetingListResultDTO<?> buildResult(MeetingListQueryDTO query,
-                                                List<Meeting> meetings,
-                                                long total) {
+    private MeetingListResultDTO<?> buildResult(MeetingListQueryDTO query, PageResult<Meeting> pageResult) {
         MeetingListResultDTO<Object> result = new MeetingListResultDTO<>();
-        result.setTotal(total);
-        result.setPage(query.getPage());
-        result.setSize(query.getSize());
-        result.setTotalPages((int) Math.ceil((double) total / query.getSize()));
+        result.setTotal(pageResult.getTotalElements());
+        result.setPage(pageResult.getPage());
+        result.setSize(pageResult.getSize());
+        result.setTotalPages(pageResult.getTotalPages());
         result.setViewMode(query.getViewMode());
         result.setEmpty(false);
 
-        // 根据视图模式转换数据
+        List<Meeting> meetings = pageResult.getContent();
         if (query.isListView()) {
             List<MeetingListItemDTO> items = meetings.stream()
                     .map(this::toListItemDTO)

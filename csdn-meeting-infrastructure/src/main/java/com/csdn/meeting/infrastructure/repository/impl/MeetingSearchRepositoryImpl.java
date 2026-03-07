@@ -1,8 +1,10 @@
 package com.csdn.meeting.infrastructure.repository.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.repository.MeetingSearchRepository;
+import com.csdn.meeting.domain.repository.PageResult;
 import com.csdn.meeting.infrastructure.converter.MeetingConverter;
 import com.csdn.meeting.infrastructure.po.MeetingPO;
 import com.csdn.meeting.infrastructure.po.TagNewMeetingCountPO;
@@ -20,6 +22,7 @@ import java.util.stream.Collectors;
 
 /**
  * 会议搜索仓储实现
+ * 使用 MyBatis-Plus IPage 分页插件，一次查询返回列表与总数，避免二次 count 查询
  */
 @Repository
 public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
@@ -40,41 +43,25 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
     }
 
     @Override
-    public List<Meeting> findMeetingList(Integer format, Integer meetingType, Integer scene,
-                                          LocalDateTime startTimeFrom, LocalDateTime startTimeTo,
-                                          String keyword, int page, int size) {
-        Page<MeetingPO> pageParam = new Page<>(page, size);
-
-        // 转换时间格式
+    public PageResult<Meeting> findMeetingList(Integer format, Integer meetingType, Integer scene,
+                                                LocalDateTime startTimeFrom, LocalDateTime startTimeTo,
+                                                String keyword, int page, int size) {
+        // MyBatis-Plus Page 当前页从 1 开始，应用层 page 从 0 开始
+        Page<MeetingPO> pageParam = new Page<>(page + 1L, size);
         String startTimeFromStr = formatDateTime(startTimeFrom);
         String startTimeToStr = formatDateTime(startTimeTo);
 
-        Page<MeetingPO> resultPage = meetingSearchMapper.selectMeetingList(
+        IPage<MeetingPO> resultPage = meetingSearchMapper.selectMeetingList(
                 pageParam, format, meetingType, scene, startTimeFromStr, startTimeToStr, keyword);
 
-        return resultPage.getRecords().stream()
+        List<Meeting> content = resultPage.getRecords().stream()
                 .map(MeetingConverter.INSTANCE::poToEntity)
                 .collect(Collectors.toList());
+        return new PageResult<>(content, resultPage.getTotal(), page, size);
     }
 
     @Override
-    public long countMeetingList(Integer format, Integer meetingType, Integer scene,
-                                 LocalDateTime startTimeFrom, LocalDateTime startTimeTo,
-                                 String keyword) {
-        // 使用分页查询获取总数
-        Page<MeetingPO> pageParam = new Page<>(1, 1);
-        String startTimeFromStr = formatDateTime(startTimeFrom);
-        String startTimeToStr = formatDateTime(startTimeTo);
-
-        Page<MeetingPO> resultPage = meetingSearchMapper.selectMeetingList(
-                pageParam, format, meetingType, scene, startTimeFromStr, startTimeToStr, keyword);
-
-        return resultPage.getTotal();
-    }
-
-    @Override
-    public List<Meeting> searchByKeyword(String keyword, int page, int size) {
-        // 搜索时只传keyword，其他筛选条件为null
+    public PageResult<Meeting> searchByKeyword(String keyword, int page, int size) {
         return findMeetingList(null, null, null, null, null, keyword, page, size);
     }
 

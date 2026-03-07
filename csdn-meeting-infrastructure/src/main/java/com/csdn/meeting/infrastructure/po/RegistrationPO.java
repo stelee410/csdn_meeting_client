@@ -1,9 +1,6 @@
 package com.csdn.meeting.infrastructure.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -46,6 +43,13 @@ public class RegistrationPO {
     @TableField("audit_remark")
     private String auditRemark;
 
+    /**
+     * 软删除标志：0-未删除, 1-已删除
+     */
+    @TableField(value = "is_deleted", fill = FieldFill.INSERT)
+    @TableLogic
+    private Integer isDeleted;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getMeetingId() { return meetingId; }
@@ -70,4 +74,6 @@ public class RegistrationPO {
     public void setAuditedAt(LocalDateTime auditedAt) { this.auditedAt = auditedAt; }
     public String getAuditRemark() { return auditRemark; }
     public void setAuditRemark(String auditRemark) { this.auditRemark = auditRemark; }
+    public Integer getIsDeleted() { return isDeleted; }
+    public void setIsDeleted(Integer isDeleted) { this.isDeleted = isDeleted; }
 }

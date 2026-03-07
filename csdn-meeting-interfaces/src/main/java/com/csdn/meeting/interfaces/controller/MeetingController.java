@@ -27,7 +27,6 @@ import com.csdn.meeting.application.service.TagSuggestionUseCase;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.Registration;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -337,17 +336,9 @@ public class MeetingController {
 
     /**
      * 会议列表查询（统一接口，支持筛选、搜索、分页、视图切换）
-     * GET /api/meetings/list?viewMode=card&keyword=Java&format=ONLINE&type=SUMMIT&scene=DEVELOPER&timeRange=THIS_WEEK&page=0&size=20
+     * POST /api/meetings/list，请求体为 JSON，字段同 MeetingListQueryDTO
      *
-     * @param viewMode  视图模式：list（列表视图）| card（阅读视图），默认card
-     * @param keyword   关键词搜索（匹配标题、标签、主办方）
-     * @param format    会议形式筛选：ONLINE/OFFLINE/HYBRID
-     * @param type      会议类型筛选：SUMMIT/SALON/WORKSHOP
-     * @param scene     会议场景筛选：DEVELOPER/INDUSTRY/PRODUCT/REGIONAL/UNIVERSITY
-     * @param timeRange 召开时间范围筛选：THIS_WEEK/THIS_MONTH/NEXT_3_MONTHS
-     * @param page      分页页码，从0开始，默认0
-     * @param size      分页大小，默认20
-     * @param userId    用户ID（可选，用于个性化推荐和埋点）
+     * @param query 查询条件（viewMode、keyword、format、type、scene、timeRange、page、size、userId）
      * @return 会议列表结果
      */
     @Operation(
@@ -356,75 +347,19 @@ public class MeetingController {
                     "筛选条件包括：会议形式（线上/线下/混合）、会议类型（峰会/沙龙/研讨会）、" +
                     "会议场景（开发者/产业/产品/区域/高校）、召开时间（本周/本月/未来三个月）。" +
                     "关键词搜索匹配会议标题、标签、主办方。" +
-                    "视图切换支持card（阅读视图，适合沉浸式浏览）和list（列表视图，适合高效查找）"
+                    "视图切换支持card（阅读视图，适合沉浸式浏览）和list（列表视图，适合高效查找）。" +
+                    "使用 POST 请求，参数放在请求体 JSON 中。"
     )
-    @io.swagger.v3.oas.annotations.Parameter(
-            name = "viewMode",
-            description = "视图模式：card（阅读视图，默认）| list（列表视图）",
-            example = "card"
-    )
-    @io.swagger.v3.oas.annotations.Parameter(
-            name = "keyword",
-            description = "关键词搜索，匹配标题/标签/主办方",
-            example = "Java"
-    )
-    @io.swagger.v3.oas.annotations.Parameter(
-            name = "format",
-            description = "会议形式筛选：ONLINE/OFFLINE/HYBRID",
-            example = "ONLINE"
-    )
-    @io.swagger.v3.oas.annotations.Parameter(
-            name = "type",
-            description = "会议类型筛选：SUMMIT/SALON/WORKSHOP",
-            example = "SUMMIT"
-    )
-    @io.swagger.v3.oas.annotations.Parameter(
-            name = "scene",
-            description = "会议场景筛选：DEVELOPER/INDUSTRY/PRODUCT/REGIONAL/UNIVERSITY",
-            example = "DEVELOPER"
-    )
-    @io.swagger.v3.oas.annotations.Parameter(
-            name = "timeRange",
-            description = "召开时间筛选：THIS_WEEK/THIS_MONTH/NEXT_3_MONTHS",
-            example = "THIS_WEEK"
-    )
-    @io.swagger.v3.oas.annotations.Parameter(
-            name = "page",
-            description = "分页页码，从0开始",
-            example = "0"
-    )
-    @io.swagger.v3.oas.annotations.Parameter(
-            name = "size",
-            description = "分页大小",
-            example = "20"
-    )
-    @io.swagger.v3.oas.annotations.Parameter(
-            name = "userId",
-            description = "用户ID（可选，用于个性化推荐）",
-            example = "12345"
-    )
-    @GetMapping("/list")
+    @PostMapping("/list")
     public ResponseEntity<MeetingListResultDTO<?>> queryMeetingList(
-            @RequestParam(required = false) String viewMode,
-            @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String format,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false) String scene,
-            @RequestParam(required = false) String timeRange,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @RequestParam(required = false) Long userId) {
+            @RequestBody MeetingListQueryDTO query) {
 
-        MeetingListQueryDTO query = new MeetingListQueryDTO();
-        query.setViewMode(viewMode != null ? viewMode : "card");
-        query.setKeyword(keyword);
-        query.setFormat(format);
-        query.setType(type);
-        query.setScene(scene);
-        query.setTimeRange(timeRange);
-        query.setPage(page);
-        query.setSize(size);
-        query.setUserId(userId);
+        if (query.getViewMode() == null) {
+            query.setViewMode("card");
+        }
+        if (query.getSize() == 0) {
+            query.setSize(20);
+        }
 
         MeetingListResultDTO<?> result = meetingListUseCase.queryMeetingList(query);
         return ResponseEntity.ok(result);

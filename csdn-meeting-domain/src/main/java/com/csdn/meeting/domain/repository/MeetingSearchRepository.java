@@ -8,7 +8,7 @@ import java.util.Optional;
 
 /**
  * 会议搜索仓储接口
- * 提供多维度筛选和关键词搜索功能
+ * 提供多维度筛选和关键词搜索功能，分页查询使用 MyBatis-Plus IPage 一次返回列表与总数
  */
 public interface MeetingSearchRepository {
 
@@ -18,23 +18,16 @@ public interface MeetingSearchRepository {
     Optional<Meeting> findByMeetingId(String meetingId);
 
     /**
-     * 分页查询会议列表（支持多维度筛选）
+     * 分页查询会议列表（支持多维度筛选），一次查询返回列表与总数
      */
-    List<Meeting> findMeetingList(Integer format, Integer meetingType, Integer scene,
-                                   LocalDateTime startTimeFrom, LocalDateTime startTimeTo,
-                                   String keyword, int page, int size);
+    PageResult<Meeting> findMeetingList(Integer format, Integer meetingType, Integer scene,
+                                       LocalDateTime startTimeFrom, LocalDateTime startTimeTo,
+                                       String keyword, int page, int size);
 
     /**
-     * 查询会议总数（支持多维度筛选）
+     * 关键词搜索会议（分页）
      */
-    long countMeetingList(Integer format, Integer meetingType, Integer scene,
-                          LocalDateTime startTimeFrom, LocalDateTime startTimeTo,
-                          String keyword);
-
-    /**
-     * 关键词搜索会议
-     */
-    List<Meeting> searchByKeyword(String keyword, int page, int size);
+    PageResult<Meeting> searchByKeyword(String keyword, int page, int size);
 
     /**
      * 增加会议热度

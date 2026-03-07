@@ -1,9 +1,6 @@
 package com.csdn.meeting.infrastructure.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -40,6 +37,13 @@ public class MeetingAgendaItemPO {
     @TableField("created_at")
     private LocalDateTime createdAt;
 
+    /**
+     * 软删除标志：0-未删除, 1-已删除
+     */
+    @TableField(value = "is_deleted", fill = FieldFill.INSERT)
+    @TableLogic
+    private Integer isDeleted;
+
     @TableField(exist = false)
     private List<MeetingAgendaItemPO> children = new ArrayList<>();
 
@@ -59,6 +63,8 @@ public class MeetingAgendaItemPO {
     public void setExtra(String extra) { this.extra = extra; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Integer getIsDeleted() { return isDeleted; }
+    public void setIsDeleted(Integer isDeleted) { this.isDeleted = isDeleted; }
     public List<MeetingAgendaItemPO> getChildren() { return children; }
     public void setChildren(List<MeetingAgendaItemPO> children) { this.children = children != null ? children : new ArrayList<>(); }
 }

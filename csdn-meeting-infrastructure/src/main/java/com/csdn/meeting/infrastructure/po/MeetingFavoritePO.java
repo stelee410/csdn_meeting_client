@@ -1,9 +1,6 @@
 package com.csdn.meeting.infrastructure.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -22,6 +19,13 @@ public class MeetingFavoritePO {
     @TableField("created_at")
     private LocalDateTime createdAt;
 
+    /**
+     * 软删除标志：0-未删除, 1-已删除
+     */
+    @TableField(value = "is_deleted", fill = FieldFill.INSERT)
+    @TableLogic
+    private Integer isDeleted;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getUserId() { return userId; }
@@ -30,4 +34,6 @@ public class MeetingFavoritePO {
     public void setMeetingId(Long meetingId) { this.meetingId = meetingId; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Integer getIsDeleted() { return isDeleted; }
+    public void setIsDeleted(Integer isDeleted) { this.isDeleted = isDeleted; }
 }
