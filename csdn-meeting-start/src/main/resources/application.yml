@@ -5,6 +5,12 @@ spring:
   application:
     name: csdn-meeting-client
 
+  # 国际化配置
+  messages:
+    basename: i18n/meeting-messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+
   datasource:
     url: jdbc:mysql://118.145.66.85:3306/csdn_meeting?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver

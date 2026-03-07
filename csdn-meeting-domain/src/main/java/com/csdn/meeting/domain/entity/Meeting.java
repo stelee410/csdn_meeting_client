@@ -99,6 +99,9 @@ public class Meeting extends BaseEntity {
 
     // 新增字段（agent.prd §1.1）
     private String organizer;
+    private Long organizerId;         // 主办方用户ID
+    private String organizerName;     // 主办方名称
+    private String organizerAvatar;   // 主办方头像URL
     private String scene;
     private String venue;
     private String regions;           // JSON
@@ -381,6 +384,30 @@ public class Meeting extends BaseEntity {
 
     public void setOrganizer(String organizer) {
         this.organizer = organizer;
+    }
+
+    public Long getOrganizerId() {
+        return organizerId;
+    }
+
+    public void setOrganizerId(Long organizerId) {
+        this.organizerId = organizerId;
+    }
+
+    public String getOrganizerName() {
+        return organizerName;
+    }
+
+    public void setOrganizerName(String organizerName) {
+        this.organizerName = organizerName;
+    }
+
+    public String getOrganizerAvatar() {
+        return organizerAvatar;
+    }
+
+    public void setOrganizerAvatar(String organizerAvatar) {
+        this.organizerAvatar = organizerAvatar;
     }
 
     public MeetingFormat getFormat() {

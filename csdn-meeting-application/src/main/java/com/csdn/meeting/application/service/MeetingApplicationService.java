@@ -8,9 +8,11 @@ import com.csdn.meeting.domain.entity.Session;
 import com.csdn.meeting.domain.entity.SubVenue;
 import com.csdn.meeting.domain.entity.Topic;
 import com.csdn.meeting.domain.valueobject.MeetingFormat;
+import com.csdn.meeting.domain.event.MeetingPublishedEvent;
 import com.csdn.meeting.domain.event.MeetingStatusChangedEvent;
 import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.domain.repository.ParticipantRepository;
+import com.csdn.meeting.domain.repository.TagRepository;
 import com.csdn.meeting.domain.service.MeetingDomainService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -29,15 +31,18 @@ public class MeetingApplicationService {
     private final MeetingRepository meetingRepository;
     private final ParticipantRepository participantRepository;
     private final MeetingDomainService meetingDomainService;
+    private final TagRepository tagRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public MeetingApplicationService(MeetingRepository meetingRepository,
                                      ParticipantRepository participantRepository,
                                      MeetingDomainService meetingDomainService,
+                                     TagRepository tagRepository,
                                      ApplicationEventPublisher eventPublisher) {
         this.meetingRepository = meetingRepository;
         this.participantRepository = participantRepository;
         this.meetingDomainService = meetingDomainService;
+        this.tagRepository = tagRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -103,6 +108,7 @@ public class MeetingApplicationService {
 
     /**
      * 审核通过：PENDING_REVIEW -> PUBLISHED
+     * 触发MeetingPublishedEvent通知订阅用户
      */
     @Transactional
     public MeetingDTO approve(String meetingId) {
@@ -112,6 +118,10 @@ public class MeetingApplicationService {
         meeting.approve();
         Meeting savedMeeting = meetingRepository.save(meeting);
         publishStatusChanged(meetingId, from, savedMeeting.getStatus(), null);
+
+        // 触发会议发布事件，通知订阅用户（PRD 2.3 订阅推送）
+        publishMeetingPublishedEvent(savedMeeting);
+
         return toMeetingDTO(savedMeeting);
     }
 
@@ -162,6 +172,33 @@ public class MeetingApplicationService {
                                       Meeting.MeetingStatus to, String actor) {
         eventPublisher.publishEvent(
                 new MeetingStatusChangedEvent(meetingId, from, to, LocalDateTime.now(), actor));
+    }
+
+    /**
+     * 触发会议发布事件（PRD 2.3 订阅推送）
+     * 当会议审核通过时，通知订阅了该会议标签的用户
+     */
+    private void publishMeetingPublishedEvent(Meeting meeting) {
+        try {
+            // 查询会议关联的标签
+            List<com.csdn.meeting.domain.entity.Tag> tags = tagRepository.findByMeetingId(meeting.getMeetingId());
+            List<Long> tagIds = tags.stream()
+                    .map(com.csdn.meeting.domain.entity.Tag::getId)
+                    .collect(Collectors.toList());
+
+            // 触发会议发布事件
+            MeetingPublishedEvent event = new MeetingPublishedEvent(
+                    meeting.getMeetingId(),
+                    meeting.getTitle(),
+                    tagIds,
+                    LocalDateTime.now(),
+                    meeting.getCreatorId()
+            );
+            eventPublisher.publishEvent(event);
+        } catch (Exception e) {
+            // 推送通知失败不应影响主流程，仅记录日志
+            System.err.println("触发会议发布事件失败: " + e.getMessage());
+        }
     }
 
     @Transactional
