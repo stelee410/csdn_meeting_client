@@ -67,6 +67,40 @@ public class MeetingPO {
     @TableField("reject_reason")
     private String rejectReason;
 
+    // V5新增字段 - 会议列表功能
+    @TableField("meeting_id")
+    private String meetingId;
+
+    @TableField("poster_url")
+    private String posterUrl;
+
+    @TableField("hot_score")
+    private Integer hotScore;
+
+    @TableField("current_participants")
+    private Integer currentParticipants;
+
+    @TableField("max_participants")
+    private Integer maxParticipants;
+
+    @TableField("city_code")
+    private String cityCode;
+
+    @TableField("city_name")
+    private String cityName;
+
+    @TableField("meeting_type")
+    private String meetingType;
+
+    @TableField("organizer_id")
+    private Long organizerId;
+
+    @TableField("organizer_name")
+    private String organizerName;
+
+    @TableField("organizer_avatar")
+    private String organizerAvatar;
+
     @TableField("created_at")
     private LocalDateTime createdAt;
 
@@ -113,4 +147,28 @@ public class MeetingPO {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    // V5新增字段的getter/setter
+    public String getMeetingId() { return meetingId; }
+    public void setMeetingId(String meetingId) { this.meetingId = meetingId; }
+    public String getPosterUrl() { return posterUrl; }
+    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
+    public Integer getHotScore() { return hotScore; }
+    public void setHotScore(Integer hotScore) { this.hotScore = hotScore; }
+    public Integer getCurrentParticipants() { return currentParticipants; }
+    public void setCurrentParticipants(Integer currentParticipants) { this.currentParticipants = currentParticipants; }
+    public Integer getMaxParticipants() { return maxParticipants; }
+    public void setMaxParticipants(Integer maxParticipants) { this.maxParticipants = maxParticipants; }
+    public String getCityCode() { return cityCode; }
+    public void setCityCode(String cityCode) { this.cityCode = cityCode; }
+    public String getCityName() { return cityName; }
+    public void setCityName(String cityName) { this.cityName = cityName; }
+    public String getMeetingType() { return meetingType; }
+    public void setMeetingType(String meetingType) { this.meetingType = meetingType; }
+    public Long getOrganizerId() { return organizerId; }
+    public void setOrganizerId(Long organizerId) { this.organizerId = organizerId; }
+    public String getOrganizerName() { return organizerName; }
+    public void setOrganizerName(String organizerName) { this.organizerName = organizerName; }
+    public String getOrganizerAvatar() { return organizerAvatar; }
+    public void setOrganizerAvatar(String organizerAvatar) { this.organizerAvatar = organizerAvatar; }
 }

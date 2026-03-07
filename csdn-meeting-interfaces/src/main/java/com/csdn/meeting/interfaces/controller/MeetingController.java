@@ -2,8 +2,11 @@ package com.csdn.meeting.interfaces.controller;
 
 import com.csdn.meeting.application.dto.AIParseResultDTO;
 import com.csdn.meeting.application.dto.CreateMeetingCommand;
+import com.csdn.meeting.application.dto.FilterOptionsDTO;
 import com.csdn.meeting.application.dto.JoinMeetingCommand;
 import com.csdn.meeting.application.dto.MeetingDTO;
+import com.csdn.meeting.application.dto.MeetingListQueryDTO;
+import com.csdn.meeting.application.dto.MeetingListResultDTO;
 import com.csdn.meeting.application.dto.MeetingRightsDTO;
 import com.csdn.meeting.application.dto.MeetingStatisticsDTO;
 import com.csdn.meeting.application.dto.PagedResultDTO;
@@ -16,12 +19,15 @@ import com.csdn.meeting.application.dto.UpdateMeetingCommand;
 import com.csdn.meeting.application.service.AIParsingUseCase;
 import com.csdn.meeting.application.service.MeetingApplicationService;
 import com.csdn.meeting.application.service.MeetingBriefUseCase;
+import com.csdn.meeting.application.service.MeetingListUseCase;
 import com.csdn.meeting.application.service.MeetingRightsPurchaseUseCase;
 import com.csdn.meeting.application.service.MeetingStatisticsUseCase;
 import com.csdn.meeting.application.service.MyMeetingsUseCase;
 import com.csdn.meeting.application.service.TagSuggestionUseCase;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.Registration;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -50,6 +56,7 @@ public class MeetingController {
     private final MeetingStatisticsUseCase meetingStatisticsUseCase;
     private final MeetingRightsPurchaseUseCase meetingRightsPurchaseUseCase;
     private final MeetingBriefUseCase meetingBriefUseCase;
+    private final MeetingListUseCase meetingListUseCase;
 
     public MeetingController(MeetingApplicationService meetingApplicationService,
                              TagSuggestionUseCase tagSuggestionUseCase,
@@ -57,7 +64,8 @@ public class MeetingController {
                              MyMeetingsUseCase myMeetingsUseCase,
                              MeetingStatisticsUseCase meetingStatisticsUseCase,
                              MeetingRightsPurchaseUseCase meetingRightsPurchaseUseCase,
-                             MeetingBriefUseCase meetingBriefUseCase) {
+                             MeetingBriefUseCase meetingBriefUseCase,
+                             MeetingListUseCase meetingListUseCase) {
         this.meetingApplicationService = meetingApplicationService;
         this.tagSuggestionUseCase = tagSuggestionUseCase;
         this.aiParsingUseCase = aiParsingUseCase;
@@ -65,6 +73,7 @@ public class MeetingController {
         this.meetingStatisticsUseCase = meetingStatisticsUseCase;
         this.meetingRightsPurchaseUseCase = meetingRightsPurchaseUseCase;
         this.meetingBriefUseCase = meetingBriefUseCase;
+        this.meetingListUseCase = meetingListUseCase;
     }
 
     /** 创建草稿 */
@@ -324,5 +333,117 @@ public class MeetingController {
     /** 管理员校验：当前为占位实现，后续接入真实权限 */
     private void ensureAdmin() {
         // TODO: 接入真实权限系统，校验当前用户是否管理员
+    }
+
+    /**
+     * 会议列表查询（统一接口，支持筛选、搜索、分页、视图切换）
+     * GET /api/meetings/list?viewMode=card&keyword=Java&format=ONLINE&type=SUMMIT&scene=DEVELOPER&timeRange=THIS_WEEK&page=0&size=20
+     *
+     * @param viewMode  视图模式：list（列表视图）| card（阅读视图），默认card
+     * @param keyword   关键词搜索（匹配标题、标签、主办方）
+     * @param format    会议形式筛选：ONLINE/OFFLINE/HYBRID
+     * @param type      会议类型筛选：SUMMIT/SALON/WORKSHOP
+     * @param scene     会议场景筛选：DEVELOPER/INDUSTRY/PRODUCT/REGIONAL/UNIVERSITY
+     * @param timeRange 召开时间范围筛选：THIS_WEEK/THIS_MONTH/NEXT_3_MONTHS
+     * @param page      分页页码，从0开始，默认0
+     * @param size      分页大小，默认20
+     * @param userId    用户ID（可选，用于个性化推荐和埋点）
+     * @return 会议列表结果
+     */
+    @Operation(
+            summary = "会议列表查询",
+            description = "统一接口支持多维度筛选、关键词搜索、分页、视图切换。" +
+                    "筛选条件包括：会议形式（线上/线下/混合）、会议类型（峰会/沙龙/研讨会）、" +
+                    "会议场景（开发者/产业/产品/区域/高校）、召开时间（本周/本月/未来三个月）。" +
+                    "关键词搜索匹配会议标题、标签、主办方。" +
+                    "视图切换支持card（阅读视图，适合沉浸式浏览）和list（列表视图，适合高效查找）"
+    )
+    @io.swagger.v3.oas.annotations.Parameter(
+            name = "viewMode",
+            description = "视图模式：card（阅读视图，默认）| list（列表视图）",
+            example = "card"
+    )
+    @io.swagger.v3.oas.annotations.Parameter(
+            name = "keyword",
+            description = "关键词搜索，匹配标题/标签/主办方",
+            example = "Java"
+    )
+    @io.swagger.v3.oas.annotations.Parameter(
+            name = "format",
+            description = "会议形式筛选：ONLINE/OFFLINE/HYBRID",
+            example = "ONLINE"
+    )
+    @io.swagger.v3.oas.annotations.Parameter(
+            name = "type",
+            description = "会议类型筛选：SUMMIT/SALON/WORKSHOP",
+            example = "SUMMIT"
+    )
+    @io.swagger.v3.oas.annotations.Parameter(
+            name = "scene",
+            description = "会议场景筛选：DEVELOPER/INDUSTRY/PRODUCT/REGIONAL/UNIVERSITY",
+            example = "DEVELOPER"
+    )
+    @io.swagger.v3.oas.annotations.Parameter(
+            name = "timeRange",
+            description = "召开时间筛选：THIS_WEEK/THIS_MONTH/NEXT_3_MONTHS",
+            example = "THIS_WEEK"
+    )
+    @io.swagger.v3.oas.annotations.Parameter(
+            name = "page",
+            description = "分页页码，从0开始",
+            example = "0"
+    )
+    @io.swagger.v3.oas.annotations.Parameter(
+            name = "size",
+            description = "分页大小",
+            example = "20"
+    )
+    @io.swagger.v3.oas.annotations.Parameter(
+            name = "userId",
+            description = "用户ID（可选，用于个性化推荐）",
+            example = "12345"
+    )
+    @GetMapping("/list")
+    public ResponseEntity<MeetingListResultDTO<?>> queryMeetingList(
+            @RequestParam(required = false) String viewMode,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String format,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String scene,
+            @RequestParam(required = false) String timeRange,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long userId) {
+
+        MeetingListQueryDTO query = new MeetingListQueryDTO();
+        query.setViewMode(viewMode != null ? viewMode : "card");
+        query.setKeyword(keyword);
+        query.setFormat(format);
+        query.setType(type);
+        query.setScene(scene);
+        query.setTimeRange(timeRange);
+        query.setPage(page);
+        query.setSize(size);
+        query.setUserId(userId);
+
+        MeetingListResultDTO<?> result = meetingListUseCase.queryMeetingList(query);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 获取筛选选项枚举值（供前端初始化筛选器）
+     * GET /api/meetings/filter-options
+     *
+     * @return 各筛选维度的可选值列表
+     */
+    @Operation(
+            summary = "获取筛选选项",
+            description = "返回各筛选维度的可选值列表，供前端初始化筛选器使用。" +
+                    "包括：会议形式、会议类型、会议场景、召开时间、视图模式的所有可选值及其显示名称"
+    )
+    @GetMapping("/filter-options")
+    public ResponseEntity<FilterOptionsDTO> getFilterOptions() {
+        FilterOptionsDTO options = meetingListUseCase.getFilterOptions();
+        return ResponseEntity.ok(options);
     }
 }

@@ -5,34 +5,15 @@ import lombok.Getter;
 /**
  * 会议场景枚举
  * 对应数据库字段 scene
- * @author 13786
+ * 用于多维度筛选中的"会议场景"维度
  */
 @Getter
 public enum MeetingScene {
 
-    /**
-     * 开发者会议
-     */
     DEVELOPER(1, "开发者会议", "developer"),
-
-    /**
-     * 产业会议
-     */
     INDUSTRY(2, "产业会议", "industry"),
-
-    /**
-     * 产品发布会议
-     */
-    PRODUCT_RELEASE(3, "产品发布会议", "product_release"),
-
-    /**
-     * 区域营销会议
-     */
-    REGIONAL_MARKETING(4, "区域营销会议", "regional_marketing"),
-
-    /**
-     * 高校会议
-     */
+    PRODUCT(3, "产品发布会议", "product"),
+    REGIONAL(4, "区域营销会议", "regional"),
     UNIVERSITY(5, "高校会议", "university");
 
     private final int code;
@@ -51,6 +32,18 @@ public enum MeetingScene {
         }
         for (MeetingScene scene : values()) {
             if (scene.code == code) {
+                return scene;
+            }
+        }
+        return null;
+    }
+
+    public static MeetingScene of(String value) {
+        if (value == null) {
+            return null;
+        }
+        for (MeetingScene scene : values()) {
+            if (scene.value.equalsIgnoreCase(value)) {
                 return scene;
             }
         }

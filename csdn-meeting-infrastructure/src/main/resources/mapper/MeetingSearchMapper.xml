@@ -10,7 +10,6 @@
         <result column="description" property="description"/>
         <result column="poster_url" property="posterUrl"/>
         <result column="creator_id" property="creatorId"/>
-        <result column="creator_name" property="creatorName"/>
         <result column="start_time" property="startTime"/>
         <result column="end_time" property="endTime"/>
         <result column="status" property="status"/>
@@ -26,11 +25,9 @@
         <result column="organizer_id" property="organizerId"/>
         <result column="organizer_name" property="organizerName"/>
         <result column="organizer_avatar" property="organizerAvatar"/>
-        <result column="create_time" property="createTime"/>
-        <result column="create_by" property="createBy"/>
-        <result column="update_time" property="updateTime"/>
-        <result column="update_by" property="updateBy"/>
-        <result column="is_deleted" property="isDeleted"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
     <!-- 分页查询会议列表（支持多维度筛选） -->
@@ -40,7 +37,7 @@
         FROM t_meeting m
         <where>
             <!-- 只展示已发布、进行中、已结束的会议 -->
-            m.status IN ('PUBLISHED', 'ONGOING', 'ENDED')
+            m.status IN ('PUBLISHED', 'IN_PROGRESS', 'ENDED')
             AND m.is_deleted = 0
 
             <!-- 会议形式筛选 -->
@@ -84,8 +81,12 @@
                 )
             </if>
         </where>
-        <!-- 排序：热度降序 > 开始时间降序 -->
-        ORDER BY m.hot_score DESC, m.start_time DESC, m.id DESC
+        <!-- 排序：已结束沉底 > 热度降序 > 开始时间降序 > ID降序 -->
+        ORDER BY 
+            CASE WHEN m.status = 'ENDED' THEN 1 ELSE 0 END ASC,
+            m.hot_score DESC, 
+            m.start_time DESC, 
+            m.id DESC
     </select>
 
     <!-- 根据会议ID查询详情 -->

@@ -1,27 +1,69 @@
 package com.csdn.meeting.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
 /**
  * 标签DTO
  */
-@Data
-@Schema(description = "标签")
+@Schema(description = "标签信息")
 public class TagDTO {
 
     @Schema(description = "标签ID", example = "1")
-    private Long tagId;
+    private Long id;
 
-    @Schema(description = "标签名称", example = "鸿蒙")
-    private String tagName;
+    @Schema(description = "标签名称", example = "Java")
+    private String name;
 
-    @Schema(description = "标签分类", example = "tech")
-    private String tagCategory;
+    @Schema(description = "标签分类：TECH/INDUSTRY/TOPIC/FORM", example = "TECH")
+    private String category;
 
-    @Schema(description = "标签分类名称", example = "技术")
-    private String tagCategoryName;
+    // 是否已订阅（用于在会议详情页展示铃铛状态）
+    @Schema(description = "当前用户是否已订阅该标签", example = "true")
+    private Boolean isSubscribed;
 
-    @Schema(description = "关联会议数量", example = "15")
-    private Integer meetingCount;
+    public TagDTO() {
+    }
+
+    public TagDTO(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public TagDTO(Long id, String name, String category) {
+        this.id = id;
+        this.name = name;
+        this.category = category;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public Boolean getIsSubscribed() {
+        return isSubscribed;
+    }
+
+    public void setIsSubscribed(Boolean isSubscribed) {
+        this.isSubscribed = isSubscribed;
+    }
 }
