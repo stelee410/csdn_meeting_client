@@ -2,6 +2,7 @@ package com.csdn.meeting.infrastructure.mapper;
 
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.valueobject.MeetingFormat;
+import com.csdn.meeting.domain.valueobject.MeetingType;
 import com.csdn.meeting.infrastructure.po.MeetingPO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -20,6 +21,7 @@ public interface MeetingMapper {
     @Mapping(target = "status", source = "status", qualifiedByName = "intToStatus")
     @Mapping(target = "format", source = "format", qualifiedByName = "stringToFormat")
     @Mapping(target = "meetingId", expression = "java(po.getId() != null ? String.valueOf(po.getId()) : null)")
+    @Mapping(target = "meetingType", source = "meetingType", qualifiedByName = "stringToMeetingType")
     @Mapping(target = "scheduleDays", ignore = true)
     Meeting toEntity(MeetingPO po);
 
@@ -45,5 +47,13 @@ public interface MeetingMapper {
     @Named("stringToFormat")
     default MeetingFormat stringToFormat(String s) {
         return MeetingFormat.of(s);
+    }
+
+    /**
+     * PO 的 meeting_type 字符串转为 MeetingType，统一走 MeetingType.of 接口
+     */
+    @Named("stringToMeetingType")
+    default MeetingType stringToMeetingType(String s) {
+        return MeetingType.of(s);
     }
 }
