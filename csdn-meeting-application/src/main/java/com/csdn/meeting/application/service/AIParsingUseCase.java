@@ -8,6 +8,7 @@ import com.csdn.meeting.domain.port.AIParsePort;
 import com.csdn.meeting.domain.port.AIParseResult;
 import com.csdn.meeting.domain.port.SensitiveWordFilterPort;
 import com.csdn.meeting.domain.port.VirusScanPort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -38,6 +39,7 @@ public class AIParsingUseCase {
 
     private final int parseTimeoutSeconds;
 
+    @Autowired
     public AIParsingUseCase(VirusScanPort virusScanPort,
                             AIParsePort aiParsePort,
                             SensitiveWordFilterPort sensitiveWordFilterPort) {
