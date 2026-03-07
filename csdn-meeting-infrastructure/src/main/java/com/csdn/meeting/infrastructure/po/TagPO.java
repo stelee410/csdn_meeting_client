@@ -31,26 +31,26 @@ public class TagPO {
     /**
      * 创建时间
      */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
+    private LocalDateTime createAt;
 
     /**
-     * 创建人ID
+     * 创建人ID todo
      */
-    @TableField(value = "create_by", fill = FieldFill.INSERT)
-    private Long createBy;
+//    @TableField(value = "create_by", fill = FieldFill.INSERT)
+//    private String createBy;
 
     /**
      * 更新时间
      */
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
+    @TableField(value = "updated_at", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateAt;
 
     /**
-     * 更新人ID
+     * 更新人ID todo
      */
-    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
-    private Long updateBy;
+//    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
+//    private String updateBy;
 
     /**
      * 软删除标志：0-未删除, 1-已删除

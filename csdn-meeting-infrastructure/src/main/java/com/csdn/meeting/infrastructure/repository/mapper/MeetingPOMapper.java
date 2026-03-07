@@ -13,28 +13,28 @@ import java.util.List;
 @Mapper
 public interface MeetingPOMapper extends BaseMapper<MeetingPO> {
 
-    List<MeetingPO> selectByCreatorId(@Param("creatorId") Long creatorId);
+    List<MeetingPO> selectByCreatorId(@Param("creatorId") String creatorId);
 
-    IPage<MeetingPO> selectPageByCreatorId(Page<MeetingPO> page, @Param("creatorId") Long creatorId);
+    IPage<MeetingPO> selectPageByCreatorId(Page<MeetingPO> page, @Param("creatorId") String creatorId);
 
     IPage<MeetingPO> selectPageByCreatorIdAndStatusIn(Page<MeetingPO> page,
-                                                      @Param("creatorId") Long creatorId,
+                                                      @Param("creatorId") String creatorId,
                                                       @Param("statuses") List<Integer> statuses);
 
     IPage<MeetingPO> selectPageByCreatorIdAndStartTimeBetween(Page<MeetingPO> page,
-                                                              @Param("creatorId") Long creatorId,
+                                                              @Param("creatorId") String creatorId,
                                                               @Param("start") LocalDateTime start,
                                                               @Param("end") LocalDateTime end);
 
     IPage<MeetingPO> selectPageByCreatorIdAndStatusInAndStartTimeBetween(Page<MeetingPO> page,
-                                                                         @Param("creatorId") Long creatorId,
+                                                                         @Param("creatorId") String creatorId,
                                                                          @Param("statuses") List<Integer> statuses,
                                                                          @Param("start") LocalDateTime start,
                                                                          @Param("end") LocalDateTime end);
 
-    List<MeetingPO> selectByCreatorIdAndStatus(@Param("creatorId") Long creatorId, @Param("status") Integer status);
+    List<MeetingPO> selectByCreatorIdAndStatus(@Param("creatorId") String creatorId, @Param("status") Integer status);
 
-    List<MeetingPO> selectByCreatorIdAndStartTimeBetween(@Param("creatorId") Long creatorId,
+    List<MeetingPO> selectByCreatorIdAndStartTimeBetween(@Param("creatorId") String creatorId,
                                                          @Param("start") LocalDateTime start,
                                                          @Param("end") LocalDateTime end);
 

@@ -41,7 +41,7 @@ public class MeetingTag extends BaseEntity {
     /**
      * 创建人ID
      */
-    private Long createBy;
+    private String createBy;
 
     /**
      * 更新时间
@@ -51,5 +51,5 @@ public class MeetingTag extends BaseEntity {
     /**
      * 更新人ID
      */
-    private Long updateBy;
+    private String updateBy;
 }

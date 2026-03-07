@@ -87,7 +87,7 @@ public class TimeRangeCalculator {
     /**
      * 根据字符串值计算时间范围
      */
-    public LocalDateTime[] calculateTimeRange(String rangeValue) {
+    public LocalDateTime[] calculateTimeRange(Integer rangeValue) {
         TimeRangeEnum range = TimeRangeEnum.of(rangeValue);
         return calculateTimeRange(range);
     }

@@ -26,7 +26,7 @@ public interface MeetingConverter {
     @Mapping(target = "scene", source = "scene")
     @Mapping(target = "meetingId", source = "meetingId")
     @Mapping(target = "scheduleDays", ignore = true)
-    @Mapping(target = "meetingType", source = "meetingType")
+    @Mapping(target = "meetingType", source = "meetingType", qualifiedByName = "stringToMeetingType")
     @Mapping(target = "posterUrl", source = "posterUrl")
     @Mapping(target = "hotScore", source = "hotScore")
     @Mapping(target = "currentParticipants", source = "currentParticipants")
@@ -47,7 +47,7 @@ public interface MeetingConverter {
     @Mapping(target = "maxParticipants", source = "maxParticipants")
     @Mapping(target = "cityCode", source = "cityCode")
     @Mapping(target = "cityName", source = "cityName")
-    @Mapping(target = "meetingType", source = "meetingType")
+    @Mapping(target = "meetingType", source = "meetingType", qualifiedByName = "meetingTypeToString")
     @Mapping(target = "organizerId", source = "organizerId")
     @Mapping(target = "organizerName", source = "organizerName")
     @Mapping(target = "organizerAvatar", source = "organizerAvatar")
@@ -67,9 +67,13 @@ public interface MeetingConverter {
 
     @Named("intToMeetingStatus")
     default Meeting.MeetingStatus intToMeetingStatus(Integer code) {
-        if (code == null) return null;
+        if (code == null) {
+            return null;
+        }
         for (Meeting.MeetingStatus s : Meeting.MeetingStatus.values()) {
-            if (s.getCode() == code) return s;
+            if (s.getCode() == code) {
+                return s;
+            }
         }
         return null;
     }
@@ -87,5 +91,18 @@ public interface MeetingConverter {
     @Named("formatToString")
     default String formatToString(MeetingFormat format) {
         return format == null ? null : format.getValue();
+    }
+
+    /**
+     * PO 的 meeting_type 字符串转为 MeetingType，统一走 MeetingType.of 接口
+     */
+    @Named("stringToMeetingType")
+    default MeetingType stringToMeetingType(String s) {
+        return MeetingType.of(s);
+    }
+
+    @Named("meetingTypeToString")
+    default String meetingTypeToString(MeetingType type) {
+        return type == null ? null : String.valueOf(type.getCode());
     }
 }

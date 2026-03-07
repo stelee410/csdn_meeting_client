@@ -49,7 +49,7 @@ public class MeetingPublishPushService {
         }
 
         // 查询订阅了这些标签的所有用户
-        Set<Long> userIds = querySubscribedUsers(event.getTagIds());
+        Set<String> userIds = querySubscribedUsers(event.getTagIds());
         
         if (userIds.isEmpty()) {
             logger.info("标签 {} 暂无订阅用户", event.getTagIds());
@@ -65,15 +65,15 @@ public class MeetingPublishPushService {
         // sendPushNotification(userIds, event);
 
         // 记录埋点
-        for (Long userId : userIds) {
-            analyticsService.trackMeetingClick(String.valueOf(userId), event.getMeetingId(), -1);
+        for (String userId : userIds) {
+            analyticsService.trackMeetingClick(userId, event.getMeetingId(), -1);
         }
     }
 
     /**
      * 查询订阅了指定标签的所有用户ID（去重）
      */
-    private Set<Long> querySubscribedUsers(List<Long> tagIds) {
+    private Set<String> querySubscribedUsers(List<Long> tagIds) {
         return tagIds.stream()
                 .flatMap(tagId -> userTagSubscribeRepository.findUserIdsByTagId(tagId).stream())
                 .collect(Collectors.toSet());
@@ -84,7 +84,7 @@ public class MeetingPublishPushService {
      * 
      * TODO: 实现调用CSDN消息中心接口
      */
-    private void sendSiteMessage(Set<Long> userIds, MeetingPublishedEvent event) {
+    private void sendSiteMessage(Set<String> userIds, MeetingPublishedEvent event) {
         String title = "您订阅的标签有新会议发布";
         String content = String.format("会议《%s》已发布，快来报名吧！", event.getTitle());
         String link = "/meeting/detail/" + event.getMeetingId();
@@ -101,7 +101,7 @@ public class MeetingPublishPushService {
      * 
      * TODO: 实现调用CSDN推送服务接口
      */
-    private void sendPushNotification(Set<Long> userIds, MeetingPublishedEvent event) {
+    private void sendPushNotification(Set<String> userIds, MeetingPublishedEvent event) {
         String title = "您订阅的标签有新会议";
         String content = event.getTitle();
 

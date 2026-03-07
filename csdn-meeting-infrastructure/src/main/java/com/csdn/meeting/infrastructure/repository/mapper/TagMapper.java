@@ -15,14 +15,6 @@ import java.util.List;
 public interface TagMapper extends BaseMapper<TagPO> {
 
     /**
-     * 根据会议ID查询关联的标签列表
-     */
-    @Select("SELECT t.* FROM t_tag t " +
-            "INNER JOIN t_meeting_tag mt ON t.id = mt.tag_id " +
-            "WHERE mt.meeting_id = #{meetingId} AND mt.is_deleted = 0 AND t.is_deleted = 0")
-    List<TagPO> selectByMeetingId(@Param("meetingId") String meetingId);
-
-    /**
      * 根据标签名称查询标签
      */
     @Select("SELECT * FROM t_tag WHERE tag_name = #{tagName} AND is_deleted = 0 LIMIT 1")

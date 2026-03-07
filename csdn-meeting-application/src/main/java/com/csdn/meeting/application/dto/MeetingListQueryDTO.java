@@ -4,17 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * 会议列表查询参数DTO
- * 支持多维度筛选、关键词搜索、分页、视图切换
+ * 支持多维度筛选、关键词搜索、分页
  */
-@Schema(description = "会议列表查询参数，支持多维度筛选、关键词搜索、分页、视图切换")
+@Schema(description = "会议列表查询参数，支持多维度筛选、关键词搜索、分页")
 public class MeetingListQueryDTO {
-
-    /**
-     * 视图模式：list（列表视图）| card（阅读视图/卡片视图）
-     * 默认：card
-     */
-    @Schema(description = "视图模式：card（阅读视图，默认）| list（列表视图）", example = "card")
-    private String viewMode = "card";
 
     /**
      * 关键词搜索（匹配标题、标签、主办方）
@@ -44,7 +37,7 @@ public class MeetingListQueryDTO {
      * 召开时间范围筛选：THIS_WEEK/THIS_MONTH/NEXT_3_MONTHS
      */
     @Schema(description = "召开时间范围筛选：THIS_WEEK（本周）/THIS_MONTH（本月）/NEXT_3_MONTHS（未来三个月）", example = "THIS_WEEK")
-    private String timeRange;
+    private Integer timeRange;
 
     /**
      * 分页页码，从0开始
@@ -63,14 +56,6 @@ public class MeetingListQueryDTO {
      */
     @Schema(description = "用户ID，用于个性化推荐和埋点统计", example = "12345")
     private Long userId;
-
-    public String getViewMode() {
-        return viewMode;
-    }
-
-    public void setViewMode(String viewMode) {
-        this.viewMode = viewMode;
-    }
 
     public String getKeyword() {
         return keyword;
@@ -104,11 +89,11 @@ public class MeetingListQueryDTO {
         this.scene = scene;
     }
 
-    public String getTimeRange() {
+    public Integer getTimeRange() {
         return timeRange;
     }
 
-    public void setTimeRange(String timeRange) {
+    public void setTimeRange(Integer timeRange) {
         this.timeRange = timeRange;
     }
 
@@ -134,19 +119,5 @@ public class MeetingListQueryDTO {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    /**
-     * 是否为列表视图
-     */
-    public boolean isListView() {
-        return "list".equalsIgnoreCase(viewMode);
-    }
-
-    /**
-     * 是否为卡片视图（阅读视图）
-     */
-    public boolean isCardView() {
-        return !isListView();
     }
 }

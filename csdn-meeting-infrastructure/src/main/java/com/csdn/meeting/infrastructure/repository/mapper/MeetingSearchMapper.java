@@ -49,4 +49,10 @@ public interface MeetingSearchMapper {
      * 更新当前报名人数
      */
     int updateCurrentParticipants(@Param("meetingId") String meetingId, @Param("delta") int delta);
+
+    /**
+     * 按标签分组统计指定时间之后新增的会议数量（基于 t_meeting.tags 字段）
+     */
+    List<com.csdn.meeting.infrastructure.po.TagNewMeetingCountPO> countNewMeetingsByTagIdsSince(
+            @Param("tagIds") List<Long> tagIds, @Param("since") java.time.LocalDateTime since);
 }

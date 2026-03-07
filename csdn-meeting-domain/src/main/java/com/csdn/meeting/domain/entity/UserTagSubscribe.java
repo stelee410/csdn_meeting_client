@@ -21,7 +21,7 @@ public class UserTagSubscribe extends BaseEntity {
     /**
      * 用户ID
      */
-    private Long userId;
+    private String userId;
 
     /**
      * 标签ID
@@ -41,7 +41,7 @@ public class UserTagSubscribe extends BaseEntity {
     /**
      * 创建人ID
      */
-    private Long createBy;
+    private String createBy;
 
     /**
      * 更新时间
@@ -51,7 +51,7 @@ public class UserTagSubscribe extends BaseEntity {
     /**
      * 更新人ID
      */
-    private Long updateBy;
+    private String updateBy;
 
     /**
      * 是否已删除（取消订阅）

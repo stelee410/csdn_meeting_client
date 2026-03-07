@@ -33,13 +33,13 @@ class MeetingDomainServiceAgendaTest {
             @Override
             public java.util.Optional<Meeting> findByMeetingId(String meetingId) { return java.util.Optional.empty(); }
             @Override
-            public java.util.List<Meeting> findByCreatorId(Long creatorId) { return Collections.emptyList(); }
+            public java.util.List<Meeting> findByCreatorId(String creatorId) { return Collections.emptyList(); }
             @Override
-            public java.util.List<Meeting> findByCreatorIdAndStatus(Long creatorId, Meeting.MeetingStatus status) { return Collections.emptyList(); }
+            public java.util.List<Meeting> findByCreatorIdAndStatus(String creatorId, Meeting.MeetingStatus status) { return Collections.emptyList(); }
             @Override
-            public java.util.List<Meeting> findByCreatorIdAndStartTimeBetween(Long creatorId, LocalDateTime start, LocalDateTime end) { return Collections.emptyList(); }
+            public java.util.List<Meeting> findByCreatorIdAndStartTimeBetween(String creatorId, LocalDateTime start, LocalDateTime end) { return Collections.emptyList(); }
             @Override
-            public PageResult<Meeting> findPageByCreatorId(Long creatorId, List<Meeting.MeetingStatus> statuses, LocalDateTime startFrom, LocalDateTime endTo, int page, int size) { return new PageResult<>(Collections.emptyList(), 0, page, size); }
+            public PageResult<Meeting> findPageByCreatorId(String creatorId, List<Meeting.MeetingStatus> statuses, LocalDateTime startFrom, LocalDateTime endTo, int page, int size) { return new PageResult<>(Collections.emptyList(), 0, page, size); }
             @Override
             public java.util.List<Meeting> findByStatus(Meeting.MeetingStatus status) { return Collections.emptyList(); }
             @Override

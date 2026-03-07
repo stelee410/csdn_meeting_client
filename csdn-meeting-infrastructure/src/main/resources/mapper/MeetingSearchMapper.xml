@@ -26,6 +26,7 @@
         <result column="organizer_name" property="organizerName"/>
         <result column="organizer_avatar" property="organizerAvatar"/>
         <result column="cover_image" property="coverImage"/>
+        <result column="tags" property="tags"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
@@ -36,8 +37,8 @@
             m.*
         FROM t_meeting m
         <where>
-            <!-- 只展示已发布、进行中、已结束的会议 -->
-            m.status IN ('PUBLISHED', 'IN_PROGRESS', 'ENDED')
+            <!-- 只展示已发布(2)、进行中(3)、已结束(4)，对应 MeetingStatus 的 code -->
+            m.status IN (2, 3, 4)
             AND m.is_deleted = 0
 
             <!-- 会议形式筛选 -->
@@ -63,26 +64,24 @@
                 AND m.start_time &lt;= #{startTimeTo}
             </if>
 
-            <!-- 关键词搜索（标题、标签、主办方） -->
+            <!-- 关键词搜索（标题、标签名、主办方、描述）；tags 存的是 tagId，需通过 t_tag 按名称匹配 -->
             <if test="keyword != null and keyword != ''">
                 AND (
                     m.title LIKE CONCAT('%', #{keyword}, '%')
                     OR EXISTS (
-                        SELECT 1 FROM t_meeting_tag mt
-                        INNER JOIN t_tag t ON mt.tag_id = t.id
-                        WHERE mt.meeting_id = m.meeting_id
-                          AND mt.is_deleted = 0
-                          AND t.is_deleted = 0
+                        SELECT 1 FROM t_tag t
+                        WHERE (t.is_deleted = 0 OR t.is_deleted IS NULL)
                           AND t.tag_name LIKE CONCAT('%', #{keyword}, '%')
+                          AND CONCAT(',', IFNULL(m.tags,''), ',') LIKE CONCAT('%,', t.id, ',%')
                     )
                     OR m.organizer_name LIKE CONCAT('%', #{keyword}, '%')
                     OR m.description LIKE CONCAT('%', #{keyword}, '%')
                 )
             </if>
         </where>
-        <!-- 排序：已结束沉底 > 热度降序 > 开始时间降序 > ID降序 -->
+        <!-- 排序：已结束(4)沉底 > 热度降序 > 开始时间降序 > ID降序 -->
         ORDER BY 
-            CASE WHEN m.status = 'ENDED' THEN 1 ELSE 0 END ASC,
+            CASE WHEN m.status = 4 THEN 1 ELSE 0 END ASC,
             m.hot_score DESC, 
             m.start_time DESC, 
             m.id DESC
@@ -113,5 +112,22 @@
         WHERE meeting_id = #{meetingId}
           AND is_deleted = 0
     </update>
+
+    <!-- 按标签分组统计指定时间之后新增的会议数量（t_meeting.tags 为逗号分隔的 tagId） -->
+    <select id="countNewMeetingsByTagIdsSince" resultType="com.csdn.meeting.infrastructure.po.TagNewMeetingCountPO">
+        SELECT
+            t.id AS tagId,
+            COUNT(DISTINCT m.id) AS newMeetingCount
+        FROM t_tag t
+        INNER JOIN t_meeting m ON m.is_deleted = 0
+            AND m.created_at &gt;= #{since}
+            AND (CONCAT(',', IFNULL(m.tags,''), ',') LIKE CONCAT('%,', t.id, ',%'))
+        WHERE t.id IN
+        <foreach collection="tagIds" item="tagId" open="(" separator="," close=")">
+            #{tagId}
+        </foreach>
+        AND (t.is_deleted = 0 OR t.is_deleted IS NULL)
+        GROUP BY t.id
+    </select>
 
 </mapper>

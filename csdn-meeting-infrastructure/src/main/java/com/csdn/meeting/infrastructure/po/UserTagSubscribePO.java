@@ -20,7 +20,7 @@ public class UserTagSubscribePO {
      * 用户ID
      */
     @TableField("user_id")
-    private Long userId;
+    private String userId;
 
     /**
      * 标签ID
@@ -31,26 +31,26 @@ public class UserTagSubscribePO {
     /**
      * 创建时间（即订阅时间）
      */
-    @TableField(value = "create_time", fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
+    private LocalDateTime createdAt;
 
     /**
-     * 创建人ID
+     * 创建人ID todo
      */
-    @TableField(value = "create_by", fill = FieldFill.INSERT)
-    private Long createBy;
+//    @TableField(value = "create_by", fill = FieldFill.INSERT)
+//    private String createBy;
 
     /**
      * 更新时间
      */
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
+    @TableField(value = "updated_at", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updatedAt;
 
     /**
-     * 更新人ID
+     * 更新人ID todo
      */
-    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
-    private Long updateBy;
+//    @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
+//    private String updateBy;
 
     /**
      * 软删除标志：0-未删除（已订阅）, 1-已删除（取消订阅）

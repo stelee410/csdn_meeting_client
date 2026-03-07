@@ -38,7 +38,7 @@ public class MeetingTagPO {
      * 创建人ID
      */
     @TableField(value = "create_by", fill = FieldFill.INSERT)
-    private Long createBy;
+    private String createBy;
 
     /**
      * 更新时间
@@ -50,7 +50,7 @@ public class MeetingTagPO {
      * 更新人ID
      */
     @TableField(value = "update_by", fill = FieldFill.INSERT_UPDATE)
-    private Long updateBy;
+    private String updateBy;
 
     /**
      * 软删除标志：0-未删除, 1-已删除

@@ -10,7 +10,7 @@
     </select>
 
     <!-- 根据标签ID列表查询订阅用户ID（去重） -->
-    <select id="selectUserIdsByTagIds" resultType="java.lang.Long">
+    <select id="selectUserIdsByTagIds" resultType="java.lang.String">
         SELECT DISTINCT user_id FROM t_user_tag_subscribe
         WHERE tag_id IN
         <foreach collection="tagIds" item="tagId" open="(" separator="," close=")">

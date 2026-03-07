@@ -92,14 +92,14 @@ class MeetingTemplateUseCaseTest {
         expectedDto.setStatus("DRAFT");
         when(meetingApplicationService.createDraft(any())).thenReturn(expectedDto);
 
-        MeetingDTO result = useCase.applyTemplate(1L, 100L, "张三");
+        MeetingDTO result = useCase.applyTemplate(1L, "100", "张三");
 
         assertEquals("M123", result.getMeetingId());
         assertEquals("技术沙龙 - 新会议", result.getTitle());
         assertEquals("DRAFT", result.getStatus());
         verify(meetingApplicationService).createDraft(argThat(cmd ->
                 "技术沙龙 - 新会议".equals(cmd.getTitle())
-                        && Long.valueOf(100L).equals(cmd.getCreatorId())
+                        && "100".equals(cmd.getCreatorId())
                         && "张三".equals(cmd.getCreatorName())
                         && "开发者会议".equals(cmd.getScene())
         ));
@@ -110,7 +110,7 @@ class MeetingTemplateUseCaseTest {
     void applyTemplate_templateNotFound_throws() {
         when(templateRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(IllegalArgumentException.class, () -> useCase.applyTemplate(999L, 1L, "张三"));
+        assertThrows(IllegalArgumentException.class, () -> useCase.applyTemplate(999L, "1", "张三"));
         verify(meetingApplicationService, never()).createDraft(any());
     }
 }

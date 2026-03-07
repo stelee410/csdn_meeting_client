@@ -4,9 +4,9 @@ public class MeetingCreatedEvent extends DomainEvent {
 
     private final String meetingId;
     private final String title;
-    private final Long creatorId;
+    private final String creatorId;
 
-    public MeetingCreatedEvent(String meetingId, String title, Long creatorId) {
+    public MeetingCreatedEvent(String meetingId, String title, String creatorId) {
         super();
         this.meetingId = meetingId;
         this.title = title;
@@ -21,7 +21,7 @@ public class MeetingCreatedEvent extends DomainEvent {
         return title;
     }
 
-    public Long getCreatorId() {
+    public String getCreatorId() {
         return creatorId;
     }
 }

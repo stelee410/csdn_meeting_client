@@ -20,7 +20,7 @@ public class MeetingPO {
     private String organizer;
 
     @TableField("creator_id")
-    private Long creatorId;
+    private String creatorId;
 
     @TableField("format")
     private String format;
@@ -47,7 +47,7 @@ public class MeetingPO {
     private String description;
 
     @TableField("tags")
-    private String tags;
+    private String tags;  // 逗号分隔的 tagId，如 1,2,3
 
     @TableField("target_audience")
     private String targetAudience;
@@ -117,8 +117,8 @@ public class MeetingPO {
     public void setTitle(String title) { this.title = title; }
     public String getOrganizer() { return organizer; }
     public void setOrganizer(String organizer) { this.organizer = organizer; }
-    public Long getCreatorId() { return creatorId; }
-    public void setCreatorId(Long creatorId) { this.creatorId = creatorId; }
+    public String getCreatorId() { return creatorId; }
+    public void setCreatorId(String creatorId) { this.creatorId = creatorId; }
     public String getFormat() { return format; }
     public void setFormat(String format) { this.format = format; }
     public String getScene() { return scene; }

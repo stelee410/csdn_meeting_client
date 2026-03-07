@@ -3,7 +3,6 @@ package com.csdn.meeting.domain.repository;
 import com.csdn.meeting.domain.entity.Tag;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -44,14 +43,9 @@ public interface TagRepository {
 
     /**
      * 根据会议ID查询关联的标签
+     * 通过 t_meeting.tags 字段解析标签名，再查 t_tag 得到标签实体
      */
     List<Tag> findByMeetingId(String meetingId);
-
-    /**
-     * 根据会议ID列表批量查询每个会议关联的标签（一次查询，避免循环内查库）
-     * @return key=meetingId, value=该会议关联的标签列表
-     */
-    Map<String, List<Tag>> findTagsByMeetingIds(List<String> meetingIds);
 
     /**
      * 保存标签
@@ -67,19 +61,4 @@ public interface TagRepository {
      * 删除标签
      */
     void deleteById(Long id);
-
-    /**
-     * 根据会议ID删除所有标签关联
-     */
-    void deleteByMeetingId(String meetingId);
-
-    /**
-     * 为会议添加标签关联
-     */
-    void addMeetingTag(String meetingId, Long tagId);
-
-    /**
-     * 批量为会议添加标签关联
-     */
-    void addMeetingTags(String meetingId, List<Long> tagIds);
 }

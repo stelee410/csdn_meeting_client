@@ -11,7 +11,7 @@ public class CreateMeetingCommand {
 
     private String title;
     private String description;
-    private Long creatorId;
+    private String creatorId;
     private String creatorName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -24,7 +24,7 @@ public class CreateMeetingCommand {
     private String venue;
     private String regions;          // JSON
     private String coverImage;
-    private String tags;             // JSON
+    private String tags;             // 逗号分隔的 tagId，如 1,2,3
     private String targetAudience;   // JSON
     private Boolean isPremium;
 
@@ -47,11 +47,11 @@ public class CreateMeetingCommand {
         this.description = description;
     }
 
-    public Long getCreatorId() {
+    public String getCreatorId() {
         return creatorId;
     }
 
-    public void setCreatorId(Long creatorId) {
+    public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
     }
 

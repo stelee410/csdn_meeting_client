@@ -25,10 +25,6 @@ public interface UserTagSubscribeConverter {
             @Mapping(source = "id", target = "id"),
             @Mapping(source = "userId", target = "userId"),
             @Mapping(source = "tagId", target = "tagId"),
-            @Mapping(source = "createTime", target = "createTime"),
-            @Mapping(source = "createBy", target = "createBy"),
-            @Mapping(source = "updateTime", target = "updateTime"),
-            @Mapping(source = "updateBy", target = "updateBy"),
             @Mapping(source = "isDeleted", target = "isDeleted")
     })
     UserTagSubscribe poToEntity(UserTagSubscribePO userTagSubscribePO);
@@ -40,10 +36,6 @@ public interface UserTagSubscribeConverter {
             @Mapping(source = "id", target = "id"),
             @Mapping(source = "userId", target = "userId"),
             @Mapping(source = "tagId", target = "tagId"),
-            @Mapping(source = "createTime", target = "createTime"),
-            @Mapping(source = "createBy", target = "createBy"),
-            @Mapping(source = "updateTime", target = "updateTime"),
-            @Mapping(source = "updateBy", target = "updateBy"),
             @Mapping(source = "isDeleted", target = "isDeleted")
     })
     UserTagSubscribePO entityToPo(UserTagSubscribe userTagSubscribe);

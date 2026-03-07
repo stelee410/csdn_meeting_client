@@ -39,14 +39,20 @@ public enum MeetingScene {
     }
 
     public static MeetingScene of(String value) {
-        if (value == null) {
+        if (value == null || value.isEmpty()) {
             return null;
         }
-        for (MeetingScene scene : values()) {
-            if (scene.value.equalsIgnoreCase(value)) {
-                return scene;
+        String trimmed = value.trim();
+        try {
+            int code = Integer.parseInt(trimmed);
+            return of(code);
+        } catch (NumberFormatException e) {
+            for (MeetingScene scene : values()) {
+                if (scene.value.equalsIgnoreCase(trimmed)) {
+                    return scene;
+                }
             }
+            return null;
         }
-        return null;
     }
 }

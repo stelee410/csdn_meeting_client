@@ -40,7 +40,7 @@ public class Meeting extends BaseEntity {
     /**
      * 创建人ID
      */
-    private Long creatorId;
+    private String creatorId;
 
     /**
      * 创建人名称
@@ -106,7 +106,7 @@ public class Meeting extends BaseEntity {
     private String venue;
     private String regions;           // JSON
     private String coverImage;
-    private String tags;              // JSON
+    private String tags;              // 逗号分隔的 tagId，如 1,2,3
     private String targetAudience;    // JSON
     private Boolean isPremium;
     private String takedownReason;

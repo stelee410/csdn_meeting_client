@@ -33,15 +33,11 @@ public class UserSubscribeController {
     /**
      * 获取当前用户ID（从请求头或Session中获取）
      */
-    private Long getCurrentUserId(HttpServletRequest request) {
+    private String getCurrentUserId(HttpServletRequest request) {
         // 实际项目中应该从JWT token或Session中获取用户ID
         String userIdStr = request.getHeader("X-User-Id");
         if (userIdStr != null && !userIdStr.isEmpty()) {
-            try {
-                return Long.parseLong(userIdStr);
-            } catch (NumberFormatException e) {
-                throw new RuntimeException("用户未登录");
-            }
+            return userIdStr;
         }
         throw new RuntimeException("用户未登录");
     }
@@ -60,7 +56,7 @@ public class UserSubscribeController {
             @Valid @RequestBody SubscribeTagCommand command,
             HttpServletRequest request) {
 
-        Long userId = getCurrentUserId(request);
+        String userId = getCurrentUserId(request);
         SubscribeResultDTO result = userSubscribeAppService.subscribeTag(userId, command.getTagId());
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -78,7 +74,7 @@ public class UserSubscribeController {
             @Valid @RequestBody SubscribeTagCommand command,
             HttpServletRequest request) {
 
-        Long userId = getCurrentUserId(request);
+        String userId = getCurrentUserId(request);
         SubscribeResultDTO result = userSubscribeAppService.unsubscribeTag(userId, command.getTagId());
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -95,7 +91,7 @@ public class UserSubscribeController {
             @RequestParam(defaultValue = "20") Integer size,
             HttpServletRequest request) {
 
-        Long userId = getCurrentUserId(request);
+        String userId = getCurrentUserId(request);
         PageResult<UserSubscriptionDTO> result = userSubscribeAppService.getUserSubscribedTags(userId, page, size);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -110,7 +106,7 @@ public class UserSubscribeController {
             @NotNull @RequestParam Long tagId,
             HttpServletRequest request) {
 
-        Long userId = getCurrentUserId(request);
+        String userId = getCurrentUserId(request);
         SubscriptionCheckDTO result = userSubscribeAppService.checkUserSubscribed(userId, tagId);
         return ResponseEntity.ok(ApiResponse.success(result));
     }

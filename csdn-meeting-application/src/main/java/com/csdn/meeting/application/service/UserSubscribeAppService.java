@@ -41,7 +41,7 @@ public class UserSubscribeAppService {
     /**
      * 订阅标签
      */
-    public SubscribeResultDTO subscribeTag(Long userId, Long tagId) {
+    public SubscribeResultDTO subscribeTag(String userId, Long tagId) {
         // 检查标签是否存在
         Tag tag = tagRepository.findById(tagId)
                 .orElseThrow(() -> new RuntimeException("标签不存在"));
@@ -66,7 +66,7 @@ public class UserSubscribeAppService {
     /**
      * 取消订阅标签
      */
-    public SubscribeResultDTO unsubscribeTag(Long userId, Long tagId) {
+    public SubscribeResultDTO unsubscribeTag(String userId, Long tagId) {
         // 检查是否已订阅
         if (!userTagSubscribeRepository.exists(userId, tagId)) {
             return new SubscribeResultDTO(false, "您未订阅该标签");
@@ -82,7 +82,7 @@ public class UserSubscribeAppService {
     /**
      * 获取用户订阅的标签列表
      */
-    public PageResult<UserSubscriptionDTO> getUserSubscribedTags(Long userId, int page, int size) {
+    public PageResult<UserSubscriptionDTO> getUserSubscribedTags(String userId, int page, int size) {
         // 真实查询总数（不走简化）
         long total = userTagSubscribeRepository.countByUserId(userId);
         if (total == 0) {
@@ -112,7 +112,7 @@ public class UserSubscribeAppService {
      * 批量查询用户订阅标签的新会议数量（订阅时间之后创建的会议）
      * 按标签分组统计，每个标签有独立的新会议数量
      */
-    private Map<Long, Integer> queryNewMeetingCounts(Long userId, List<UserTagSubscribe> subscriptions) {
+    private Map<Long, Integer> queryNewMeetingCounts(String userId, List<UserTagSubscribe> subscriptions) {
         List<Long> tagIds = subscriptions.stream().map(UserTagSubscribe::getTagId).distinct().collect(Collectors.toList());
 
         // 取最早的订阅时间作为统一查询起点
@@ -135,7 +135,7 @@ public class UserSubscribeAppService {
     /**
      * 检查用户是否订阅了指定标签
      */
-    public SubscriptionCheckDTO checkUserSubscribed(Long userId, Long tagId) {
+    public SubscriptionCheckDTO checkUserSubscribed(String userId, Long tagId) {
         // 检查标签是否存在
         Tag tag = tagRepository.findById(tagId)
                 .orElseThrow(() -> new RuntimeException("标签不存在"));

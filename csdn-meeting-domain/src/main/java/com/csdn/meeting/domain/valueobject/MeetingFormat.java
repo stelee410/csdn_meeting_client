@@ -36,14 +36,20 @@ public enum MeetingFormat {
     }
 
     public static MeetingFormat of(String value) {
-        if (value == null) {
+        if (value == null || value.isEmpty()) {
             return null;
         }
-        for (MeetingFormat format : values()) {
-            if (format.value.equalsIgnoreCase(value)) {
-                return format;
+        String trimmed = value.trim();
+        try {
+            int code = Integer.parseInt(trimmed);
+            return of(code);
+        } catch (NumberFormatException e) {
+            for (MeetingFormat format : values()) {
+                if (format.value.equalsIgnoreCase(trimmed)) {
+                    return format;
+                }
             }
+            return null;
         }
-        return null;
     }
 }

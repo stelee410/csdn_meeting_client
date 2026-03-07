@@ -14,17 +14,17 @@ public interface MeetingRepository {
 
     Optional<Meeting> findByMeetingId(String meetingId);
 
-    List<Meeting> findByCreatorId(Long creatorId);
+    List<Meeting> findByCreatorId(String creatorId);
 
-    List<Meeting> findByCreatorIdAndStatus(Long creatorId, Meeting.MeetingStatus status);
+    List<Meeting> findByCreatorIdAndStatus(String creatorId, Meeting.MeetingStatus status);
 
-    List<Meeting> findByCreatorIdAndStartTimeBetween(Long creatorId, LocalDateTime start, LocalDateTime end);
+    List<Meeting> findByCreatorIdAndStartTimeBetween(String creatorId, LocalDateTime start, LocalDateTime end);
 
     /**
      * 我创建的会议：分页，支持按 status、startDate、endDate 筛选
      * statuses 为空=不按状态筛；startFrom/endTo 为 null=不按时间筛
      */
-    PageResult<Meeting> findPageByCreatorId(Long creatorId,
+    PageResult<Meeting> findPageByCreatorId(String creatorId,
                                             List<Meeting.MeetingStatus> statuses,
                                             LocalDateTime startFrom,
                                             LocalDateTime endTo,

@@ -87,7 +87,7 @@ public class MyMeetingsUseCase {
      * 我创建的会议
      * 支持按 status、startDate、endDate 筛选
      */
-    public PageResult<MeetingDTO> getMyCreated(Long userId, List<Meeting.MeetingStatus> statuses,
+    public PageResult<MeetingDTO> getMyCreated(String userId, List<Meeting.MeetingStatus> statuses,
                                                LocalDate startDate, LocalDate endDate,
                                                int page, int size) {
         LocalDateTime startFrom = startDate != null ? startDate.atStartOfDay() : null;

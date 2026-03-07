@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS t_meeting_tag (
 -- 4. 创建用户标签订阅表
 CREATE TABLE IF NOT EXISTS t_user_tag_subscribe (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    user_id BIGINT NOT NULL COMMENT '用户ID',
+    user_id VARCHAR(64) NOT NULL COMMENT '用户ID',
     tag_id BIGINT NOT NULL COMMENT '标签ID',
     is_active BOOLEAN DEFAULT TRUE COMMENT '是否有效订阅',
     notify_site BOOLEAN DEFAULT TRUE COMMENT '是否接收站内信',

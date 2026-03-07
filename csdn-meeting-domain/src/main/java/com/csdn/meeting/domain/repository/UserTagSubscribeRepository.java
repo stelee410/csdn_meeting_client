@@ -19,27 +19,27 @@ public interface UserTagSubscribeRepository {
     /**
      * 根据用户ID和标签ID查询订阅
      */
-    Optional<UserTagSubscribe> findByUserIdAndTagId(Long userId, Long tagId);
+    Optional<UserTagSubscribe> findByUserIdAndTagId(String userId, Long tagId);
 
     /**
      * 查询用户的所有订阅
      */
-    List<UserTagSubscribe> findByUserId(Long userId);
+    List<UserTagSubscribe> findByUserId(String userId);
 
     /**
      * 查询用户的所有订阅（分页）
      */
-    List<UserTagSubscribe> findByUserId(Long userId, int page, int size);
+    List<UserTagSubscribe> findByUserId(String userId, int page, int size);
 
     /**
      * 查询标签的所有订阅用户ID
      */
-    List<Long> findUserIdsByTagId(Long tagId);
+    List<String> findUserIdsByTagId(Long tagId);
 
     /**
      * 查询多个标签的所有订阅用户ID（去重）
      */
-    List<Long> findUserIdsByTagIds(List<Long> tagIds);
+    List<String> findUserIdsByTagIds(List<Long> tagIds);
 
     /**
      * 保存订阅
@@ -49,17 +49,17 @@ public interface UserTagSubscribeRepository {
     /**
      * 取消订阅（软删除）
      */
-    void unsubscribe(Long userId, Long tagId);
+    void unsubscribe(String userId, Long tagId);
 
     /**
      * 检查用户是否订阅了指定标签
      */
-    boolean exists(Long userId, Long tagId);
+    boolean exists(String userId, Long tagId);
 
     /**
      * 批量检查用户订阅的标签ID（给定 tagIds 中用户已订阅的 ID 集合，避免循环内查库）
      */
-    java.util.Set<Long> findSubscribedTagIdsByUserIdAndTagIds(Long userId, List<Long> tagIds);
+    java.util.Set<Long> findSubscribedTagIdsByUserIdAndTagIds(String userId, List<Long> tagIds);
 
     /**
      * 统计标签的订阅数
@@ -69,5 +69,5 @@ public interface UserTagSubscribeRepository {
     /**
      * 统计用户的订阅标签数
      */
-    long countByUserId(Long userId);
+    long countByUserId(String userId);
 }

@@ -19,7 +19,7 @@ public class UpdateMeetingCommand {
     private String venue;
     private String regions;
     private String coverImage;
-    private String tags;
+    private String tags;  // 逗号分隔的 tagId，如 1,2,3
     private String targetAudience;
     private Boolean isPremium;
     private List<ScheduleDayDTO> scheduleDays;

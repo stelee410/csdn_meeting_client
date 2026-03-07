@@ -3,9 +3,11 @@ package com.csdn.meeting.application.service;
 import com.csdn.meeting.application.dto.*;
 import com.csdn.meeting.application.utils.TimeRangeCalculator;
 import com.csdn.meeting.domain.entity.Meeting;
+import com.csdn.meeting.domain.entity.Tag;
 import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.domain.repository.MeetingSearchRepository;
 import com.csdn.meeting.domain.repository.PageResult;
+import com.csdn.meeting.domain.repository.TagRepository;
 import com.csdn.meeting.domain.valueobject.MeetingFormat;
 import com.csdn.meeting.domain.valueobject.MeetingScene;
 import com.csdn.meeting.domain.valueobject.MeetingTypeEnum;
@@ -15,14 +17,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * 会议列表查询UseCase
- * 支持多维度筛选、关键词搜索、分页、双视图切换
+ * 支持多维度筛选、关键词搜索、分页，统一返回卡片结构
  */
 @Service
 public class MeetingListUseCase {
@@ -31,15 +31,18 @@ public class MeetingListUseCase {
 
     private final MeetingSearchRepository meetingSearchRepository;
     private final MeetingRepository meetingRepository;
+    private final TagRepository tagRepository;
     private final TimeRangeCalculator timeRangeCalculator;
     private final MeetingAnalyticsService analyticsService;
 
     public MeetingListUseCase(MeetingSearchRepository meetingSearchRepository,
                               MeetingRepository meetingRepository,
+                              TagRepository tagRepository,
                               TimeRangeCalculator timeRangeCalculator,
                               MeetingAnalyticsService analyticsService) {
         this.meetingSearchRepository = meetingSearchRepository;
         this.meetingRepository = meetingRepository;
+        this.tagRepository = tagRepository;
         this.timeRangeCalculator = timeRangeCalculator;
         this.analyticsService = analyticsService;
     }
@@ -48,12 +51,11 @@ public class MeetingListUseCase {
      * 查询会议列表
      *
      * @param query 查询参数
-     * @return 列表结果
+     * @return 列表结果（统一为 card 卡片结构）
      */
-    public MeetingListResultDTO<?> queryMeetingList(MeetingListQueryDTO query) {
+    public MeetingListResultDTO<MeetingCardItemDTO> queryMeetingList(MeetingListQueryDTO query) {
         // 记录埋点
         if (query.getUserId() != null) {
-            analyticsService.trackViewSwitch(String.valueOf(query.getUserId()), query.getViewMode());
             analyticsService.trackFilter(String.valueOf(query.getUserId()), "all", buildFilterDesc(query));
         }
 
@@ -75,7 +77,7 @@ public class MeetingListUseCase {
                 query.getPage(), query.getSize());
 
         if (pageResult.getContent().isEmpty()) {
-            return MeetingListResultDTO.empty(query.getViewMode(), "暂无相关会议，可进入感兴趣的会议详情页订阅标签获取推送");
+            return MeetingListResultDTO.empty("暂无相关会议，可进入感兴趣的会议详情页订阅标签获取推送");
         }
 
         return buildResult(query, pageResult);
@@ -121,101 +123,103 @@ public class MeetingListUseCase {
                 new FilterOptionsDTO.FilterOption("NEXT_3_MONTHS", "未来三个月")
         ));
 
-        // 视图模式
-        options.setViewModeOptions(Arrays.asList(
-                new FilterOptionsDTO.FilterOption("card", "阅读视图", "大图卡片展示"),
-                new FilterOptionsDTO.FilterOption("list", "列表视图", "紧凑列表展示")
-        ));
-
         return options;
     }
 
     /**
-     * 构建查询结果
+     * 构建查询结果（统一使用 card 卡片结构返回）
      */
-    private MeetingListResultDTO<?> buildResult(MeetingListQueryDTO query, PageResult<Meeting> pageResult) {
-        MeetingListResultDTO<Object> result = new MeetingListResultDTO<>();
+    private MeetingListResultDTO<MeetingCardItemDTO> buildResult(MeetingListQueryDTO query, PageResult<Meeting> pageResult) {
+        MeetingListResultDTO<MeetingCardItemDTO> result = new MeetingListResultDTO<>();
         result.setTotal(pageResult.getTotalElements());
         result.setPage(pageResult.getPage());
         result.setSize(pageResult.getSize());
         result.setTotalPages(pageResult.getTotalPages());
-        result.setViewMode(query.getViewMode());
         result.setEmpty(false);
 
         List<Meeting> meetings = pageResult.getContent();
-        if (query.isListView()) {
-            List<MeetingListItemDTO> items = meetings.stream()
-                    .map(this::toListItemDTO)
-                    .collect(Collectors.toList());
-            result.setItems(Collections.singletonList(items));
-        } else {
-            List<MeetingCardItemDTO> items = meetings.stream()
-                    .map(this::toCardItemDTO)
-                    .collect(Collectors.toList());
-            result.setItems(Collections.singletonList(items));
-        }
+        // 会议与标签关联通过 t_meeting.tags 字段（逗号分隔），从各会议解析后批量查 t_tag
+        Map<String, List<Tag>> tagsByMeetingId = buildTagsByMeeting(meetings);
+
+        List<MeetingCardItemDTO> items = meetings.stream()
+                .map(m -> toCardItemDTO(m, tagsByMeetingId.getOrDefault(m.getMeetingId(), Collections.emptyList())))
+                .collect(Collectors.toList());
+        result.setItems(items);
 
         return result;
     }
 
     /**
-     * 转换为列表视图DTO
+     * 从各会议的 t_meeting.tags 解析标签 ID 并批量查 t_tag，得到 meetingId -> List<Tag>
+     * tags 字段为逗号分隔的 tagId，如 "1,2,3"
      */
-    private MeetingListItemDTO toListItemDTO(Meeting meeting) {
-        MeetingListItemDTO dto = new MeetingListItemDTO();
-        dto.setId(meeting.getId());
-        dto.setMeetingId(meeting.getMeetingId());
-        dto.setTitle(meeting.getTitle());
-        dto.setPosterUrl(meeting.getPosterUrl());
-
-        // 状态
-        if (meeting.getStatus() != null) {
-            dto.setStatus(meeting.getStatus().name());
-            dto.setStatusDisplay(meeting.getStatus().getDisplayName());
+    private Map<String, List<Tag>> buildTagsByMeeting(List<Meeting> meetings) {
+        List<Long> allTagIds = meetings.stream()
+                .map(Meeting::getTags)
+                .filter(t -> t != null && !t.trim().isEmpty())
+                .flatMap(s -> parseTagIdsFromTagsString(s).stream())
+                .distinct()
+                .collect(Collectors.toList());
+        if (allTagIds.isEmpty()) {
+            Map<String, List<Tag>> empty = new LinkedHashMap<>();
+            meetings.forEach(m -> empty.put(m.getMeetingId(), Collections.emptyList()));
+            return empty;
         }
-
-        // 时间
-        dto.setStartTime(meeting.getStartTime());
-        if (meeting.getStartTime() != null) {
-            dto.setStartTimeDisplay(meeting.getStartTime().format(DateTimeFormatter.ofPattern("MM-dd HH:mm")));
+        List<Tag> allTags = tagRepository.findByIds(allTagIds);
+        Map<Long, Tag> tagById = allTags.stream().collect(Collectors.toMap(Tag::getId, t -> t, (a, b) -> a));
+        Map<String, List<Tag>> tagsByMeetingId = new LinkedHashMap<>();
+        for (Meeting m : meetings) {
+            List<Long> ids = parseTagIdsFromTagsString(m.getTags());
+            List<Tag> tags = ids.stream()
+                    .map(tagById::get)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            tagsByMeetingId.put(m.getMeetingId(), tags);
         }
-
-        // 地点
-        dto.setCityName(meeting.getCityName());
-        dto.setVenue(meeting.getVenue());
-
-        // 形式
-        if (meeting.getFormat() != null) {
-            dto.setFormat(meeting.getFormat().name());
-            dto.setFormatDisplay(meeting.getFormat().getDisplayName());
-        }
-
-        // 热度
-        dto.setHotScore(meeting.getHotScore());
-        dto.setHotScoreDisplay(formatHotScore(meeting.getHotScore()));
-
-        // 报名进度
-        dto.setCurrentParticipants(meeting.getCurrentParticipants());
-        dto.setMaxParticipants(meeting.getMaxParticipants());
-        dto.setParticipantsDisplay(meeting.getParticipantsDisplay());
-
-        return dto;
+        return tagsByMeetingId;
     }
 
     /**
-     * 转换为卡片视图DTO
+     * 从 t_meeting.tags 解析出 tagId 列表（逗号分隔）
      */
-    private MeetingCardItemDTO toCardItemDTO(Meeting meeting) {
+    private static List<Long> parseTagIdsFromTagsString(String tagsStr) {
+        if (tagsStr == null || tagsStr.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<Long> ids = new ArrayList<>();
+        for (String s : tagsStr.split(",")) {
+            String trimmed = s.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            try {
+                ids.add(Long.parseLong(trimmed));
+            } catch (NumberFormatException ignored) {
+                // 忽略非法 ID
+                logger.error("tagsStr {} has error tag: {}", tagsStr, s);
+            }
+        }
+        return ids.stream().distinct().collect(Collectors.toList());
+    }
+
+    /**
+     * 转换为卡片视图DTO（含标签名称：由 tagId 批量查 tag 表得到 name）
+     */
+    private MeetingCardItemDTO toCardItemDTO(Meeting meeting, List<Tag> tags) {
         MeetingCardItemDTO dto = new MeetingCardItemDTO();
         dto.setId(meeting.getId());
         dto.setMeetingId(meeting.getMeetingId());
         dto.setTitle(meeting.getTitle());
         dto.setDescription(meeting.getDescription());
-        dto.setCoverImage(meeting.getCoverImage());
+        dto.setCoverImage(meeting.getCoverImage() != null ? meeting.getCoverImage() : meeting.getPosterUrl());
 
-        // 主办方
-        // TODO: 从关联表查询完整主办方信息
-        dto.setOrganizerName(meeting.getOrganizer());
+        // 主办方：优先 organizerName，兼容旧字段 organizer
+        dto.setOrganizerId(meeting.getOrganizerId());
+        dto.setOrganizerName(meeting.getOrganizerName() != null ? meeting.getOrganizerName() : meeting.getOrganizer());
+        dto.setOrganizerAvatar(meeting.getOrganizerAvatar());
+
+        // 标签：由 tagId 查出的 Tag 转为 TagDTO（id + name + category）
+        dto.setTags(toTagDTOList(tags));
 
         // 状态
         if (meeting.getStatus() != null) {
@@ -236,19 +240,26 @@ public class MeetingListUseCase {
             }
         }
 
-        // 形式
+        // 形式（DB 可能存 code 字符串 "1"/"2"/"3"，MeetingFormat.of 已支持）
         if (meeting.getFormat() != null) {
             dto.setFormat(meeting.getFormat().name());
             dto.setFormatDisplay(meeting.getFormat().getDisplayName());
         }
 
         // 类型
-        dto.setMeetingType(String.valueOf(meeting.getMeetingType()));
-        // TODO: 转换类型显示名称
+        if (meeting.getMeetingType() != null) {
+            dto.setMeetingType(meeting.getMeetingType().name());
+            dto.setMeetingTypeDisplay(meeting.getMeetingType().getDisplayName());
+        }
 
-        // 场景
-        dto.setScene(meeting.getScene());
-        // TODO: 转换场景显示名称
+        // 场景（DB 可能存 code 字符串 "1"~"5"，MeetingScene.of 已支持）
+        MeetingScene sceneEnum = MeetingScene.of(meeting.getScene());
+        if (sceneEnum != null) {
+            dto.setScene(sceneEnum.name());
+            dto.setSceneDisplay(sceneEnum.getDisplayName());
+        } else {
+            dto.setScene(meeting.getScene());
+        }
 
         // 热度
         dto.setHotScore(meeting.getHotScore());
@@ -264,6 +275,21 @@ public class MeetingListUseCase {
         dto.setVenue(meeting.getVenue());
 
         return dto;
+    }
+
+    /**
+     * Tag 实体转 TagDTO（id、name、category）
+     */
+    private List<TagDTO> toTagDTOList(List<Tag> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<TagDTO> list = new ArrayList<>(tags.size());
+        for (Tag tag : tags) {
+            String category = tag.getTagCategory() != null ? tag.getTagCategory().name() : null;
+            list.add(new TagDTO(tag.getId(), tag.getTagName(), category));
+        }
+        return list;
     }
 
     /**

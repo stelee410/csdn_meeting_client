@@ -293,7 +293,7 @@ public class MeetingApplicationService {
         return dto;
     }
 
-    public List<MeetingDTO> getMeetingsByCreator(Long creatorId) {
+    public List<MeetingDTO> getMeetingsByCreator(String creatorId) {
         return meetingRepository.findByCreatorId(creatorId).stream()
                 .map(this::toMeetingDTO)
                 .collect(Collectors.toList());

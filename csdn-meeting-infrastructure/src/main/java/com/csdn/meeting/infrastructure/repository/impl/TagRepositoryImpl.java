@@ -4,32 +4,29 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.csdn.meeting.domain.entity.Tag;
 import com.csdn.meeting.domain.repository.TagRepository;
 import com.csdn.meeting.infrastructure.converter.TagConverter;
-import com.csdn.meeting.infrastructure.po.MeetingTagPO;
 import com.csdn.meeting.infrastructure.po.TagPO;
-import com.csdn.meeting.infrastructure.repository.mapper.MeetingTagMapper;
 import com.csdn.meeting.infrastructure.repository.mapper.TagMapper;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * 标签仓储实现
+ * 会议与标签的关联通过 t_meeting.tags 字段（逗号分隔的 tagId），不依赖 t_meeting_tag 表
  */
 @Repository
 public class TagRepositoryImpl implements TagRepository {
 
     private final TagMapper tagMapper;
-    private final MeetingTagMapper meetingTagMapper;
+    private final com.csdn.meeting.domain.repository.MeetingSearchRepository meetingSearchRepository;
 
-    public TagRepositoryImpl(TagMapper tagMapper, MeetingTagMapper meetingTagMapper) {
+    public TagRepositoryImpl(TagMapper tagMapper,
+                            com.csdn.meeting.domain.repository.MeetingSearchRepository meetingSearchRepository) {
         this.tagMapper = tagMapper;
-        this.meetingTagMapper = meetingTagMapper;
+        this.meetingSearchRepository = meetingSearchRepository;
     }
 
     @Override
@@ -88,40 +85,31 @@ public class TagRepositoryImpl implements TagRepository {
 
     @Override
     public List<Tag> findByMeetingId(String meetingId) {
-        List<TagPO> tagPOList = tagMapper.selectByMeetingId(meetingId);
-        return TagConverter.INSTANCE.poListToEntityList(tagPOList);
+        return meetingSearchRepository.findByMeetingId(meetingId)
+                .map(meeting -> parseTagIdsFromTagsString(meeting.getTags()))
+                .filter(ids -> !ids.isEmpty())
+                .map(this::findByIds)
+                .orElse(Collections.emptyList());
     }
 
-    @Override
-    public Map<String, List<Tag>> findTagsByMeetingIds(List<String> meetingIds) {
-        if (meetingIds == null || meetingIds.isEmpty()) {
-            return Collections.emptyMap();
+    /**
+     * 从 t_meeting.tags 字符串解析出标签ID列表（逗号分隔，如 "1,2,3"）
+     */
+    private static List<Long> parseTagIdsFromTagsString(String tagsStr) {
+        if (tagsStr == null || tagsStr.trim().isEmpty()) {
+            return Collections.emptyList();
         }
-        List<MeetingTagPO> meetingTagPOList = meetingTagMapper.selectByMeetingIds(meetingIds);
-        if (meetingTagPOList == null || meetingTagPOList.isEmpty()) {
-            Map<String, List<Tag>> empty = new LinkedHashMap<>();
-            for (String mid : meetingIds) {
-                empty.put(mid, Collections.emptyList());
-            }
-            return empty;
-        }
-        List<Long> tagIds = meetingTagPOList.stream()
-                .map(MeetingTagPO::getTagId)
-                .distinct()
-                .collect(Collectors.toList());
-        List<Tag> allTags = findByIds(tagIds);
-        Map<Long, Tag> tagMap = allTags.stream().collect(Collectors.toMap(Tag::getId, t -> t, (a, b) -> a));
-        Map<String, List<Tag>> result = new LinkedHashMap<>();
-        for (String mid : meetingIds) {
-            result.put(mid, new ArrayList<>());
-        }
-        for (MeetingTagPO mt : meetingTagPOList) {
-            Tag tag = tagMap.get(mt.getTagId());
-            if (tag != null) {
-                result.get(mt.getMeetingId()).add(tag);
+        List<Long> ids = new java.util.ArrayList<>();
+        for (String s : tagsStr.split(",")) {
+            String trimmed = s.trim();
+            if (trimmed.isEmpty()) continue;
+            try {
+                ids.add(Long.parseLong(trimmed));
+            } catch (NumberFormatException ignored) {
+                // 忽略非法 ID
             }
         }
-        return result;
+        return ids.stream().distinct().collect(Collectors.toList());
     }
 
     @Override
@@ -149,29 +137,5 @@ public class TagRepositoryImpl implements TagRepository {
     @Override
     public void deleteById(Long id) {
         tagMapper.deleteById(id);
-    }
-
-    @Override
-    public void deleteByMeetingId(String meetingId) {
-        meetingTagMapper.deleteByMeetingId(meetingId);
-    }
-
-    @Override
-    public void addMeetingTag(String meetingId, Long tagId) {
-        MeetingTagPO meetingTagPO = new MeetingTagPO();
-        meetingTagPO.setMeetingId(meetingId);
-        meetingTagPO.setTagId(tagId);
-        meetingTagMapper.insert(meetingTagPO);
-    }
-
-    @Override
-    public void addMeetingTags(String meetingId, List<Long> tagIds) {
-        List<MeetingTagPO> meetingTagPOList = tagIds.stream().map(tagId -> {
-            MeetingTagPO meetingTagPO = new MeetingTagPO();
-            meetingTagPO.setMeetingId(meetingId);
-            meetingTagPO.setTagId(tagId);
-            return meetingTagPO;
-        }).collect(Collectors.toList());
-        meetingTagMapper.batchInsert(meetingTagPOList);
     }
 }

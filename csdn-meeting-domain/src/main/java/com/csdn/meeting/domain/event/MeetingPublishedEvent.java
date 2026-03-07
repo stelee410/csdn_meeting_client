@@ -33,13 +33,13 @@ public class MeetingPublishedEvent {
     /**
      * 发布者ID
      */
-    private Long publisherId;
+    private String publisherId;
 
     public MeetingPublishedEvent() {
     }
 
     public MeetingPublishedEvent(String meetingId, String title, List<Long> tagIds, 
-                                  LocalDateTime publishedAt, Long publisherId) {
+                                  LocalDateTime publishedAt, String publisherId) {
         this.meetingId = meetingId;
         this.title = title;
         this.tagIds = tagIds;
@@ -79,11 +79,11 @@ public class MeetingPublishedEvent {
         this.publishedAt = publishedAt;
     }
 
-    public Long getPublisherId() {
+    public String getPublisherId() {
         return publisherId;
     }
 
-    public void setPublisherId(Long publisherId) {
+    public void setPublisherId(String publisherId) {
         this.publisherId = publisherId;
     }
 }

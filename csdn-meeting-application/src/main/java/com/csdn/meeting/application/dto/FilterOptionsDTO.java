@@ -35,12 +35,6 @@ public class FilterOptionsDTO {
     @Schema(description = "召开时间选项列表：THIS_WEEK/THIS_MONTH/NEXT_3_MONTHS")
     private List<FilterOption> timeRangeOptions;
 
-    /**
-     * 视图模式选项
-     */
-    @Schema(description = "视图模式选项列表：card/list")
-    private List<FilterOption> viewModeOptions;
-
     public List<FilterOption> getFormatOptions() {
         return formatOptions;
     }
@@ -71,14 +65,6 @@ public class FilterOptionsDTO {
 
     public void setTimeRangeOptions(List<FilterOption> timeRangeOptions) {
         this.timeRangeOptions = timeRangeOptions;
-    }
-
-    public List<FilterOption> getViewModeOptions() {
-        return viewModeOptions;
-    }
-
-    public void setViewModeOptions(List<FilterOption> viewModeOptions) {
-        this.viewModeOptions = viewModeOptions;
     }
 
     /**

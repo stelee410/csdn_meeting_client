@@ -7,6 +7,7 @@ import com.csdn.meeting.application.dto.JoinMeetingCommand;
 import com.csdn.meeting.application.dto.MeetingDTO;
 import com.csdn.meeting.application.dto.MeetingListQueryDTO;
 import com.csdn.meeting.application.dto.MeetingListResultDTO;
+import com.csdn.meeting.application.dto.MeetingCardItemDTO;
 import com.csdn.meeting.application.dto.MeetingRightsDTO;
 import com.csdn.meeting.application.dto.MeetingStatisticsDTO;
 import com.csdn.meeting.application.dto.PagedResultDTO;
@@ -158,7 +159,7 @@ public class MeetingController {
     /** 我创建的会议：支持 status、startDate、endDate 筛选 */
     @GetMapping("/my-created")
     public ResponseEntity<PagedResultDTO<MeetingDTO>> getMyCreated(
-            @RequestParam Long userId,
+            @RequestParam String userId,
             @RequestParam(required = false) List<String> status,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
@@ -199,7 +200,7 @@ public class MeetingController {
     }
 
     @GetMapping("/creator/{creatorId}")
-    public ResponseEntity<List<MeetingDTO>> getMeetingsByCreator(@PathVariable Long creatorId) {
+    public ResponseEntity<List<MeetingDTO>> getMeetingsByCreator(@PathVariable String creatorId) {
         List<MeetingDTO> meetings = meetingApplicationService.getMeetingsByCreator(creatorId);
         return ResponseEntity.ok(meetings);
     }
@@ -338,30 +339,26 @@ public class MeetingController {
      * 会议列表查询（统一接口，支持筛选、搜索、分页、视图切换）
      * POST /api/meetings/list，请求体为 JSON，字段同 MeetingListQueryDTO
      *
-     * @param query 查询条件（viewMode、keyword、format、type、scene、timeRange、page、size、userId）
+     * @param query 查询条件（keyword、format、type、scene、timeRange、page、size、userId）
      * @return 会议列表结果
      */
     @Operation(
             summary = "会议列表查询",
-            description = "统一接口支持多维度筛选、关键词搜索、分页、视图切换。" +
+            description = "统一接口支持多维度筛选、关键词搜索、分页。" +
                     "筛选条件包括：会议形式（线上/线下/混合）、会议类型（峰会/沙龙/研讨会）、" +
                     "会议场景（开发者/产业/产品/区域/高校）、召开时间（本周/本月/未来三个月）。" +
                     "关键词搜索匹配会议标题、标签、主办方。" +
-                    "视图切换支持card（阅读视图，适合沉浸式浏览）和list（列表视图，适合高效查找）。" +
-                    "使用 POST 请求，参数放在请求体 JSON 中。"
+                    "接口统一返回卡片(card)结构。使用 POST 请求，参数放在请求体 JSON 中。"
     )
     @PostMapping("/list")
-    public ResponseEntity<MeetingListResultDTO<?>> queryMeetingList(
+    public ResponseEntity<MeetingListResultDTO<MeetingCardItemDTO>> queryMeetingList(
             @RequestBody MeetingListQueryDTO query) {
 
-        if (query.getViewMode() == null) {
-            query.setViewMode("card");
-        }
         if (query.getSize() == 0) {
             query.setSize(20);
         }
 
-        MeetingListResultDTO<?> result = meetingListUseCase.queryMeetingList(query);
+        MeetingListResultDTO<MeetingCardItemDTO> result = meetingListUseCase.queryMeetingList(query);
         return ResponseEntity.ok(result);
     }
 

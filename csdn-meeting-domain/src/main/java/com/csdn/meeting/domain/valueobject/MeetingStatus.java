@@ -13,27 +13,27 @@ public enum MeetingStatus {
     /**
      * 已创建状态
      */
-    CREATED(0, "已创建", "created"),
+    CREATED(1, "已创建", "created"),
 
     /**
      * 已发布状态
      */
-    PUBLISHED(1, "已发布", "published"),
+    PUBLISHED(2, "已发布", "published"),
 
     /**
      * 进行中状态
      */
-    ONGOING(2, "进行中", "ongoing"),
+    ONGOING(3, "进行中", "ongoing"),
 
     /**
      * 已结束状态
      */
-    ENDED(3, "已结束", "ended"),
+    ENDED(4, "已结束", "ended"),
 
     /**
      * 已取消状态
      */
-    CANCELLED(4, "已取消", "cancelled");
+    CANCELLED(5, "已取消", "cancelled");
 
     private final int code;
     private final String displayName;

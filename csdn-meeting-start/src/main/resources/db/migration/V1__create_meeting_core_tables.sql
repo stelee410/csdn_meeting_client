@@ -3,7 +3,7 @@ CREATE TABLE `t_meeting` (
     `id`              BIGINT PRIMARY KEY AUTO_INCREMENT,
     `title`           VARCHAR(50) NOT NULL COMMENT '会议名称，最大50字',
     `organizer`       VARCHAR(100) COMMENT '主办方/公司名',
-    `creator_id`      BIGINT NOT NULL COMMENT '创建者ID（复用CSDN账号）',
+    `creator_id`      VARCHAR(64) NOT NULL COMMENT '创建者ID（复用CSDN账号）',
     `format`          VARCHAR(20) COMMENT 'ONLINE/OFFLINE/HYBRID',
     `scene`           VARCHAR(50) COMMENT '会议场景',
     `start_time`      DATETIME COMMENT '会议开始时间（精确到分钟）',

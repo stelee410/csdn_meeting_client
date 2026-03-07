@@ -50,7 +50,7 @@ class MeetingApplicationServiceDraftUpdateSubmitTest {
     @DisplayName("createDraft: title null throws IllegalArgumentException")
     void createDraft_titleNull_throws() {
         CreateMeetingCommand cmd = new CreateMeetingCommand();
-        cmd.setCreatorId(1L);
+        cmd.setCreatorId("1");
         cmd.setCreatorName("Test");
         cmd.setTitle(null);
 
@@ -62,7 +62,7 @@ class MeetingApplicationServiceDraftUpdateSubmitTest {
     @DisplayName("createDraft: title blank throws IllegalArgumentException")
     void createDraft_titleBlank_throws() {
         CreateMeetingCommand cmd = new CreateMeetingCommand();
-        cmd.setCreatorId(1L);
+        cmd.setCreatorId("1");
         cmd.setCreatorName("Test");
         cmd.setTitle("   ");
 
@@ -75,7 +75,7 @@ class MeetingApplicationServiceDraftUpdateSubmitTest {
     void createDraft_validTitle_createsDraft() {
         CreateMeetingCommand cmd = new CreateMeetingCommand();
         cmd.setTitle("会议标题");
-        cmd.setCreatorId(1L);
+        cmd.setCreatorId("1");
         cmd.setCreatorName("张三");
         cmd.setStartTime(LocalDateTime.of(2026, 3, 10, 9, 0));
         cmd.setEndTime(LocalDateTime.of(2026, 3, 11, 18, 0));
@@ -157,7 +157,7 @@ class MeetingApplicationServiceDraftUpdateSubmitTest {
         m.setId(1L);
         m.setMeetingId(meetingId);
         m.setTitle("标题");
-        m.setCreatorId(1L);
+        m.setCreatorId("1");
         m.setCreatorName("创建者");
         m.setStartTime(LocalDateTime.of(2026, 3, 10, 9, 0));
         m.setEndTime(LocalDateTime.of(2026, 3, 11, 18, 0));

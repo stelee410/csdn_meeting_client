@@ -25,5 +25,5 @@ public interface MeetingBaseMapper extends BaseMapper<MeetingPO> {
      * 根据创建者ID查询
      */
     @Select("SELECT * FROM t_meeting WHERE creator_id = #{creatorId} AND is_deleted = 0")
-    List<MeetingPO> selectByCreatorId(@Param("creatorId") Long creatorId);
+    List<MeetingPO> selectByCreatorId(@Param("creatorId") String creatorId);
 }

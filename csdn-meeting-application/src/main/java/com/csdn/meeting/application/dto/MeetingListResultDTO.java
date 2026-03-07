@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * 会议列表查询结果DTO
- * 支持泛型，根据viewMode返回不同的Item类型
+ * 包含分页信息与会议卡片列表
  */
 @Schema(description = "会议列表查询结果，包含分页信息和会议列表数据")
 public class MeetingListResultDTO<T> {
@@ -35,15 +35,9 @@ public class MeetingListResultDTO<T> {
     private int totalPages;
 
     /**
-     * 当前视图模式
+     * 会议列表数据（统一为卡片结构 MeetingCardItemDTO）
      */
-    @Schema(description = "当前视图模式：card（阅读视图）/list（列表视图）", example = "card")
-    private String viewMode;
-
-    /**
-     * 会议列表数据
-     */
-    @Schema(description = "会议列表数据，根据viewMode返回MeetingCardItemDTO或MeetingListItemDTO")
+    @Schema(description = "会议列表数据，统一为卡片结构 MeetingCardItemDTO")
     private List<T> items;
 
     /**
@@ -96,14 +90,6 @@ public class MeetingListResultDTO<T> {
         this.totalPages = totalPages;
     }
 
-    public String getViewMode() {
-        return viewMode;
-    }
-
-    public void setViewMode(String viewMode) {
-        this.viewMode = viewMode;
-    }
-
     public List<T> getItems() {
         return items;
     }
@@ -139,13 +125,12 @@ public class MeetingListResultDTO<T> {
     /**
      * 便捷方法：创建空结果
      */
-    public static <T> MeetingListResultDTO<T> empty(String viewMode, String emptyTip) {
+    public static <T> MeetingListResultDTO<T> empty(String emptyTip) {
         MeetingListResultDTO<T> result = new MeetingListResultDTO<>();
         result.setTotal(0);
         result.setPage(0);
         result.setSize(0);
         result.setTotalPages(0);
-        result.setViewMode(viewMode);
         result.setItems(java.util.Collections.emptyList());
         result.setEmpty(true);
         result.setEmptyTip(emptyTip);

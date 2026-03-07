@@ -89,22 +89,22 @@ public class MeetingRepositoryImpl implements MeetingRepository {
     }
 
     @Override
-    public List<Meeting> findByCreatorId(Long creatorId) {
+    public List<Meeting> findByCreatorId(String creatorId) {
         return loadWithAgenda(meetingPOMapper.selectByCreatorId(creatorId));
     }
 
     @Override
-    public List<Meeting> findByCreatorIdAndStatus(Long creatorId, Meeting.MeetingStatus status) {
+    public List<Meeting> findByCreatorIdAndStatus(String creatorId, Meeting.MeetingStatus status) {
         return loadWithAgenda(meetingPOMapper.selectByCreatorIdAndStatus(creatorId, status.getCode()));
     }
 
     @Override
-    public List<Meeting> findByCreatorIdAndStartTimeBetween(Long creatorId, LocalDateTime start, LocalDateTime end) {
+    public List<Meeting> findByCreatorIdAndStartTimeBetween(String creatorId, LocalDateTime start, LocalDateTime end) {
         return loadWithAgenda(meetingPOMapper.selectByCreatorIdAndStartTimeBetween(creatorId, start, end));
     }
 
     @Override
-    public PageResult<Meeting> findPageByCreatorId(Long creatorId,
+    public PageResult<Meeting> findPageByCreatorId(String creatorId,
                                                    List<Meeting.MeetingStatus> statuses,
                                                    LocalDateTime startFrom,
                                                    LocalDateTime endTo,

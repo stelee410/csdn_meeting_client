@@ -9,7 +9,6 @@ import com.csdn.meeting.infrastructure.converter.MeetingConverter;
 import com.csdn.meeting.infrastructure.po.MeetingPO;
 import com.csdn.meeting.infrastructure.po.TagNewMeetingCountPO;
 import com.csdn.meeting.infrastructure.repository.mapper.MeetingSearchMapper;
-import com.csdn.meeting.infrastructure.repository.mapper.MeetingTagMapper;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -28,12 +27,9 @@ import java.util.stream.Collectors;
 public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
 
     private final MeetingSearchMapper meetingSearchMapper;
-    private final MeetingTagMapper meetingTagMapper;
 
-    public MeetingSearchRepositoryImpl(MeetingSearchMapper meetingSearchMapper,
-                                       MeetingTagMapper meetingTagMapper) {
+    public MeetingSearchRepositoryImpl(MeetingSearchMapper meetingSearchMapper) {
         this.meetingSearchMapper = meetingSearchMapper;
-        this.meetingTagMapper = meetingTagMapper;
     }
 
     @Override
@@ -80,7 +76,7 @@ public class MeetingSearchRepositoryImpl implements MeetingSearchRepository {
         if (tagIds == null || tagIds.isEmpty() || since == null) {
             return Collections.emptyMap();
         }
-        List<TagNewMeetingCountPO> list = meetingTagMapper.countNewMeetingsByTagIdsSince(tagIds, since);
+        List<TagNewMeetingCountPO> list = meetingSearchMapper.countNewMeetingsByTagIdsSince(tagIds, since);
         return list.stream().collect(Collectors.toMap(
                 TagNewMeetingCountPO::getTagId,
                 TagNewMeetingCountPO::getNewMeetingCount,

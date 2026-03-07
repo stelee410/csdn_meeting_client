@@ -30,6 +30,7 @@ public class GlobalExceptionHandler {
     /** 日程完整性校验失败 -> 400, 带 field 定位 */
     @ExceptionHandler(AgendaIntegrityException.class)
     public ResponseEntity<ApiErrorResponse> handleAgendaIntegrityException(AgendaIntegrityException e) {
+        log.error("handleAgendaIntegrityException : ", e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ApiErrorResponse(400, e.getMessage(), "agenda"));
@@ -38,9 +39,11 @@ public class GlobalExceptionHandler {
     /** 参数校验异常：@RequestBody + @Valid 校验失败 */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
+        log.error("handleMethodArgumentNotValid : ", e);
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                 .collect(Collectors.joining("; "));
+
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ApiErrorResponse(400, message));
@@ -49,6 +52,7 @@ public class GlobalExceptionHandler {
     /** 参数绑定异常：表单/查询参数绑定到对象失败 */
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ApiErrorResponse> handleBindException(BindException e) {
+        log.error("handleBindException : ", e);
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(err -> err.getField() + ": " + err.getDefaultMessage())
                 .collect(Collectors.joining("; "));
@@ -60,6 +64,7 @@ public class GlobalExceptionHandler {
     /** 约束违反异常：@RequestParam/@PathVariable 等单参数校验失败 */
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleConstraintViolation(ConstraintViolationException e) {
+        log.error("handleConstraintViolation : ", e);
         String message = e.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining("; "));
@@ -71,7 +76,7 @@ public class GlobalExceptionHandler {
     /** 请求体不可读：JSON 格式错误、类型不匹配等 */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
-        log.warn("请求体解析失败: {}", e.getMessage());
+        log.error("HttpMessageNotReadableException : ", e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ApiErrorResponse(400, "请求体格式错误或参数类型不正确"));
@@ -81,6 +86,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ApiErrorResponse> handleMissingServletRequestParameter(
             MissingServletRequestParameterException e) {
+        log.error("MissingServletRequestParameterException : ", e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ApiErrorResponse(400, "缺少必填参数: " + e.getParameterName()));
@@ -90,6 +96,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiErrorResponse> handleHttpRequestMethodNotSupported(
             HttpRequestMethodNotSupportedException e) {
+        log.error("HttpRequestMethodNotSupportedException : ", e);
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body(new ApiErrorResponse(405, "不支持的请求方法: " + e.getMethod()));
@@ -98,6 +105,7 @@ public class GlobalExceptionHandler {
     /** 业务异常 -> 422 或 403 */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiErrorResponse> handleBusinessException(BusinessException e) {
+        log.error("BusinessException : ", e);
         return ResponseEntity
                 .status(e.getHttpStatus())
                 .body(new ApiErrorResponse(e.getHttpStatus(), e.getMessage()));
@@ -105,6 +113,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error("IllegalArgumentException : ", e);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ApiErrorResponse(400, e.getMessage()));
@@ -113,6 +122,7 @@ public class GlobalExceptionHandler {
     /** 非法状态（如非草稿不可编辑） -> 422 */
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ApiErrorResponse> handleIllegalStateException(IllegalStateException e) {
+        log.error("IllegalStateException : ", e);
         return ResponseEntity
                 .status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(new ApiErrorResponse(422, e.getMessage()));
@@ -121,7 +131,7 @@ public class GlobalExceptionHandler {
     /** 兜底：拦截所有未单独处理的异常，统一返回 500，不向客户端暴露内部信息 */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleException(Exception e) {
-        log.error("未捕获异常", e);
+        log.error("未捕获异常Exception : ", e);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiErrorResponse(500, "服务器内部错误"));

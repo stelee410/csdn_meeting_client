@@ -37,7 +37,7 @@ public class MeetingTemplateUseCase {
      * 从模板创建草稿：复制模板字段到新会议，状态为 DRAFT
      */
     @Transactional
-    public MeetingDTO applyTemplate(Long templateId, Long creatorId, String creatorName) {
+    public MeetingDTO applyTemplate(Long templateId, String creatorId, String creatorName) {
         MeetingTemplate template = templateRepository.findById(templateId)
                 .orElseThrow(() -> new IllegalArgumentException("模板不存在: " + templateId));
         CreateMeetingCommand command = new CreateMeetingCommand();
