@@ -5,11 +5,6 @@ spring:
   application:
     name: csdn-meeting-client
 
-  # 兼容 Springfox/Swagger 3.0 与 Spring Boot 2.6+ 路径匹配（避免 documentationPluginsBootstrapper NPE）
-  mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
-
   datasource:
     url: jdbc:mysql://118.145.66.85:3306/csdn_meeting?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver

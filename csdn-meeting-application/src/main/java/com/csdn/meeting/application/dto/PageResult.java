@@ -1,7 +1,6 @@
 package com.csdn.meeting.application.dto;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -10,22 +9,22 @@ import java.util.List;
  * 分页结果DTO
  */
 @Data
-@ApiModel("分页结果")
+@Schema(description = "分页结果")
 public class PageResult<T> {
 
-    @ApiModelProperty(value = "总记录数", example = "100")
+    @Schema(description = "总记录数", example = "100")
     private Long total;
 
-    @ApiModelProperty(value = "总页数", example = "10")
+    @Schema(description = "总页数", example = "10")
     private Long pages;
 
-    @ApiModelProperty(value = "当前页码", example = "1")
+    @Schema(description = "当前页码", example = "1")
     private Long current;
 
-    @ApiModelProperty(value = "每页大小", example = "10")
+    @Schema(description = "每页大小", example = "10")
     private Long size;
 
-    @ApiModelProperty(value = "数据列表")
+    @Schema(description = "数据列表")
     private List<T> records;
 
     /**

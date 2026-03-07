@@ -10,7 +10,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
- * 应用启动后打印 Swagger 文档地址
+ * 应用启动后打印 OpenAPI/Swagger 文档地址（SpringDoc）
  */
 @Component
 public class SwaggerInfoPrinter implements CommandLineRunner {
@@ -31,7 +31,7 @@ public class SwaggerInfoPrinter implements CommandLineRunner {
         String localhost = "localhost";
 
         String baseUrl = "http://" + localhost + ":" + serverPort + contextPath;
-        String swaggerUiUrl = baseUrl + "/swagger-ui/";
+        String swaggerUiUrl = baseUrl + "/swagger-ui.html";
         String apiDocsUrl = baseUrl + "/v3/api-docs";
 
         log.info("==================================================");
