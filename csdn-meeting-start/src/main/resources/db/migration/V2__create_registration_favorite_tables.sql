@@ -10,7 +10,7 @@ CREATE TABLE `t_registration` (
     `position`      VARCHAR(100) COMMENT '职位',
     `status`        VARCHAR(20) DEFAULT 'PENDING' COMMENT 'PENDING/APPROVED/REJECTED',
     `registered_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    `audited_at`    TIMESTAMP COMMENT '审核时间',
+    `audited_at`    TIMESTAMP NULL DEFAULT NULL COMMENT '审核时间',
     `audit_remark`  VARCHAR(500) COMMENT '拒绝备注',
     INDEX `idx_meeting_status` (`meeting_id`, `status`),
     UNIQUE KEY `uk_meeting_user` (`meeting_id`, `user_id`)
