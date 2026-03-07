@@ -31,14 +31,12 @@ public class TimeRangeCalculator {
         LocalDate today = LocalDate.now();
 
         switch (range) {
-            case THIS_WEEK:
-                return calculateThisWeek(today);
             case THIS_MONTH:
                 return calculateThisMonth(today);
             case NEXT_3_MONTHS:
                 return calculateNext3Months(today);
             default:
-                return null;
+                return calculateThisWeek(today);
         }
     }
 
