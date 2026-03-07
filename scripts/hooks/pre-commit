@@ -1,0 +1,7 @@
+#!/bin/sh
+# Pre-commit hook: run mvn verify before allowing commit.
+# This ensures JDK 8 API check (animal-sniffer) and tests pass.
+set -e
+echo "Running mvn verify (JDK 8 check + tests)..."
+mvn verify -q
+echo "mvn verify passed."

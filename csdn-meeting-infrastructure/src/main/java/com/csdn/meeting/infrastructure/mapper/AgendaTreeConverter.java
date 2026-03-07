@@ -99,23 +99,26 @@ public class AgendaTreeConverter {
         int dayOrder = 0;
         for (ScheduleDay day : scheduleDays) {
             int dayIdx = result.size();
-            result.add(new AgendaItemData(1, -1, day.getDayLabel(), dayOrder++,
-                    toJson(Map.of("schedule_date", day.getScheduleDate().toString(),
-                            "day_label", day.getDayLabel() != null ? day.getDayLabel() : ""))));
+            Map<String, Object> dayExtra = new HashMap<>();
+            dayExtra.put("schedule_date", day.getScheduleDate().toString());
+            dayExtra.put("day_label", day.getDayLabel() != null ? day.getDayLabel() : "");
+            result.add(new AgendaItemData(1, -1, day.getDayLabel(), dayOrder++, toJson(dayExtra)));
 
             int sessionOrder = 0;
             for (Session session : day.getSessions()) {
                 int sessionIdx = result.size();
-                result.add(new AgendaItemData(2, dayIdx, session.getSessionName(), sessionOrder++,
-                        toJson(Map.of("start_time", session.getStartTime().toString(),
-                                "end_time", session.getEndTime().toString(),
-                                "session_name", session.getSessionName() != null ? session.getSessionName() : ""))));
+                Map<String, Object> sessionExtra = new HashMap<>();
+                sessionExtra.put("start_time", session.getStartTime().toString());
+                sessionExtra.put("end_time", session.getEndTime().toString());
+                sessionExtra.put("session_name", session.getSessionName() != null ? session.getSessionName() : "");
+                result.add(new AgendaItemData(2, dayIdx, session.getSessionName(), sessionOrder++, toJson(sessionExtra)));
 
                 int svOrder = 0;
                 for (SubVenue sv : session.getSubVenues()) {
                     int svIdx = result.size();
-                    result.add(new AgendaItemData(3, sessionIdx, sv.getSubVenueName(), svOrder++,
-                            toJson(Map.of("sub_venue_name", sv.getSubVenueName() != null ? sv.getSubVenueName() : ""))));
+                    Map<String, Object> svExtra = new HashMap<>();
+                    svExtra.put("sub_venue_name", sv.getSubVenueName() != null ? sv.getSubVenueName() : "");
+                    result.add(new AgendaItemData(3, sessionIdx, sv.getSubVenueName(), svOrder++, toJson(svExtra)));
 
                     int topicOrder = 0;
                     for (Topic topic : sv.getTopics()) {
