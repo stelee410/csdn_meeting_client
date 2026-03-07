@@ -1,14 +1,14 @@
 package com.csdn.meeting.infrastructure.repository.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.Registration;
 import com.csdn.meeting.domain.repository.PageResult;
 import com.csdn.meeting.domain.repository.RegistrationRepository;
 import com.csdn.meeting.infrastructure.mapper.RegistrationMapper;
 import com.csdn.meeting.infrastructure.po.RegistrationPO;
-import com.csdn.meeting.infrastructure.repository.RegistrationJpaRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import com.csdn.meeting.infrastructure.repository.mapper.RegistrationPOMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collections;
@@ -19,42 +19,47 @@ import java.util.stream.Collectors;
 @Repository
 public class RegistrationRepositoryImpl implements RegistrationRepository {
 
-    private final RegistrationJpaRepository jpaRepository;
+    private final RegistrationPOMapper registrationPOMapper;
 
-    public RegistrationRepositoryImpl(RegistrationJpaRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public RegistrationRepositoryImpl(RegistrationPOMapper registrationPOMapper) {
+        this.registrationPOMapper = registrationPOMapper;
     }
 
     @Override
     public Registration save(Registration registration) {
         RegistrationPO po = RegistrationMapper.INSTANCE.toPO(registration);
-        RegistrationPO saved = jpaRepository.save(po);
-        return RegistrationMapper.INSTANCE.toEntity(saved);
+        if (po.getId() == null) {
+            registrationPOMapper.insert(po);
+        } else {
+            registrationPOMapper.updateById(po);
+        }
+        return RegistrationMapper.INSTANCE.toEntity(po);
     }
 
     @Override
     public Optional<Registration> findById(Long id) {
-        return jpaRepository.findById(id).map(RegistrationMapper.INSTANCE::toEntity);
+        RegistrationPO po = registrationPOMapper.selectById(id);
+        return po == null ? Optional.empty() : Optional.of(RegistrationMapper.INSTANCE.toEntity(po));
     }
 
     @Override
     public PageResult<Registration> findByMeetingIdAndStatus(Long meetingId,
                                                              Registration.RegistrationStatus status,
                                                              int page, int size) {
-        org.springframework.data.domain.Pageable pageable = PageRequest.of(page, size);
-        Page<RegistrationPO> springPage = status == null
-                ? jpaRepository.findByMeetingId(meetingId, pageable)
-                : jpaRepository.findByMeetingIdAndStatus(meetingId, status.name(), pageable);
-        List<Registration> content = springPage.getContent().stream()
+        Page<RegistrationPO> pageParam = new Page<>(page + 1, size);
+        IPage<RegistrationPO> springPage = status == null
+                ? registrationPOMapper.selectPageByMeetingId(pageParam, meetingId)
+                : registrationPOMapper.selectPageByMeetingIdAndStatus(pageParam, meetingId, status.name());
+        List<Registration> content = springPage.getRecords().stream()
                 .map(RegistrationMapper.INSTANCE::toEntity)
                 .collect(Collectors.toList());
-        return new PageResult<>(content, springPage.getTotalElements(), page, size);
+        return new PageResult<>(content, springPage.getTotal(), page, size);
     }
 
     @Override
     public Optional<Registration> findByUserIdAndMeetingId(Long userId, Long meetingId) {
-        return jpaRepository.findByUserIdAndMeetingId(userId, meetingId)
-                .map(RegistrationMapper.INSTANCE::toEntity);
+        RegistrationPO po = registrationPOMapper.selectByUserIdAndMeetingId(userId, meetingId);
+        return po == null ? Optional.empty() : Optional.of(RegistrationMapper.INSTANCE.toEntity(po));
     }
 
     @Override
@@ -65,17 +70,16 @@ public class RegistrationRepositoryImpl implements RegistrationRepository {
             return new PageResult<>(Collections.emptyList(), 0, page, size);
         }
         List<Integer> codes = meetingStatuses.stream().map(Meeting.MeetingStatus::getCode).collect(Collectors.toList());
-        org.springframework.data.domain.Pageable pageable = PageRequest.of(page, size);
-        org.springframework.data.domain.Page<RegistrationPO> springPage =
-                jpaRepository.findByUserIdAndMeetingStatusIn(userId, codes, pageable);
-        List<Registration> content = springPage.getContent().stream()
+        Page<RegistrationPO> pageParam = new Page<>(page + 1, size);
+        IPage<RegistrationPO> springPage = registrationPOMapper.selectPageByUserIdAndMeetingStatusIn(pageParam, userId, codes);
+        List<Registration> content = springPage.getRecords().stream()
                 .map(RegistrationMapper.INSTANCE::toEntity)
                 .collect(Collectors.toList());
-        return new PageResult<>(content, springPage.getTotalElements(), page, size);
+        return new PageResult<>(content, springPage.getTotal(), page, size);
     }
 
     @Override
     public void deleteById(Long id) {
-        jpaRepository.deleteById(id);
+        registrationPOMapper.deleteById(id);
     }
 }

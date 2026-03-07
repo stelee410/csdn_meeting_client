@@ -1,55 +1,47 @@
 package com.csdn.meeting.infrastructure.po;
 
-import javax.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * JPA entity for t_meeting_agenda_item (tree structure).
+ * MyBatis-Plus entity for t_meeting_agenda_item (tree structure).
  * level: 1=ScheduleDay 2=Session 3=SubVenue 4=Topic
  */
-@Entity
-@Table(name = "t_meeting_agenda_item", indexes = {
-    @Index(name = "idx_meeting_id", columnList = "meeting_id"),
-    @Index(name = "idx_parent_id", columnList = "parent_id")
-})
+@TableName("t_meeting_agenda_item")
 public class MeetingAgendaItemPO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "meeting_id", nullable = false)
+    @TableField("meeting_id")
     private Long meetingId;
 
-    @Column(name = "parent_id")
+    @TableField("parent_id")
     private Long parentId;
 
-    @Column(name = "level", nullable = false)
+    @TableField("level")
     private Integer level;
 
-    @Column(name = "title", length = 200)
+    @TableField("title")
     private String title;
 
-    @Column(name = "sort_order")
+    @TableField("sort_order")
     private Integer sortOrder;
 
-    @Column(name = "extra", columnDefinition = "json")
+    @TableField("extra")
     private String extra;
 
-    @Column(name = "created_at")
+    @TableField("created_at")
     private LocalDateTime createdAt;
 
-    @Transient
+    @TableField(exist = false)
     private List<MeetingAgendaItemPO> children = new ArrayList<>();
-
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-    }
-
-    // ---- getters / setters ----
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

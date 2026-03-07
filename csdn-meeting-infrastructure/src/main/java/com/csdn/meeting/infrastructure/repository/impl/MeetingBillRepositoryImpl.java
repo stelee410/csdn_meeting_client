@@ -3,7 +3,7 @@ package com.csdn.meeting.infrastructure.repository.impl;
 import com.csdn.meeting.domain.entity.MeetingBill;
 import com.csdn.meeting.domain.repository.MeetingBillRepository;
 import com.csdn.meeting.infrastructure.po.MeetingBillPO;
-import com.csdn.meeting.infrastructure.repository.MeetingBillJpaRepository;
+import com.csdn.meeting.infrastructure.repository.mapper.MeetingBillPOMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,22 +12,26 @@ import java.util.stream.Collectors;
 @Repository
 public class MeetingBillRepositoryImpl implements MeetingBillRepository {
 
-    private final MeetingBillJpaRepository jpaRepository;
+    private final MeetingBillPOMapper billPOMapper;
 
-    public MeetingBillRepositoryImpl(MeetingBillJpaRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public MeetingBillRepositoryImpl(MeetingBillPOMapper billPOMapper) {
+        this.billPOMapper = billPOMapper;
     }
 
     @Override
     public MeetingBill save(MeetingBill bill) {
         MeetingBillPO po = toPO(bill);
-        MeetingBillPO saved = jpaRepository.save(po);
-        return toEntity(saved);
+        if (po.getId() == null) {
+            billPOMapper.insert(po);
+        } else {
+            billPOMapper.updateById(po);
+        }
+        return toEntity(po);
     }
 
     @Override
     public List<MeetingBill> findByMeetingId(Long meetingId) {
-        return jpaRepository.findByMeetingId(meetingId).stream()
+        return billPOMapper.selectByMeetingId(meetingId).stream()
                 .map(this::toEntity)
                 .collect(Collectors.toList());
     }

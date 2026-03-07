@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.csdn.meeting.infrastructure.repository.mapper.MeetingPOMapper">
+
+    <select id="selectByCreatorId" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+    </select>
+
+    <select id="selectPageByCreatorId" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        ORDER BY start_time DESC
+    </select>
+
+    <select id="selectPageByCreatorIdAndStatusIn" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        AND status IN
+        <foreach collection="statuses" item="s" open="(" separator="," close=")">
+            #{s}
+        </foreach>
+        ORDER BY start_time DESC
+    </select>
+
+    <select id="selectPageByCreatorIdAndStartTimeBetween" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        AND start_time &gt;= #{start} AND start_time &lt;= #{end}
+        ORDER BY start_time DESC
+    </select>
+
+    <select id="selectPageByCreatorIdAndStatusInAndStartTimeBetween" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        AND status IN
+        <foreach collection="statuses" item="s" open="(" separator="," close=")">
+            #{s}
+        </foreach>
+        AND start_time &gt;= #{start} AND start_time &lt;= #{end}
+        ORDER BY start_time DESC
+    </select>
+
+    <select id="selectByCreatorIdAndStatus" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE creator_id = #{creatorId} AND status = #{status}
+    </select>
+
+    <select id="selectByCreatorIdAndStartTimeBetween" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        AND start_time &gt;= #{start} AND start_time &lt;= #{end}
+    </select>
+
+    <select id="selectByStatus" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE status = #{status}
+    </select>
+
+    <select id="selectByStatusAndStartTimeLessThanEqual" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE status = #{status} AND start_time &lt;= #{threshold}
+    </select>
+
+    <select id="selectByStatusAndEndTimeLessThanEqual" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
+        SELECT * FROM t_meeting WHERE status = #{status} AND end_time &lt;= #{threshold}
+    </select>
+</mapper>

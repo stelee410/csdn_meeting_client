@@ -3,7 +3,7 @@ package com.csdn.meeting.infrastructure.repository.impl;
 import com.csdn.meeting.domain.entity.MeetingRights;
 import com.csdn.meeting.domain.repository.MeetingRightsRepository;
 import com.csdn.meeting.infrastructure.po.MeetingRightsPO;
-import com.csdn.meeting.infrastructure.repository.MeetingRightsJpaRepository;
+import com.csdn.meeting.infrastructure.repository.mapper.MeetingRightsPOMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,28 +13,32 @@ import java.util.stream.Collectors;
 @Repository
 public class MeetingRightsRepositoryImpl implements MeetingRightsRepository {
 
-    private final MeetingRightsJpaRepository jpaRepository;
+    private final MeetingRightsPOMapper rightsPOMapper;
 
-    public MeetingRightsRepositoryImpl(MeetingRightsJpaRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public MeetingRightsRepositoryImpl(MeetingRightsPOMapper rightsPOMapper) {
+        this.rightsPOMapper = rightsPOMapper;
     }
 
     @Override
     public MeetingRights save(MeetingRights rights) {
         MeetingRightsPO po = toPO(rights);
-        MeetingRightsPO saved = jpaRepository.save(po);
-        return toEntity(saved);
+        if (po.getId() == null) {
+            rightsPOMapper.insert(po);
+        } else {
+            rightsPOMapper.updateById(po);
+        }
+        return toEntity(po);
     }
 
     @Override
     public Optional<MeetingRights> findActiveByMeetingId(Long meetingId) {
-        return jpaRepository.findFirstByMeetingIdAndStatus(meetingId, MeetingRights.STATUS_ACTIVE)
-                .map(this::toEntity);
+        MeetingRightsPO po = rightsPOMapper.selectFirstByMeetingIdAndStatus(meetingId, MeetingRights.STATUS_ACTIVE);
+        return po == null ? Optional.empty() : Optional.of(toEntity(po));
     }
 
     @Override
     public List<MeetingRights> findByMeetingId(Long meetingId) {
-        return jpaRepository.findByMeetingId(meetingId).stream()
+        return rightsPOMapper.selectByMeetingId(meetingId).stream()
                 .map(this::toEntity)
                 .collect(Collectors.toList());
     }

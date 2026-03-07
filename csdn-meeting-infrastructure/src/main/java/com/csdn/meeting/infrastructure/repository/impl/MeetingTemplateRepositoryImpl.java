@@ -4,7 +4,7 @@ import com.csdn.meeting.domain.entity.MeetingTemplate;
 import com.csdn.meeting.domain.repository.MeetingTemplateRepository;
 import com.csdn.meeting.infrastructure.mapper.MeetingTemplateMapper;
 import com.csdn.meeting.infrastructure.po.MeetingTemplatePO;
-import com.csdn.meeting.infrastructure.repository.MeetingTemplateJpaRepository;
+import com.csdn.meeting.infrastructure.repository.mapper.MeetingTemplatePOMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,33 +14,38 @@ import java.util.stream.Collectors;
 @Repository
 public class MeetingTemplateRepositoryImpl implements MeetingTemplateRepository {
 
-    private final MeetingTemplateJpaRepository jpaRepository;
+    private final MeetingTemplatePOMapper templatePOMapper;
 
-    public MeetingTemplateRepositoryImpl(MeetingTemplateJpaRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public MeetingTemplateRepositoryImpl(MeetingTemplatePOMapper templatePOMapper) {
+        this.templatePOMapper = templatePOMapper;
     }
 
     @Override
     public MeetingTemplate save(MeetingTemplate template) {
         MeetingTemplatePO po = MeetingTemplateMapper.INSTANCE.toPO(template);
-        MeetingTemplatePO saved = jpaRepository.save(po);
-        return MeetingTemplateMapper.INSTANCE.toEntity(saved);
+        if (po.getId() == null) {
+            templatePOMapper.insert(po);
+        } else {
+            templatePOMapper.updateById(po);
+        }
+        return MeetingTemplateMapper.INSTANCE.toEntity(po);
     }
 
     @Override
     public Optional<MeetingTemplate> findById(Long id) {
-        return jpaRepository.findById(id).map(MeetingTemplateMapper.INSTANCE::toEntity);
+        MeetingTemplatePO po = templatePOMapper.selectById(id);
+        return po == null ? Optional.empty() : Optional.of(MeetingTemplateMapper.INSTANCE.toEntity(po));
     }
 
     @Override
     public List<MeetingTemplate> findAllActive() {
-        return jpaRepository.findByIsActiveTrueOrderBySortOrderAsc().stream()
+        return templatePOMapper.selectByIsActiveTrueOrderBySortOrderAsc().stream()
                 .map(MeetingTemplateMapper.INSTANCE::toEntity)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void deleteById(Long id) {
-        jpaRepository.deleteById(id);
+        templatePOMapper.deleteById(id);
     }
 }

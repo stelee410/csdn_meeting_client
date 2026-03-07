@@ -1,66 +1,63 @@
 package com.csdn.meeting.infrastructure.po;
 
-import javax.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "t_promotion_config", indexes = @Index(name = "idx_meeting_id", columnList = "meeting_id"))
+@TableName("t_promotion_config")
 public class PromotionConfigPO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "meeting_id", nullable = false)
+    @TableField("meeting_id")
     private Long meetingId;
 
-    @Column(name = "user_intents", columnDefinition = "json")
+    @TableField("user_intents")
     private String userIntents;
 
-    @Column(name = "behavior_period", length = 10)
+    @TableField("behavior_period")
     private String behaviorPeriod;
 
-    @Column(name = "target_behaviors", columnDefinition = "json")
+    @TableField("target_behaviors")
     private String targetBehaviors;
 
-    @Column(name = "target_regions", columnDefinition = "json")
+    @TableField("target_regions")
     private String targetRegions;
 
-    @Column(name = "target_industries", columnDefinition = "json")
+    @TableField("target_industries")
     private String targetIndustries;
 
-    @Column(name = "channels", columnDefinition = "json")
+    @TableField("channels")
     private String channels;
 
-    @Column(name = "pay_mode", length = 20)
+    @TableField("pay_mode")
     private String payMode;
 
-    @Column(name = "estimated_reach")
+    @TableField("estimated_reach")
     private Long estimatedReach;
 
-    @Column(name = "estimated_impressions")
+    @TableField("estimated_impressions")
     private Long estimatedImpressions;
 
-    @Column(name = "estimated_clicks")
+    @TableField("estimated_clicks")
     private Long estimatedClicks;
 
-    @Column(name = "base_price", precision = 10, scale = 2)
+    @TableField("base_price")
     private BigDecimal basePrice;
 
-    @Column(name = "order_status", length = 20)
+    @TableField("order_status")
     private String orderStatus;
 
-    @Column(name = "order_created_at")
+    @TableField("order_created_at")
     private LocalDateTime orderCreatedAt;
 
-    @Column(name = "created_at")
+    @TableField("created_at")
     private LocalDateTime createdAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.createdAt == null) this.createdAt = LocalDateTime.now();
-    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

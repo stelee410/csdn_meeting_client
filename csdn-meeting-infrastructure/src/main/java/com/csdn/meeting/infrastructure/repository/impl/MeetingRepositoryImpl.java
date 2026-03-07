@@ -1,5 +1,7 @@
 package com.csdn.meeting.infrastructure.repository.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.domain.repository.PageResult;
@@ -7,9 +9,8 @@ import com.csdn.meeting.infrastructure.mapper.AgendaTreeConverter;
 import com.csdn.meeting.infrastructure.mapper.MeetingMapper;
 import com.csdn.meeting.infrastructure.po.MeetingAgendaItemPO;
 import com.csdn.meeting.infrastructure.po.MeetingPO;
-import com.csdn.meeting.infrastructure.repository.MeetingAgendaItemJpaRepository;
-import com.csdn.meeting.infrastructure.repository.MeetingJpaRepository;
-import org.springframework.data.domain.PageRequest;
+import com.csdn.meeting.infrastructure.repository.mapper.MeetingAgendaItemPOMapper;
+import com.csdn.meeting.infrastructure.repository.mapper.MeetingPOMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,15 +24,15 @@ import java.util.stream.Collectors;
 @Repository
 public class MeetingRepositoryImpl implements MeetingRepository {
 
-    private final MeetingJpaRepository jpaRepository;
-    private final MeetingAgendaItemJpaRepository agendaItemJpaRepository;
+    private final MeetingPOMapper meetingPOMapper;
+    private final MeetingAgendaItemPOMapper agendaItemPOMapper;
     private final AgendaTreeConverter agendaTreeConverter;
 
-    public MeetingRepositoryImpl(MeetingJpaRepository jpaRepository,
-                                 MeetingAgendaItemJpaRepository agendaItemJpaRepository,
+    public MeetingRepositoryImpl(MeetingPOMapper meetingPOMapper,
+                                 MeetingAgendaItemPOMapper agendaItemPOMapper,
                                  AgendaTreeConverter agendaTreeConverter) {
-        this.jpaRepository = jpaRepository;
-        this.agendaItemJpaRepository = agendaItemJpaRepository;
+        this.meetingPOMapper = meetingPOMapper;
+        this.agendaItemPOMapper = agendaItemPOMapper;
         this.agendaTreeConverter = agendaTreeConverter;
     }
 
@@ -39,10 +40,13 @@ public class MeetingRepositoryImpl implements MeetingRepository {
     @Transactional
     public Meeting save(Meeting meeting) {
         MeetingPO po = MeetingMapper.INSTANCE.toPO(meeting);
-        MeetingPO saved = jpaRepository.save(po);
-        Long meetingId = saved.getId();
-
-        agendaItemJpaRepository.deleteByMeetingId(meetingId);
+        if (po.getId() == null) {
+            meetingPOMapper.insert(po);
+        } else {
+            meetingPOMapper.updateById(po);
+        }
+        Long meetingId = po.getId();
+        agendaItemPOMapper.deleteByMeetingId(meetingId);
 
         if (meeting.getScheduleDays() != null && !meeting.getScheduleDays().isEmpty()) {
             List<AgendaTreeConverter.AgendaItemData> dataList = agendaTreeConverter.toAgendaItemDataList(meetingId, meeting.getScheduleDays());
@@ -50,25 +54,24 @@ public class MeetingRepositoryImpl implements MeetingRepository {
             for (AgendaTreeConverter.AgendaItemData data : dataList) {
                 Long parentId = data.parentIndex >= 0 ? savedIds.get(data.parentIndex) : null;
                 MeetingAgendaItemPO itemPo = agendaTreeConverter.toPO(data, meetingId, parentId);
-                MeetingAgendaItemPO savedItem = agendaItemJpaRepository.save(itemPo);
-                savedIds.add(savedItem.getId());
+                agendaItemPOMapper.insert(itemPo);
+                savedIds.add(itemPo.getId());
             }
         }
 
-        Meeting result = MeetingMapper.INSTANCE.toEntity(saved);
+        Meeting result = MeetingMapper.INSTANCE.toEntity(po);
         result.setScheduleDays(meeting.getScheduleDays());
         return result;
     }
 
     @Override
     public Optional<Meeting> findById(Long id) {
-        return jpaRepository.findById(id)
-                .map(po -> {
-                    Meeting m = MeetingMapper.INSTANCE.toEntity(po);
-                    List<MeetingAgendaItemPO> items = agendaItemJpaRepository.findByMeetingIdOrderBySortOrderAsc(id);
-                    m.setScheduleDays(agendaTreeConverter.toScheduleDays(items));
-                    return m;
-                });
+        MeetingPO po = meetingPOMapper.selectById(id);
+        if (po == null) return Optional.empty();
+        Meeting m = MeetingMapper.INSTANCE.toEntity(po);
+        List<MeetingAgendaItemPO> items = agendaItemPOMapper.selectByMeetingIdOrderBySortOrderAsc(id);
+        m.setScheduleDays(agendaTreeConverter.toScheduleDays(items));
+        return Optional.of(m);
     }
 
     @Override
@@ -83,17 +86,17 @@ public class MeetingRepositoryImpl implements MeetingRepository {
 
     @Override
     public List<Meeting> findByCreatorId(Long creatorId) {
-        return loadWithAgenda(jpaRepository.findByCreatorId(creatorId));
+        return loadWithAgenda(meetingPOMapper.selectByCreatorId(creatorId));
     }
 
     @Override
     public List<Meeting> findByCreatorIdAndStatus(Long creatorId, Meeting.MeetingStatus status) {
-        return loadWithAgenda(jpaRepository.findByCreatorIdAndStatus(creatorId, status.getCode()));
+        return loadWithAgenda(meetingPOMapper.selectByCreatorIdAndStatus(creatorId, status.getCode()));
     }
 
     @Override
     public List<Meeting> findByCreatorIdAndStartTimeBetween(Long creatorId, LocalDateTime start, LocalDateTime end) {
-        return loadWithAgenda(jpaRepository.findByCreatorIdAndStartTimeBetween(creatorId, start, end));
+        return loadWithAgenda(meetingPOMapper.selectByCreatorIdAndStartTimeBetween(creatorId, start, end));
     }
 
     @Override
@@ -102,55 +105,55 @@ public class MeetingRepositoryImpl implements MeetingRepository {
                                                    LocalDateTime startFrom,
                                                    LocalDateTime endTo,
                                                    int page, int size) {
-        org.springframework.data.domain.Pageable pageable = PageRequest.of(page, size);
-        org.springframework.data.domain.Page<MeetingPO> springPage;
+        Page<MeetingPO> pageParam = new Page<>(page + 1, size);
+        IPage<MeetingPO> springPage;
         boolean hasStatus = statuses != null && !statuses.isEmpty();
         boolean hasDateRange = startFrom != null || endTo != null;
         LocalDateTime start = startFrom != null ? startFrom : LocalDateTime.MIN;
         LocalDateTime end = endTo != null ? endTo : LocalDateTime.MAX;
 
         if (!hasStatus && !hasDateRange) {
-            springPage = jpaRepository.findByCreatorIdOrderByStartTimeDesc(creatorId, pageable);
+            springPage = meetingPOMapper.selectPageByCreatorId(pageParam, creatorId);
         } else if (hasStatus && !hasDateRange) {
             List<Integer> codes = statuses.stream().map(Meeting.MeetingStatus::getCode).collect(Collectors.toList());
-            springPage = jpaRepository.findByCreatorIdAndStatusInOrderByStartTimeDesc(creatorId, codes, pageable);
+            springPage = meetingPOMapper.selectPageByCreatorIdAndStatusIn(pageParam, creatorId, codes);
         } else if (!hasStatus && hasDateRange) {
-            springPage = jpaRepository.findByCreatorIdAndStartTimeBetweenOrderByStartTimeDesc(creatorId, start, end, pageable);
+            springPage = meetingPOMapper.selectPageByCreatorIdAndStartTimeBetween(pageParam, creatorId, start, end);
         } else {
             List<Integer> codes = statuses.stream().map(Meeting.MeetingStatus::getCode).collect(Collectors.toList());
-            springPage = jpaRepository.findByCreatorIdAndStatusInAndStartTimeBetweenOrderByStartTimeDesc(creatorId, codes, start, end, pageable);
+            springPage = meetingPOMapper.selectPageByCreatorIdAndStatusInAndStartTimeBetween(pageParam, creatorId, codes, start, end);
         }
-        List<Meeting> content = loadWithAgenda(springPage.getContent());
-        return new PageResult<>(content, springPage.getTotalElements(), page, size);
+        List<Meeting> content = loadWithAgenda(springPage.getRecords());
+        return new PageResult<>(content, springPage.getTotal(), page, size);
     }
 
     @Override
     public List<Meeting> findByStatus(Meeting.MeetingStatus status) {
-        return loadWithAgenda(jpaRepository.findByStatus(status.getCode()));
+        return loadWithAgenda(meetingPOMapper.selectByStatus(status.getCode()));
     }
 
     @Override
     public List<Meeting> findPublishedWithStartTimeBefore(LocalDateTime threshold) {
-        return loadWithAgenda(jpaRepository.findByStatusAndStartTimeLessThanEqual(
+        return loadWithAgenda(meetingPOMapper.selectByStatusAndStartTimeLessThanEqual(
                 Meeting.MeetingStatus.PUBLISHED.getCode(), threshold));
     }
 
     @Override
     public List<Meeting> findInProgressWithEndTimeBefore(LocalDateTime threshold) {
-        return loadWithAgenda(jpaRepository.findByStatusAndEndTimeLessThanEqual(
+        return loadWithAgenda(meetingPOMapper.selectByStatusAndEndTimeLessThanEqual(
                 Meeting.MeetingStatus.IN_PROGRESS.getCode(), threshold));
     }
 
     @Override
     public List<Meeting> findAll() {
-        return loadWithAgenda(jpaRepository.findAll());
+        return loadWithAgenda(meetingPOMapper.selectList(null));
     }
 
     @Override
     @Transactional
     public void deleteById(Long id) {
-        agendaItemJpaRepository.deleteByMeetingId(id);
-        jpaRepository.deleteById(id);
+        agendaItemPOMapper.deleteByMeetingId(id);
+        meetingPOMapper.deleteById(id);
     }
 
     @Override
@@ -163,9 +166,10 @@ public class MeetingRepositoryImpl implements MeetingRepository {
     }
 
     private List<Meeting> loadWithAgenda(List<MeetingPO> pos) {
+        if (pos == null || pos.isEmpty()) return Collections.emptyList();
         return pos.stream().map(po -> {
             Meeting m = MeetingMapper.INSTANCE.toEntity(po);
-            List<MeetingAgendaItemPO> items = agendaItemJpaRepository.findByMeetingIdOrderBySortOrderAsc(po.getId());
+            List<MeetingAgendaItemPO> items = agendaItemPOMapper.selectByMeetingIdOrderBySortOrderAsc(po.getId());
             m.setScheduleDays(agendaTreeConverter.toScheduleDays(items));
             return m;
         }).collect(Collectors.toList());

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.csdn.meeting.infrastructure.repository.mapper.PromotionConfigPOMapper">
+
+    <select id="selectFirstByMeetingIdOrderByCreatedAtDesc" resultType="com.csdn.meeting.infrastructure.po.PromotionConfigPO">
+        SELECT * FROM t_promotion_config WHERE meeting_id = #{meetingId}
+        ORDER BY created_at DESC LIMIT 1
+    </select>
+</mapper>

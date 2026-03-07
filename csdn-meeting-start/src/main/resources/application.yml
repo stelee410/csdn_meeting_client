@@ -30,10 +30,6 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  jpa:
-    hibernate:
-      ddl-auto: none
-
 management:
   endpoints:
     web:
@@ -42,8 +38,8 @@ management:
   endpoint:
     health:
       show-details: always
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true

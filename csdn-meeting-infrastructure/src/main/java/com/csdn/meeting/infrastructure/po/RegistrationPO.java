@@ -1,62 +1,50 @@
 package com.csdn.meeting.infrastructure.po;
 
-import javax.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-/**
- * JPA entity for t_registration, aligned with Flyway V2 DDL.
- */
-@Entity
-@Table(name = "t_registration",
-        indexes = @Index(name = "idx_meeting_status", columnList = "meeting_id, status"),
-        uniqueConstraints = @UniqueConstraint(name = "uk_meeting_user", columnNames = {"meeting_id", "user_id"}))
+@TableName("t_registration")
 public class RegistrationPO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "meeting_id", nullable = false)
+    @TableField("meeting_id")
     private Long meetingId;
 
-    @Column(name = "user_id", nullable = false)
+    @TableField("user_id")
     private Long userId;
 
-    @Column(name = "name", length = 100)
+    @TableField("name")
     private String name;
 
-    @Column(name = "phone", length = 20)
+    @TableField("phone")
     private String phone;
 
-    @Column(name = "email", length = 200)
+    @TableField("email")
     private String email;
 
-    @Column(name = "company", length = 200)
+    @TableField("company")
     private String company;
 
-    @Column(name = "position", length = 100)
+    @TableField("position")
     private String position;
 
-    @Column(name = "status", length = 20)
+    @TableField("status")
     private String status;
 
-    @Column(name = "registered_at")
+    @TableField("registered_at")
     private LocalDateTime registeredAt;
 
-    @Column(name = "audited_at")
+    @TableField("audited_at")
     private LocalDateTime auditedAt;
 
-    @Column(name = "audit_remark", length = 500)
+    @TableField("audit_remark")
     private String auditRemark;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.registeredAt == null) {
-            this.registeredAt = LocalDateTime.now();
-        }
-    }
-
-    // ---- getters / setters ----
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

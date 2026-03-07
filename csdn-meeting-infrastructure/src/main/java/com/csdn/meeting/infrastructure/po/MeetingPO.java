@@ -1,89 +1,77 @@
 package com.csdn.meeting.infrastructure.po;
 
-import javax.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
 /**
- * JPA entity for t_meeting, aligned with Flyway V1 DDL.
- * Uses id as identity (no meeting_id column).
+ * MyBatis-Plus entity for t_meeting, aligned with Flyway V1 DDL.
  */
-@Entity
-@Table(name = "t_meeting")
+@TableName("t_meeting")
 public class MeetingPO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "title", nullable = false, length = 50)
+    @TableField("title")
     private String title;
 
-    @Column(name = "organizer", length = 100)
+    @TableField("organizer")
     private String organizer;
 
-    @Column(name = "creator_id", nullable = false)
+    @TableField("creator_id")
     private Long creatorId;
 
-    @Column(name = "format", length = 20)
+    @TableField("format")
     private String format;
 
-    @Column(name = "scene", length = 50)
+    @TableField("scene")
     private String scene;
 
-    @Column(name = "start_time")
+    @TableField("start_time")
     private LocalDateTime startTime;
 
-    @Column(name = "end_time")
+    @TableField("end_time")
     private LocalDateTime endTime;
 
-    @Column(name = "venue", length = 255)
+    @TableField("venue")
     private String venue;
 
-    @Column(name = "regions", columnDefinition = "json")
+    @TableField("regions")
     private String regions;
 
-    @Column(name = "cover_image", length = 500)
+    @TableField("cover_image")
     private String coverImage;
 
-    @Column(name = "description", columnDefinition = "text")
+    @TableField("description")
     private String description;
 
-    @Column(name = "tags", columnDefinition = "json")
+    @TableField("tags")
     private String tags;
 
-    @Column(name = "target_audience", columnDefinition = "json")
+    @TableField("target_audience")
     private String targetAudience;
 
-    @Column(name = "status")
+    @TableField("status")
     private Integer status;
 
-    @Column(name = "is_premium")
+    @TableField("is_premium")
     private Boolean isPremium;
 
-    @Column(name = "takedown_reason", length = 500)
+    @TableField("takedown_reason")
     private String takedownReason;
 
-    @Column(name = "reject_reason", length = 500)
+    @TableField("reject_reason")
     private String rejectReason;
 
-    @Column(name = "created_at")
+    @TableField("created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @TableField("updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    // ---- getters / setters ----
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

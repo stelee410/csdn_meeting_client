@@ -1,37 +1,26 @@
 package com.csdn.meeting.infrastructure.po;
 
-import javax.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-/**
- * JPA entity for t_meeting_favorite, aligned with Flyway V2 DDL.
- */
-@Entity
-@Table(name = "t_meeting_favorite",
-        uniqueConstraints = @UniqueConstraint(name = "uk_user_meeting", columnNames = {"user_id", "meeting_id"}))
+@TableName("t_meeting_favorite")
 public class MeetingFavoritePO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
+    @TableField("user_id")
     private Long userId;
 
-    @Column(name = "meeting_id", nullable = false)
+    @TableField("meeting_id")
     private Long meetingId;
 
-    @Column(name = "created_at")
+    @TableField("created_at")
     private LocalDateTime createdAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-    }
-
-    // ---- getters / setters ----
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

@@ -1,58 +1,44 @@
 package com.csdn.meeting.infrastructure.po;
 
-import javax.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 
-/**
- * JPA entity for t_meeting_template.
- */
-@Entity
-@Table(name = "t_meeting_template")
+@TableName("t_meeting_template")
 public class MeetingTemplatePO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 100)
+    @TableField("name")
     private String name;
 
-    @Column(name = "scene", length = 50)
+    @TableField("scene")
     private String scene;
 
-    @Column(name = "description_template", columnDefinition = "text")
+    @TableField("description_template")
     private String descriptionTemplate;
 
-    @Column(name = "default_tags", columnDefinition = "json")
+    @TableField("default_tags")
     private String defaultTags;
 
-    @Column(name = "target_audience", columnDefinition = "json")
+    @TableField("target_audience")
     private String targetAudience;
 
-    @Column(name = "sort_order")
+    @TableField("sort_order")
     private Integer sortOrder;
 
-    @Column(name = "is_active")
+    @TableField("is_active")
     private Boolean isActive;
 
-    @Column(name = "created_at")
+    @TableField("created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @TableField("updated_at")
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    // ---- getters / setters ----
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

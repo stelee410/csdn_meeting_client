@@ -1,39 +1,36 @@
 package com.csdn.meeting.infrastructure.po;
 
-import javax.persistence.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "t_meeting_bill", indexes = @Index(name = "idx_meeting_id", columnList = "meeting_id"))
+@TableName("t_meeting_bill")
 public class MeetingBillPO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "meeting_id", nullable = false)
+    @TableField("meeting_id")
     private Long meetingId;
 
-    @Column(name = "fee_type", length = 50)
+    @TableField("fee_type")
     private String feeType;
 
-    @Column(name = "amount", precision = 10, scale = 2)
+    @TableField("amount")
     private BigDecimal amount;
 
-    @Column(name = "pay_status", length = 20)
+    @TableField("pay_status")
     private String payStatus;
 
-    @Column(name = "invoice_status", length = 20)
+    @TableField("invoice_status")
     private String invoiceStatus;
 
-    @Column(name = "created_at")
+    @TableField("created_at")
     private LocalDateTime createdAt;
-
-    @PrePersist
-    public void prePersist() {
-        if (this.createdAt == null) this.createdAt = LocalDateTime.now();
-    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
