@@ -32,24 +32,37 @@ public class MybatisPlusConfig {
 
     /**
      * 自动填充字段处理器
-     * 用于自动填充 create_time, update_time 等字段
+     * 统一处理 createTime/createdAt、updateTime/updatedAt、isDeleted、registeredAt 等字段
      */
     @Bean
     public MetaObjectHandler metaObjectHandler() {
         return new MetaObjectHandler() {
             @Override
             public void insertFill(MetaObject metaObject) {
-                // 插入时自动填充创建时间和更新时间
-                this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-                this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-                // 默认未删除
-                this.strictInsertFill(metaObject, "isDeleted", Integer.class, 0);
+                LocalDateTime now = LocalDateTime.now();
+                fillIfNull(metaObject, "createTime", now);
+                fillIfNull(metaObject, "createdAt", now);
+                fillIfNull(metaObject, "updateTime", now);
+                fillIfNull(metaObject, "updatedAt", now);
+                fillIfNull(metaObject, "registeredAt", now);
+                fillIfNull(metaObject, "isDeleted", 0);
             }
 
             @Override
             public void updateFill(MetaObject metaObject) {
-                // 更新时自动填充更新时间
-                this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+                LocalDateTime now = LocalDateTime.now();
+                if (metaObject.hasSetter("updateTime")) {
+                    setFieldValByName("updateTime", now, metaObject);
+                }
+                if (metaObject.hasSetter("updatedAt")) {
+                    setFieldValByName("updatedAt", now, metaObject);
+                }
+            }
+
+            private void fillIfNull(MetaObject metaObject, String field, Object value) {
+                if (metaObject.hasSetter(field) && getFieldValByName(field, metaObject) == null) {
+                    setFieldValByName(field, value, metaObject);
+                }
             }
         };
     }
