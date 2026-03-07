@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  */
 @Configuration
 @MapperScan("com.csdn.meeting.infrastructure.repository.mapper")
-public class MyBatisPlusConfig {
+public class MybatisPlusConfig {
 
     /**
      * 分页插件配置
