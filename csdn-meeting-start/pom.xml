@@ -41,9 +41,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Flyway 7.15: 支持 MySQL 5.7。Flyway 8+ Community 不再支持 MySQL 5.7。
+             注意：flyway-mysql 为 Flyway 8+ 新增模块，7.x 仅需 flyway-core。 -->
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+            <version>7.15.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
