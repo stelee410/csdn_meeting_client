@@ -33,6 +33,7 @@
         <swagger.version>3.0.0</swagger.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <hutool.version>5.8.23</hutool.version>
+        <flyway.version>7.15.0</flyway.version>
     </properties>
 
     <dependencyManagement>
@@ -105,6 +106,11 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${flyway.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
