@@ -341,6 +341,12 @@ public class MeetingController {
      *
      * @param query 查询条件（keyword、format、type、scene、timeRange、page、size、userId）
      * @return 会议列表结果
+     *
+     * TODO【需要和CSDN对接登录人信息获取】：
+     * 1. 当前userId从请求体传入，用于个性化推荐和埋点统计
+     * 2. 需对接CSDN统一认证服务，从JWT Token或Session中自动获取当前登录用户ID
+     * 3. 对接后可从Spring Security上下文获取用户身份，无需前端显式传递userId
+     * 4. 需CSDN提供：统一认证接口文档、用户身份获取方式
      */
     @Operation(
             summary = "会议列表查询",
@@ -354,6 +360,7 @@ public class MeetingController {
     public ResponseEntity<MeetingListResultDTO<MeetingCardItemDTO>> queryMeetingList(
             @RequestBody MeetingListQueryDTO query) {
 
+        // TODO【CSDN对接-用户身份】：从认证上下文获取当前登录用户ID，替代从请求体传入
         if (query.getSize() == 0) {
             query.setSize(20);
         }
