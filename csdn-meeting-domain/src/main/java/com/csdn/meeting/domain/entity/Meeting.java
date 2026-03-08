@@ -115,6 +115,11 @@ public class Meeting extends BaseEntity {
     // 四级日程结构
     private List<ScheduleDay> scheduleDays;
 
+    /**
+     * 发布时间（会议创建时间）
+     */
+    private LocalDateTime publishTime;
+
     public enum MeetingStatus {
         DRAFT(0),
         PENDING_REVIEW(1),

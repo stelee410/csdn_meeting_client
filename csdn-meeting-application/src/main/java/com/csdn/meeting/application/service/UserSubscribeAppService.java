@@ -133,6 +133,17 @@ public class UserSubscribeAppService {
     }
 
     /**
+     * 获取用户订阅的所有标签ID列表
+     */
+    public List<Long> getUserSubscribedTagIds(String userId) {
+        List<UserTagSubscribe> subscriptions = userTagSubscribeRepository.findByUserId(userId);
+        return subscriptions.stream()
+                .map(UserTagSubscribe::getTagId)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    /**
      * 检查用户是否订阅了指定标签
      */
     public SubscriptionCheckDTO checkUserSubscribed(String userId, Long tagId) {

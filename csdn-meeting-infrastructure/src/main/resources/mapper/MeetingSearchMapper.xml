@@ -27,6 +27,7 @@
         <result column="organizer_avatar" property="organizerAvatar"/>
         <result column="cover_image" property="coverImage"/>
         <result column="tags" property="tags"/>
+        <result column="publish_time" property="publishTime"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
@@ -79,12 +80,9 @@
                 )
             </if>
         </where>
-        <!-- 排序：已结束(4)沉底 > 热度降序 > 开始时间降序 > ID降序 -->
-        ORDER BY 
-            CASE WHEN m.status = 4 THEN 1 ELSE 0 END ASC,
-            m.hot_score DESC, 
-            m.start_time DESC, 
-            m.id DESC
+        <!-- 排序：按发布时间倒序（最新的在前） -->
+        ORDER BY
+            m.publish_time DESC
     </select>
 
     <!-- 根据会议ID查询详情 -->

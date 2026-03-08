@@ -36,6 +36,7 @@ public interface MeetingConverter {
     @Mapping(target = "organizerId", source = "organizerId")
     @Mapping(target = "organizerName", source = "organizerName")
     @Mapping(target = "organizerAvatar", source = "organizerAvatar")
+    @Mapping(target = "publishTime", source = "publishTime")
     Meeting poToEntity(MeetingPO meetingPO);
 
     @Mapping(target = "status", source = "status", qualifiedByName = "meetingStatusToInt")
@@ -51,6 +52,7 @@ public interface MeetingConverter {
     @Mapping(target = "organizerId", source = "organizerId")
     @Mapping(target = "organizerName", source = "organizerName")
     @Mapping(target = "organizerAvatar", source = "organizerAvatar")
+    @Mapping(target = "publishTime", source = "publishTime")
     MeetingPO entityToPo(Meeting meeting);
 
     /**

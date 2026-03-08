@@ -17,9 +17,9 @@ public class TagDTO {
     @Schema(description = "标签分类：TECH/INDUSTRY/TOPIC/FORM", example = "TECH")
     private String category;
 
-    // 是否已订阅（用于在会议详情页展示铃铛状态）
-    @Schema(description = "当前用户是否已订阅该标签", example = "true")
-    private Boolean isSubscribed;
+    // 是否已订阅（用于在会议详情页展示铃铛状态） todo 是否需要
+//    @Schema(description = "当前用户是否已订阅该标签", example = "true")
+//    private Boolean isSubscribed;
 
     public TagDTO() {
     }
@@ -59,11 +59,11 @@ public class TagDTO {
         this.category = category;
     }
 
-    public Boolean getIsSubscribed() {
-        return isSubscribed;
-    }
-
-    public void setIsSubscribed(Boolean isSubscribed) {
-        this.isSubscribed = isSubscribed;
-    }
+//    public Boolean getIsSubscribed() {
+//        return isSubscribed;
+//    }
+//
+//    public void setIsSubscribed(Boolean isSubscribed) {
+//        this.isSubscribed = isSubscribed;
+//    }
 }

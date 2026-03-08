@@ -10,7 +10,7 @@ import com.csdn.meeting.domain.repository.PageResult;
 import com.csdn.meeting.domain.repository.TagRepository;
 import com.csdn.meeting.domain.valueobject.MeetingFormat;
 import com.csdn.meeting.domain.valueobject.MeetingScene;
-import com.csdn.meeting.domain.valueobject.MeetingTypeEnum;
+import com.csdn.meeting.domain.valueobject.MeetingType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -60,9 +60,9 @@ public class MeetingListUseCase {
         }
 
         // 转换筛选条件
-        Integer formatCode = parseFormatCode(query.getFormat());
-        Integer typeCode = parseTypeCode(query.getType());
-        Integer sceneCode = parseSceneCode(query.getScene());
+        Integer formatCode = new Integer(0).equals(query.getFormat()) ? null : query.getFormat();
+        Integer typeCode = new Integer(0).equals(query.getType()) ? null : query.getType();
+        Integer sceneCode = new Integer(0).equals(query.getScene()) ? null : query.getScene();
 
         // 计算时间范围
         LocalDateTime[] timeRange = timeRangeCalculator.calculateTimeRange(query.getTimeRange());
@@ -91,36 +91,36 @@ public class MeetingListUseCase {
 
         // 会议形式
         options.setFormatOptions(Arrays.asList(
-                new FilterOptionsDTO.FilterOption("", "全部"),
-                new FilterOptionsDTO.FilterOption("ONLINE", "线上"),
-                new FilterOptionsDTO.FilterOption("OFFLINE", "线下"),
-                new FilterOptionsDTO.FilterOption("HYBRID", "线上+线下")
+                new FilterOptionsDTO.FilterOption(0, "ALL", "全部"),
+                new FilterOptionsDTO.FilterOption(1, "ONLINE", "线上"),
+                new FilterOptionsDTO.FilterOption(2, "OFFLINE", "线下"),
+                new FilterOptionsDTO.FilterOption(3, "HYBRID", "线上+线下")
         ));
 
         // 会议类型
         options.setTypeOptions(Arrays.asList(
-                new FilterOptionsDTO.FilterOption("", "全部"),
-                new FilterOptionsDTO.FilterOption("SUMMIT", "技术峰会"),
-                new FilterOptionsDTO.FilterOption("SALON", "技术沙龙"),
-                new FilterOptionsDTO.FilterOption("WORKSHOP", "技术研讨会")
+                new FilterOptionsDTO.FilterOption(0, "ALL", "全部"),
+                new FilterOptionsDTO.FilterOption(1, "SUMMIT", "技术峰会"),
+                new FilterOptionsDTO.FilterOption(2, "SALON", "技术沙龙"),
+                new FilterOptionsDTO.FilterOption(3, "WORKSHOP", "技术研讨会")
         ));
 
         // 会议场景
         options.setSceneOptions(Arrays.asList(
-                new FilterOptionsDTO.FilterOption("", "全部"),
-                new FilterOptionsDTO.FilterOption("DEVELOPER", "开发者会议"),
-                new FilterOptionsDTO.FilterOption("INDUSTRY", "产业会议"),
-                new FilterOptionsDTO.FilterOption("PRODUCT", "产品发布会议"),
-                new FilterOptionsDTO.FilterOption("REGIONAL", "区域营销会议"),
-                new FilterOptionsDTO.FilterOption("UNIVERSITY", "高校会议")
+                new FilterOptionsDTO.FilterOption(0, "ALL", "全部"),
+                new FilterOptionsDTO.FilterOption(1, "DEVELOPER", "开发者会议"),
+                new FilterOptionsDTO.FilterOption(2, "INDUSTRY", "产业会议"),
+                new FilterOptionsDTO.FilterOption(3, "PRODUCT", "产品发布会议"),
+                new FilterOptionsDTO.FilterOption(4, "REGIONAL", "区域营销会议"),
+                new FilterOptionsDTO.FilterOption(5, "UNIVERSITY", "高校会议")
         ));
 
         // 召开时间
         options.setTimeRangeOptions(Arrays.asList(
-                new FilterOptionsDTO.FilterOption("", "全部"),
-                new FilterOptionsDTO.FilterOption("THIS_WEEK", "本周"),
-                new FilterOptionsDTO.FilterOption("THIS_MONTH", "本月"),
-                new FilterOptionsDTO.FilterOption("NEXT_3_MONTHS", "未来三个月")
+                new FilterOptionsDTO.FilterOption(0,"ALL", "全部"),
+                new FilterOptionsDTO.FilterOption(1,"THIS_WEEK", "本周"),
+                new FilterOptionsDTO.FilterOption(2,"THIS_MONTH", "本月"),
+                new FilterOptionsDTO.FilterOption(3,"NEXT_3_MONTHS", "未来三个月")
         ));
 
         return options;
@@ -223,6 +223,7 @@ public class MeetingListUseCase {
 
         // 状态
         if (meeting.getStatus() != null) {
+            dto.setStatusId(meeting.getStatus().getCode());
             dto.setStatus(meeting.getStatus().name());
             dto.setStatusDisplay(meeting.getStatus().getDisplayName());
         }
@@ -243,12 +244,14 @@ public class MeetingListUseCase {
         // 形式（DB 可能存 code 字符串 "1"/"2"/"3"，MeetingFormat.of 已支持）
         if (meeting.getFormat() != null) {
             dto.setFormat(meeting.getFormat().name());
+            dto.setFormatId(meeting.getFormat().getCode());
             dto.setFormatDisplay(meeting.getFormat().getDisplayName());
         }
 
         // 类型
         if (meeting.getMeetingType() != null) {
             dto.setMeetingType(meeting.getMeetingType().name());
+            dto.setMeetingTypeId(meeting.getMeetingType().getCode());
             dto.setMeetingTypeDisplay(meeting.getMeetingType().getDisplayName());
         }
 
@@ -256,6 +259,7 @@ public class MeetingListUseCase {
         MeetingScene sceneEnum = MeetingScene.of(meeting.getScene());
         if (sceneEnum != null) {
             dto.setScene(sceneEnum.name());
+            dto.setSceneId(sceneEnum.getCode());
             dto.setSceneDisplay(sceneEnum.getDisplayName());
         } else {
             dto.setScene(meeting.getScene());
@@ -273,6 +277,9 @@ public class MeetingListUseCase {
         // 地点
         dto.setCityName(meeting.getCityName());
         dto.setVenue(meeting.getVenue());
+
+        // 发布时间
+        dto.setPublishTime(meeting.getPublishTime());
 
         return dto;
     }
@@ -323,7 +330,7 @@ public class MeetingListUseCase {
         if (type == null || type.isEmpty()) {
             return null;
         }
-        MeetingTypeEnum mt = MeetingTypeEnum.of(type);
+        MeetingType mt = MeetingType.of(type);
         return mt != null ? mt.getCode() : null;
     }
 

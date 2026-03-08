@@ -98,6 +98,9 @@ public class MeetingPO {
     @TableField("organizer_avatar")
     private String organizerAvatar;
 
+    @TableField("publish_time")
+    private LocalDateTime publishTime;
+
     @TableField("created_at")
     private LocalDateTime createdAt;
 
@@ -147,6 +150,8 @@ public class MeetingPO {
     public void setTakedownReason(String takedownReason) { this.takedownReason = takedownReason; }
     public String getRejectReason() { return rejectReason; }
     public void setRejectReason(String rejectReason) { this.rejectReason = rejectReason; }
+    public LocalDateTime getPublishTime() { return publishTime; }
+    public void setPublishTime(LocalDateTime publishTime) { this.publishTime = publishTime; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

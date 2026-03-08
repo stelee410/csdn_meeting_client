@@ -1,6 +1,9 @@
 package com.csdn.meeting.application.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.List;
 import java.util.Map;
 
@@ -70,9 +73,14 @@ public class FilterOptionsDTO {
     /**
      * 筛选选项项
      */
+    @Getter
+    @Setter
     @Schema(description = "筛选选项项")
     public static class FilterOption {
-        @Schema(description = "选项值（传给后端的编码）", example = "ONLINE")
+        @Schema(description = "选项ID（传给后端的编码）", example = "1")
+        private Integer code;
+
+        @Schema(description = "选项值", example = "ONLINE")
         private String value;
 
         @Schema(description = "选项显示名称", example = "线上")
@@ -84,38 +92,16 @@ public class FilterOptionsDTO {
         public FilterOption() {
         }
 
-        public FilterOption(String value, String label) {
+        public FilterOption(Integer code, String value, String label) {
             this.value = value;
+            this.code = code;
             this.label = label;
         }
 
-        public FilterOption(String value, String label, String description) {
+        public FilterOption(Integer code, String value, String label, String description) {
+            this.code = code;
             this.value = value;
             this.label = label;
-            this.description = description;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public void setValue(String value) {
-            this.value = value;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public void setLabel(String label) {
-            this.label = label;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
             this.description = description;
         }
     }

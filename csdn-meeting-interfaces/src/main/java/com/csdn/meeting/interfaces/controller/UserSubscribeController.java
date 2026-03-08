@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * 用户订阅控制器
@@ -109,5 +110,16 @@ public class UserSubscribeController {
         String userId = getCurrentUserId(request);
         SubscriptionCheckDTO result = userSubscribeAppService.checkUserSubscribed(userId, tagId);
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    @Operation(
+            summary = "获取用户订阅的所有标签ID列表",
+            description = "获取当前用户已订阅的所有标签ID列表，不分页，返回所有标签ID"
+    )
+    @GetMapping("/tag-ids")
+    public ResponseEntity<ApiResponse<List<Long>>> getSubscribedTagIds(HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        List<Long> tagIds = userSubscribeAppService.getUserSubscribedTagIds(userId);
+        return ResponseEntity.ok(ApiResponse.success(tagIds));
     }
 }
