@@ -1,6 +1,8 @@
 package com.csdn.meeting.interfaces.controller;
 
 import com.csdn.meeting.application.service.RightsPriceConfigService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +14,7 @@ import java.util.Map;
  * 配置接口：权益价格 GET/POST（管理员）
  * agent.prd §4：/api/config/rights-price
  */
+@Tag(name = "配置接口")
 @RestController
 @RequestMapping("/api/config")
 public class ConfigController {
@@ -22,12 +25,14 @@ public class ConfigController {
         this.rightsPriceConfig = rightsPriceConfig;
     }
 
+    @Operation(summary = "获取权益价格", description = "获取会议数据高阶权益包价格（管理员）。")
     @GetMapping("/rights-price")
     public ResponseEntity<Map<String, BigDecimal>> getRightsPrice() {
         ensureAdmin();
         return ResponseEntity.ok(Collections.singletonMap("price", rightsPriceConfig.getPrice()));
     }
 
+    @Operation(summary = "设置权益价格", description = "设置会议数据高阶权益包价格（管理员）。")
     @PostMapping("/rights-price")
     public ResponseEntity<Void> setRightsPrice(@RequestBody Map<String, BigDecimal> body) {
         ensureAdmin();

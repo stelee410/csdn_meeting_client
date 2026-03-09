@@ -76,28 +76,28 @@ public class MeetingController {
         this.meetingListUseCase = meetingListUseCase;
     }
 
-    /** 创建草稿 */
+    @Operation(summary = "创建草稿", description = "创建会议草稿，仅校验会议标题必填，日程可为空。状态为 DRAFT。")
     @PostMapping
     public ResponseEntity<MeetingDTO> createDraft(@RequestBody CreateMeetingCommand command) {
         MeetingDTO meeting = meetingApplicationService.createDraft(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(meeting);
     }
 
-    /** 更新会议（仅 DRAFT/REJECTED 可编辑） */
+    @Operation(summary = "更新会议", description = "更新会议信息，仅 DRAFT/REJECTED 状态可编辑。")
     @PutMapping("/{id}")
     public ResponseEntity<MeetingDTO> update(@PathVariable Long id, @RequestBody UpdateMeetingCommand command) {
         MeetingDTO meeting = meetingApplicationService.update(String.valueOf(id), command);
         return ResponseEntity.ok(meeting);
     }
 
-    /** 查询详情（含四级日程） */
+    @Operation(summary = "查询会议详情", description = "获取会议详情，含四级日程结构（日程日→环节→分会场→议题）。")
     @GetMapping("/{id}")
     public ResponseEntity<MeetingDTO> getDetail(@PathVariable Long id) {
         MeetingDTO meeting = meetingApplicationService.getMeetingDetailById(id);
         return ResponseEntity.ok(meeting);
     }
 
-    /** AI 解析：上传文件，解析失败返回 422 */
+    @Operation(summary = "AI 智能解析", description = "上传文档(PDF/Word)或图片(JPG/PNG)，自动提取会议信息填充表单。文档<20MB，图片<10MB。解析失败返回 422。")
     @PostMapping("/actions/ai-parse")
     public ResponseEntity<AIParseResultDTO> aiParse(@RequestParam("file") MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -113,7 +113,7 @@ public class MeetingController {
         }
     }
 
-    /** 标签推荐：根据 title + description 返回 3-5 个推荐标签 */
+    @Operation(summary = "智能标签推荐", description = "根据会议标题与简介，调用 NLP 返回 3-5 个推荐标签。")
     @PostMapping("/actions/suggest-tags")
     public ResponseEntity<TagSuggestionDTO> suggestTags(@RequestBody SuggestTagsRequest request) {
         TagSuggestionDTO dto = tagSuggestionUseCase.suggestTags(
@@ -122,20 +122,21 @@ public class MeetingController {
         return ResponseEntity.ok(dto);
     }
 
-    /** 提交审核（日程不完整时返回 400/422） */
+    @Operation(summary = "提交审核", description = "DRAFT/REJECTED → PENDING_REVIEW。校验四级日程完整性，不完整时返回 400/422。")
     @PostMapping("/{id}/submit")
     public ResponseEntity<MeetingDTO> submit(@PathVariable Long id) {
         MeetingDTO meeting = meetingApplicationService.submit(String.valueOf(id));
         return ResponseEntity.ok(meeting);
     }
 
+    @Operation(summary = "获取全部会议", description = "返回所有会议列表（管理用）。")
     @GetMapping
     public ResponseEntity<List<MeetingDTO>> getAllMeetings() {
         List<MeetingDTO> meetings = meetingApplicationService.getAllMeetings();
         return ResponseEntity.ok(meetings);
     }
 
-    /** 我报名的会议：默认 PUBLISHED+IN_PROGRESS，includeEnded=true 时含 ENDED */
+    @Operation(summary = "我报名的会议", description = "按会议日期倒序，默认仅已发布/进行中；includeEnded=true 时包含已结束。")
     @GetMapping("/my-registered")
     public ResponseEntity<PagedResultDTO<MeetingDTO>> getMyRegistered(
             @RequestParam Long userId,
@@ -146,7 +147,7 @@ public class MeetingController {
                 myMeetingsUseCase.getMyRegistered(userId, includeEnded, page, size)));
     }
 
-    /** 我收藏的会议 */
+    @Operation(summary = "我收藏的会议", description = "获取当前用户收藏的会议列表，按收藏时间倒序。")
     @GetMapping("/my-favorites")
     public ResponseEntity<PagedResultDTO<MeetingDTO>> getMyFavorites(
             @RequestParam Long userId,
@@ -156,7 +157,7 @@ public class MeetingController {
                 myMeetingsUseCase.getMyFavorites(userId, page, size)));
     }
 
-    /** 我创建的会议：支持 status、startDate、endDate 筛选 */
+    @Operation(summary = "我创建的会议", description = "办会方创建的所有会议，支持状态、时间范围筛选。")
     @GetMapping("/my-created")
     public ResponseEntity<PagedResultDTO<MeetingDTO>> getMyCreated(
             @RequestParam String userId,
@@ -181,7 +182,7 @@ public class MeetingController {
                 myMeetingsUseCase.getMyCreated(userId, statuses, startDate, endDate, page, size)));
     }
 
-    /** 会议报名列表：支持按 status 筛选 */
+    @Operation(summary = "会议报名列表", description = "获取某会议报名记录，支持按 status(PENDING/APPROVED/REJECTED) 筛选。")
     @GetMapping("/{id}/registrations")
     public ResponseEntity<PagedResultDTO<RegistrationDTO>> getMeetingRegistrations(
             @PathVariable Long id,
@@ -199,12 +200,14 @@ public class MeetingController {
                 myMeetingsUseCase.getMeetingRegistrations(id, regStatus, page, size)));
     }
 
+    @Operation(summary = "按创建者查询会议", description = "根据创建者 ID 获取其创建的会议列表。")
     @GetMapping("/creator/{creatorId}")
     public ResponseEntity<List<MeetingDTO>> getMeetingsByCreator(@PathVariable String creatorId) {
         List<MeetingDTO> meetings = meetingApplicationService.getMeetingsByCreator(creatorId);
         return ResponseEntity.ok(meetings);
     }
 
+    @Operation(summary = "报名/加入会议", description = "用户报名参加会议。")
     @PostMapping("/{id}/join")
     public ResponseEntity<MeetingDTO> joinMeeting(@PathVariable Long id, @RequestBody JoinMeetingCommand command) {
         command.setMeetingId(String.valueOf(id));
@@ -212,38 +215,42 @@ public class MeetingController {
         return ResponseEntity.ok(meeting);
     }
 
+    @Operation(summary = "取消报名/离开会议", description = "用户取消报名或离开会议。")
     @PostMapping("/{id}/leave")
     public ResponseEntity<Void> leaveMeeting(@PathVariable Long id, @RequestParam Long userId) {
         meetingApplicationService.leaveMeeting(String.valueOf(id), userId);
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "开始会议", description = "将会议状态置为进行中。")
     @PostMapping("/{id}/start")
     public ResponseEntity<Void> startMeeting(@PathVariable Long id) {
         meetingApplicationService.startMeeting(String.valueOf(id));
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "结束会议", description = "将会议状态置为已结束。")
     @PostMapping("/{id}/end")
     public ResponseEntity<Void> endMeeting(@PathVariable Long id) {
         meetingApplicationService.endMeeting(String.valueOf(id));
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "取消会议", description = "取消会议。")
     @PostMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelMeeting(@PathVariable Long id) {
         meetingApplicationService.cancelMeeting(String.valueOf(id));
         return ResponseEntity.ok().build();
     }
 
-    /** 撤回审核：PENDING_REVIEW -> DRAFT */
+    @Operation(summary = "撤回审核", description = "PENDING_REVIEW → DRAFT，仅办会方可操作。")
     @PostMapping("/{id}/withdraw")
     public ResponseEntity<MeetingDTO> withdraw(@PathVariable Long id) {
         MeetingDTO meeting = meetingApplicationService.withdraw(String.valueOf(id));
         return ResponseEntity.ok(meeting);
     }
 
-    /** 审核通过：PENDING_REVIEW -> PUBLISHED（管理员） */
+    @Operation(summary = "审核通过", description = "PENDING_REVIEW → PUBLISHED，需管理员权限。")
     @PostMapping("/{id}/approve")
     public ResponseEntity<MeetingDTO> approve(@PathVariable Long id) {
         ensureAdmin();
@@ -251,7 +258,7 @@ public class MeetingController {
         return ResponseEntity.ok(meeting);
     }
 
-    /** 审核拒绝：PENDING_REVIEW -> REJECTED（管理员） */
+    @Operation(summary = "审核拒绝", description = "PENDING_REVIEW → REJECTED，需管理员权限，reason 必填。")
     @PostMapping("/{id}/reject")
     public ResponseEntity<MeetingDTO> reject(@PathVariable Long id, @RequestBody ReasonRequest request) {
         ensureAdmin();
@@ -263,7 +270,7 @@ public class MeetingController {
         return ResponseEntity.ok(meeting);
     }
 
-    /** 下架：PUBLISHED / IN_PROGRESS -> OFFLINE */
+    @Operation(summary = "下架会议", description = "PUBLISHED/IN_PROGRESS → OFFLINE，需填写下架原因。")
     @PostMapping("/{id}/takedown")
     public ResponseEntity<MeetingDTO> takedown(@PathVariable Long id, @RequestBody ReasonRequest request) {
         String reason = request != null ? request.getReason() : null;
@@ -274,14 +281,14 @@ public class MeetingController {
         return ResponseEntity.ok(meeting);
     }
 
-    /** 逻辑删除：DRAFT / ENDED / OFFLINE / REJECTED -> DELETED */
+    @Operation(summary = "逻辑删除会议", description = "DRAFT/ENDED/OFFLINE/REJECTED → DELETED。")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMeeting(@PathVariable Long id) {
         meetingApplicationService.deleteMeeting(String.valueOf(id));
         return ResponseEntity.noContent().build();
     }
 
-    /** 数据统计：Bearer Token；advanced 按 isPremium 控制（agent.prd §2.6） */
+    @Operation(summary = "会议数据统计", description = "PV/UV/报名/签到/趋势；用户画像需 Bearer Token，按 isPremium 控制可见性。")
     @GetMapping("/{id}/statistics")
     public ResponseEntity<MeetingStatisticsDTO> getStatistics(
             @PathVariable Long id,
@@ -293,14 +300,14 @@ public class MeetingController {
         return ResponseEntity.ok(dto);
     }
 
-    /** 查询权益状态（agent.prd §2.6） */
+    @Operation(summary = "查询权益状态", description = "会议数据高阶权益包购买状态。")
     @GetMapping("/{id}/rights")
     public ResponseEntity<MeetingRightsDTO> getRights(@PathVariable Long id) {
         MeetingRightsDTO dto = meetingRightsPurchaseUseCase.getRights(id);
         return ResponseEntity.ok(dto);
     }
 
-    /** 购买高阶权益：唤起收银台（agent.prd §2.6） */
+    @Operation(summary = "购买高阶权益", description = "以会议为粒度购买数据权益，唤起 CSDN 统一收银台。")
     @PostMapping("/{id}/rights/purchase")
     public ResponseEntity<RightsPurchaseResultDTO> purchaseRights(
             @PathVariable Long id,
@@ -309,7 +316,7 @@ public class MeetingController {
         return ResponseEntity.ok(dto);
     }
 
-    /** 会议简报：format=pdf|word（agent.prd §2.7） */
+    @Operation(summary = "会议简报下载", description = "生成会议简报文件，支持 format=pdf|word。高阶数据受权益控制。")
     @GetMapping("/{id}/brief")
     public ResponseEntity<byte[]> getBrief(
             @PathVariable Long id,

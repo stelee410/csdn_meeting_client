@@ -47,7 +47,7 @@ public class MeetingPO {
     private String description;
 
     @TableField("tags")
-    private String tags;  // 逗号分隔的 tagId，如 1,2,3
+    private String tags;  // 逗号分隔的 tagId，如 "1,2,3"，对应 DB VARCHAR(255)
 
     @TableField("target_audience")
     private String targetAudience;

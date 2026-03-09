@@ -18,7 +18,8 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("CSDN会议服务API文档")
-                        .description("会议列表、检索、标签订阅相关接口")
+                        .description("会议管理完整 API：发起会议（AI 解析、活动模板、四级日程）、我的会议三页签、" +
+                                "会议详情与数据统计、权益购买、会议简报、推广配置、报名审核、标签订阅等。")
                         .version("1.0.0")
                         .contact(new Contact()
                                 .name("CSDN")
