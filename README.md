@@ -312,6 +312,109 @@ docker compose -f docker-compose-dev.yml up -d
 
 启动后访问：http://localhost:8080/swagger-ui.html
 
+---
+
+## Jar包部署指南
+
+### 1. 打包项目
+
+```bash
+# 在项目根目录执行
+mvn clean package -DskipTests
+```
+
+打包完成后，jar文件位于：`csdn-meeting-start/target/csdn-meeting-client-start.jar`
+
+### 2. Jar包启动命令
+
+```bash
+# 前台启动（带实时日志输出）
+java -jar csdn-meeting-client-start.jar
+
+# 指定配置文件启动（使用外部配置文件）
+java -jar -Dspring.config.location=application.yml csdn-meeting-client-start.jar
+
+# 指定JVM参数启动
+java -Xms512m -Xmx1024m -jar csdn-meeting-client-start.jar
+```
+
+### 3. 后台启动命令（Linux）
+
+```bash
+# 使用 nohup 后台启动
+nohup java -jar csdn-meeting-client-start.jar > /dev/null 2>&1 &
+
+# 或者输出日志到指定文件
+nohup java -jar csdn-meeting-client-start.jar > app.log 2>&1 &
+
+# 使用 screen 后台运行
+screen -dmS meeting-client java -jar csdn-meeting-client-start.jar
+
+# 使用 systemd 服务（推荐生产环境）
+# 创建服务文件 /etc/systemd/system/csdn-meeting-client.service，然后执行：
+systemctl start csdn-meeting-client
+systemctl enable csdn-meeting-client
+```
+
+### 4. 停止服务命令
+
+```bash
+# 查找进程并结束（根据端口查找）
+lsof -i:8080
+kill -9 <PID>
+
+# 或者根据进程名称查找
+pkill -f csdn-meeting-client-start.jar
+
+ps -ef | grep csdn-meeting-client-start
+kill -9 <PID>
+
+# 如果是 systemd 服务
+systemctl stop csdn-meeting-client
+```
+
+### 5. 日志查看
+
+| 日志文件 | 路径 | 说明 |
+|----------|------|------|
+| 应用日志 | `logs/csdn-meeting.log` | 主要业务日志 |
+| 错误日志 | `logs/csdn-meeting-error.log` | ERROR级别日志 |
+| 历史日志 | `logs/csdn-meeting-YYYY-MM-DD-*.log` | 按天滚动归档 |
+
+```bash
+# 实时查看日志
+tail -f logs/csdn-meeting.log
+
+# 实时查看错误日志
+tail -f logs/csdn-meeting-error.log
+
+# 搜索关键字
+grep "关键字" logs/csdn-meeting.log
+
+# 查看最近100行
+tail -n 100 logs/csdn-meeting.log
+```
+
+### 6. 健康检查
+
+```bash
+# 应用健康检查接口
+curl http://localhost:8080/actuator/health
+```
+
+### 7. 与运营端共存部署
+
+客户端（csdn-meeting-client）和运营端（csdn-meeting-operation）可以在同一台服务器上同时运行：
+
+| 服务 | 端口 | 上下文路径 |
+|------|------|----------|
+| 客户端 | 8080 | / |
+| 运营端 | 9090 | /api |
+
+两个服务使用不同的端口，不会产生冲突。建议先启动客户端，再启动运营端。
+
+---
+
 ## API接口概览
 
 ### 会议管理接口

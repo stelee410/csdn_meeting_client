@@ -53,6 +53,7 @@
     </dependencies>
 
     <build>
+        <finalName>csdn-meeting-client-start</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
