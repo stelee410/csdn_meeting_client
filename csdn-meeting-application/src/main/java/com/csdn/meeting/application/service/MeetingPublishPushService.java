@@ -1,45 +1,58 @@
 package com.csdn.meeting.application.service;
 
-import com.csdn.meeting.domain.entity.UserTagSubscribe;
+import com.csdn.meeting.domain.entity.Tag;
 import com.csdn.meeting.domain.event.MeetingPublishedEvent;
+import com.csdn.meeting.domain.repository.TagRepository;
 import com.csdn.meeting.domain.repository.UserTagSubscribeRepository;
+import com.csdn.meeting.infrastructure.client.CsdnMessagePushClient;
+import com.csdn.meeting.infrastructure.client.dto.CsdnMessageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * 会议发布推送服务
  * 监听会议发布事件，向订阅了该会议标签的用户发送通知
- *
- * TODO【需要和CSDN对接消息中心+推送服务】：
- * 1. 当前仅打印日志，未实际发送通知
- * 2. 需对接CSDN消息中心站内信接口，发送站内通知
- * 3. 需对接CSDN App Push服务接口，发送移动端推送
- * 4. 触发场景：会议审核通过(MeetingApplicationService.approve)时自动触发
+ * 已对接CSDN消息中心IM站内信和APP推送接口
+ * 按tag分别发送，可追踪各tag的推送效果
  */
 @Component
 public class MeetingPublishPushService {
 
     private static final Logger logger = LoggerFactory.getLogger(MeetingPublishPushService.class);
 
+    private static final int MAX_BATCH_SIZE = 1000;
+
     private final UserTagSubscribeRepository userTagSubscribeRepository;
+    private final TagRepository tagRepository;
     private final MeetingAnalyticsService analyticsService;
+    private final CsdnMessagePushClient messagePushClient;
 
     public MeetingPublishPushService(UserTagSubscribeRepository userTagSubscribeRepository,
-                                      MeetingAnalyticsService analyticsService) {
+                                      TagRepository tagRepository,
+                                      MeetingAnalyticsService analyticsService,
+                                      CsdnMessagePushClient messagePushClient) {
         this.userTagSubscribeRepository = userTagSubscribeRepository;
+        this.tagRepository = tagRepository;
         this.analyticsService = analyticsService;
+        this.messagePushClient = messagePushClient;
     }
 
     /**
      * 监听会议发布事件
      * 异步处理，避免阻塞主流程
+     * 按tag分别发送推送，便于追踪各tag的推送效果
      */
     @EventListener
     @Async
@@ -52,81 +65,149 @@ public class MeetingPublishPushService {
             return;
         }
 
-        // 查询订阅了这些标签的所有用户
-        Set<String> userIds = querySubscribedUsers(event.getTagIds());
+        // 查询所有标签信息（包括tagName）
+        List<Tag> tags = tagRepository.findByIds(event.getTagIds());
+        Map<Long, Tag> tagMap = tags.stream()
+                .collect(Collectors.toMap(Tag::getId, tag -> tag));
+
+        // 按tag分别查询订阅用户
+        Map<Long, Set<String>> tagUserMap = querySubscribedUsersByTag(event.getTagIds());
         
-        if (userIds.isEmpty()) {
+        // 过滤掉没有订阅用户的tag
+        tagUserMap.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+        
+        if (tagUserMap.isEmpty()) {
             logger.info("标签 {} 暂无订阅用户", event.getTagIds());
             return;
         }
 
-        logger.info("将向 {} 个用户推送会议发布通知: {}", userIds.size(), userIds);
+        // 统计总用户数（去重）
+        Set<String> allUsers = tagUserMap.values().stream()
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
+        logger.info("会议 {} 共关联 {} 个标签，总订阅用户 {} 人", 
+                event.getMeetingId(), tagUserMap.size(), allUsers.size());
 
-        // TODO: 接入CSDN消息中心后，调用以下接口：
-        // 1. 站内信通知
-        // sendSiteMessage(userIds, event);
-        // 2. App Push通知
-        // sendPushNotification(userIds, event);
+        // 按tag分别发送推送
+        for (Map.Entry<Long, Set<String>> entry : tagUserMap.entrySet()) {
+            Long tagId = entry.getKey();
+            Set<String> userIds = entry.getValue();
+            
+            // 获取tagName
+            String tagName = tagMap.getOrDefault(tagId, new Tag()).getTagName();
+            if (tagName == null || tagName.isEmpty()) {
+                tagName = String.valueOf(tagId);
+            }
+            
+            logger.info("[Tag={}] 开始向 {} 个用户推送会议发布通知, tagName={}", tagId, userIds.size(), tagName);
+            
+            // 1. 发送IM站内信通知
+            sendSiteMessage(tagId, tagName, userIds, event);
+            
+            // 2. 发送App Push通知
+            sendPushNotification(tagId, tagName, userIds, event);
+        }
 
-        // 记录埋点
-        for (String userId : userIds) {
+        // 记录埋点（使用去重后的所有用户）
+        for (String userId : allUsers) {
             analyticsService.trackMeetingClick(userId, event.getMeetingId(), -1);
         }
+        
+        logger.info("会议 {} 推送完成，共处理 {} 个标签", event.getMeetingId(), tagUserMap.size());
     }
 
     /**
-     * 查询订阅了指定标签的所有用户ID（去重）
+     * 按tag分别查询订阅用户
+     * 返回Map<tagId, 该tag的订阅用户集合>
      */
-    private Set<String> querySubscribedUsers(List<Long> tagIds) {
-        return tagIds.stream()
-                .flatMap(tagId -> userTagSubscribeRepository.findUserIdsByTagId(tagId).stream())
-                .collect(Collectors.toSet());
+    private Map<Long, Set<String>> querySubscribedUsersByTag(List<Long> tagIds) {
+        Map<Long, Set<String>> result = new HashMap<>();
+        for (Long tagId : tagIds) {
+            List<String> userIds = userTagSubscribeRepository.findUserIdsByTagId(tagId);
+            result.put(tagId, new HashSet<>(userIds));
+        }
+        return result;
     }
 
     /**
-     * 发送站内信通知（预留接口，待接入CSDN消息中心）
-     *
-     * TODO【需要和CSDN对接消息中心站内信接口】：
-     * 1. 接口需求：批量发送站内信给指定用户ID列表
-     * 2. 参数：用户ID列表(List<String> userIds)、消息标题(String title)、
-     *         消息内容(String content)、跳转链接(String link)
-     * 3. 场景：当会议审核通过发布时，通知订阅了该会议标签的所有用户
-     * 4. 需CSDN提供：消息中心站内信发送API文档及调用方式
-     *
-     * 示例调用：messageCenterService.sendSiteMessage(userIds, title, content, link);
+     * 发送站内信通知
+     * 使用CSDN消息中心IM接口，按tag分批发送
+     * params中包含: meetingTitle, meetingId, tag, tagId
      */
-    private void sendSiteMessage(Set<String> userIds, MeetingPublishedEvent event) {
-        String title = "您订阅的标签有新会议发布";
-        String content = String.format("会议《%s》已发布，快来报名吧！", event.getTitle());
-        String link = "/meeting/detail/" + event.getMeetingId();
+    private void sendSiteMessage(Long tagId, String tagName, Set<String> userIds, MeetingPublishedEvent event) {
+        String meetingId = event.getMeetingId();
+        String title = event.getTitle();
+        
+        logger.info("[Tag={}] 开始发送IM站内信通知: meetingId={}, userCount={}, tagName={}", 
+                tagId, meetingId, userIds.size(), tagName);
 
-        logger.info("[站内信通知-待对接CSDN消息中心] 用户: {}, 标题: {}, 内容: {}, 链接: {}",
-                userIds, title, content, link);
-
-        // TODO【CSDN对接-站内信】：调用CSDN消息中心接口发送站内信
-        // messageCenterService.sendSiteMessage(userIds, title, content, link);
+        // 分批处理，每批最多1000人
+        List<String> userList = new ArrayList<>(userIds);
+        int totalBatches = (userList.size() + MAX_BATCH_SIZE - 1) / MAX_BATCH_SIZE;
+        
+        for (int i = 0; i < userList.size(); i += MAX_BATCH_SIZE) {
+            List<String> batch = userList.subList(i, Math.min(i + MAX_BATCH_SIZE, userList.size()));
+            int batchNum = i / MAX_BATCH_SIZE + 1;
+            
+            try {
+                CsdnMessageResponse response = messagePushClient.sendMeetingPublishIm(
+                        meetingId, batch, title, meetingId, tagId, tagName);
+                
+                if (response.isSuccess()) {
+                    logger.info("[Tag={}] IM站内信批次发送成功: meetingId={}, batch={}/{}", 
+                            tagId, meetingId, batchNum, totalBatches);
+                } else {
+                    logger.warn("[Tag={}] IM站内信批次发送失败: meetingId={}, batch={}/{}, code={}, message={}",
+                            tagId, meetingId, batchNum, totalBatches, response.getCode(), response.getMessage());
+                }
+            } catch (Exception e) {
+                logger.error("[Tag={}] IM站内信批次发送异常: meetingId={}, batch={}/{}", 
+                        tagId, meetingId, batchNum, totalBatches, e);
+            }
+        }
+        
+        logger.info("[Tag={}] IM站内信通知发送完成: meetingId={}, totalUsers={}", 
+                tagId, meetingId, userIds.size());
     }
 
     /**
-     * 发送App Push通知（预留接口，待接入CSDN推送服务）
-     *
-     * TODO【需要和CSDN对接App Push推送服务接口】：
-     * 1. 接口需求：批量发送Push给指定用户ID列表
-     * 2. 参数：用户ID列表(List<String> userIds)、推送标题(String title)、
-     *         推送内容(String content)、自定义payload(Map<String, Object>)
-     * 3. 场景：当会议审核通过发布时，通知订阅了该会议标签的所有用户
-     * 4. 需CSDN提供：App Push推送API文档、用户设备Token管理方式
-     *
-     * 示例调用：pushService.sendNotification(userIds, title, content, payload);
+     * 发送App Push通知
+     * 使用CSDN消息中心PUSH接口，按tag分批发送
+     * params中包含: meetingTitle, meetingId, tag, tagId
      */
-    private void sendPushNotification(Set<String> userIds, MeetingPublishedEvent event) {
-        String title = "您订阅的标签有新会议";
-        String content = event.getTitle();
+    private void sendPushNotification(Long tagId, String tagName, Set<String> userIds, MeetingPublishedEvent event) {
+        String meetingId = event.getMeetingId();
+        String title = event.getTitle();
+        
+        logger.info("[Tag={}] 开始发送App Push通知: meetingId={}, userCount={}, tagName={}", 
+                tagId, meetingId, userIds.size(), tagName);
 
-        logger.info("[App Push通知-待对接CSDN推送服务] 用户: {}, 标题: {}, 内容: {}",
-                userIds, title, content);
-
-        // TODO【CSDN对接-Push推送】：调用CSDN推送服务接口发送App Push
-        // pushService.sendNotification(userIds, title, content, payload);
+        // 分批处理，每批最多1000人
+        List<String> userList = new ArrayList<>(userIds);
+        int totalBatches = (userList.size() + MAX_BATCH_SIZE - 1) / MAX_BATCH_SIZE;
+        
+        for (int i = 0; i < userList.size(); i += MAX_BATCH_SIZE) {
+            List<String> batch = userList.subList(i, Math.min(i + MAX_BATCH_SIZE, userList.size()));
+            int batchNum = i / MAX_BATCH_SIZE + 1;
+            
+            try {
+                CsdnMessageResponse response = messagePushClient.sendMeetingPublishPush(
+                        meetingId, batch, title, meetingId, tagId, tagName);
+                
+                if (response.isSuccess()) {
+                    logger.info("[Tag={}] App Push批次发送成功: meetingId={}, batch={}/{}", 
+                            tagId, meetingId, batchNum, totalBatches);
+                } else {
+                    logger.warn("[Tag={}] App Push批次发送失败: meetingId={}, batch={}/{}, code={}, message={}",
+                            tagId, meetingId, batchNum, totalBatches, response.getCode(), response.getMessage());
+                }
+            } catch (Exception e) {
+                logger.error("[Tag={}] App Push批次发送异常: meetingId={}, batch={}/{}", 
+                        tagId, meetingId, batchNum, totalBatches, e);
+            }
+        }
+        
+        logger.info("[Tag={}] App Push通知发送完成: meetingId={}, totalUsers={}", 
+                tagId, meetingId, userIds.size());
     }
 }
