@@ -44,7 +44,7 @@ services:
       # 宿主机 ./data 目录挂载到容器 /app/data，图片等持久化数据存于此
       - ./data:/app/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 12
