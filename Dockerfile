@@ -1,5 +1,5 @@
 # ── Stage 1: Maven 构建 ────────────────────────────────────────────────
-FROM maven:3.9-eclipse-temurin-8-alpine AS builder
+FROM maven:3.9-eclipse-temurin-17-alpine AS builder
 
 WORKDIR /app
 
