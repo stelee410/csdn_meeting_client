@@ -6,6 +6,9 @@ import com.csdn.meeting.domain.port.ImageStoragePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -13,7 +16,8 @@ import java.util.Set;
 public class ImageUploadUseCase {
 
     private static final long MAX_SIZE_BYTES = 10L * 1024 * 1024; // 10MB
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp");
+    private static final Set<String> ALLOWED_EXTENSIONS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("jpg", "jpeg", "png", "gif", "webp")));
 
     private final ImageStoragePort imageStoragePort;
 
