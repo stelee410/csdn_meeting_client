@@ -3,6 +3,13 @@ package com.csdn.meeting.infrastructure.client;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.SecureUtil;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
 /**
  * CSDN消息推送签名工具
  * 按照接口文档要求实现HMAC-SHA256签名算法
@@ -42,11 +49,27 @@ public class CsdnMessageSigner {
     public static String sign(String appKey, String appSecret, String timestamp, String nonce, String body) {
         // 按文档要求拼接数据：AppKey + Timestamp + Nonce + Body
         String data = appKey + timestamp + nonce + body;
-        
+
         // 使用HMAC-SHA256计算签名
         byte[] signatureBytes = SecureUtil.hmacSha256(appSecret.getBytes()).digest(data.getBytes());
         
         // Base64编码
         return cn.hutool.core.codec.Base64.encode(signatureBytes);
+    }
+
+    public static String sign2(String appKey, String appSecret, String timestamp, String nonce, String body) throws NoSuchAlgorithmException, InvalidKeyException {
+
+        // 2. 拼接数据
+        String data = appKey + timestamp + nonce + body;
+
+        // 3. 计算签名
+        Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secret_key = new SecretKeySpec(appSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+        sha256_HMAC.init(secret_key);
+        String signature = Base64.getEncoder().encodeToString(sha256_HMAC.doFinal(data.getBytes(StandardCharsets.UTF_8)));
+
+        System.out.println("Signature: " + signature);
+        System.out.println("Body to send: " + body);
+        return signature;
     }
 }

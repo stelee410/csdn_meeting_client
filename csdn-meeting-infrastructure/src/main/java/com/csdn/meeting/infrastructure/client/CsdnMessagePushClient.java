@@ -130,21 +130,36 @@ public class CsdnMessagePushClient {
             // 生成签名参数
             String timestamp = CsdnMessageSigner.generateTimestamp();
             String nonce = CsdnMessageSigner.generateNonce();
-            String signature = CsdnMessageSigner.sign(
-                    properties.getAppKey(),
-                    properties.getAppSecret(),
+
+            // 检查配置
+            String appKey = properties.getAppKey();
+            String appSecret = properties.getAppSecret();
+            if (appKey == null || appKey.isEmpty()) {
+                logger.error("[CSDN推送] AppKey 未配置");
+            }
+            if (appSecret == null || appSecret.isEmpty()) {
+                logger.error("[CSDN推送] AppSecret 未配置");
+            }
+
+            String signature = CsdnMessageSigner.sign2(
+                    appKey,
+                    appSecret,
                     timestamp,
                     nonce,
                     jsonBody
             );
 
+            // 记录请求头（用于调试）
+            logger.debug("[CSDN推送] 请求头 - App-Key={}, Timestamp={}, Nonce={}, Signature={}",
+                    appKey, timestamp, nonce, signature);
+
             // 发送HTTP请求
             HttpResponse response = HttpRequest.post(url)
                     .header("Content-Type", "application/json")
-                    .header("X-App-Key", properties.getAppKey())
-                    .header("X-Timestamp", timestamp)
-                    .header("X-Nonce", nonce)
-                    .header("X-Signature", signature)
+                    .header("App-Key", appKey)
+                    .header("Timestamp", timestamp)
+                    .header("Nonce", nonce)
+                    .header("Signature", signature)
                     .body(jsonBody)
                     .timeout(30000)
                     .execute();
