@@ -67,13 +67,14 @@ upload:
 csdn:
   message:
     # 应用Key和密钥（生产环境建议通过环境变量或配置中心注入）
-    app-key: ${CSDN_APP_KEY:testApp}
-    app-secret: ${CSDN_APP_SECRET:}
+    # 文档要求AppKey: Conference_New_Notice
+    app-key: ${CSDN_APP_KEY:Conference_New_Notice}
+    app-secret: ${CSDN_APP_SECRET:086e138b358948b8a30a8b29313bb45f}
     # 接口基础URL
-    base-url: https://msg.csdn.net/open/api/v1
+    base-url: https://msg.csdn.net
     # 模板编码配置
     templates:
-      # 会议发布IM站内信模板
-      meeting-publish-im: meeting_publish_im_v1
-      # 会议发布APP推送模板
-      meeting-publish-push: meeting_publish_push_v1
+      # 会议发布IM站内信模板 (文档要求: New_Notice_IM)
+      meeting-publish-im: New_Notice_IM
+      # 会议发布APP推送模板 (文档要求: New_Notice_PUSH)
+      meeting-publish-push: New_Notice_PUSH

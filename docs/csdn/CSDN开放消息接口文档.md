@@ -3,7 +3,7 @@
 ## 1. 接口概述
 本接口用于第三方应用向 CSDN 用户发送通知消息。为了更好的隔离性，不同通道的消息请调用对应的接口地址。
 
-*   **Base URL**: `https://msg.csdn.net/open/api/v1`
+*   **Base URL**: `https://msg.csdn.net`
 *   **Content-Type**: `application/json`
 
 ## 2. 鉴权机制
@@ -72,12 +72,17 @@ public class SignDemo {
 
 ## 3. 发送消息接口
 
+AppKey:Conference_New_Notice
+PUSH模板:New_Notice_PUSH
+IM模板:New_Notice_IM
+
+
 ### 3.1 IM 站内信发送
-**URL**: `/im/send` (完整路径: `https://msg.csdn.net/open/api/v1/im/send`)
+**URL**: `/im/open/v1/send` (完整路径: `https://msg.csdn.net/im/open/v1/send`)
 **Method**: `POST`
 
 ### 3.2 APP 推送发送
-**URL**: `/push/send` (完整路径: `https://msg.csdn.net/open/api/v1/push/send`)
+**URL**: `/push/open/v1/send` (完整路径: `https://msg.csdn.net/push/open/v1/send`)
 **Method**: `POST`
 
 **请求参数 (JSON Body)**:

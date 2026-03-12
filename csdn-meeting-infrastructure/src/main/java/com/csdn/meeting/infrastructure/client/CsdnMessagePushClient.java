@@ -24,8 +24,8 @@ public class CsdnMessagePushClient {
 
     private static final Logger logger = LoggerFactory.getLogger(CsdnMessagePushClient.class);
 
-    private static final String IM_SEND_PATH = "/im/send";
-    private static final String PUSH_SEND_PATH = "/push/send";
+    private static final String IM_SEND_PATH = "/im/open/v1/send";
+    private static final String PUSH_SEND_PATH = "/push/open/v1/send";
 
     private final CsdnMessageProperties properties;
 

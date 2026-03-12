@@ -24,7 +24,7 @@ public class CsdnMessageProperties {
     /**
      * 接口基础URL
      */
-    private String baseUrl = "https://msg.csdn.net/open/api/v1";
+    private String baseUrl = "https://msg.csdn.net";
 
     /**
      * 模板编码配置
@@ -70,12 +70,12 @@ public class CsdnMessageProperties {
         /**
          * 会议发布IM站内信模板编码
          */
-        private String meetingPublishIm = "meeting_publish_im_v1";
+        private String meetingPublishIm = "New_Notice_IM";
 
         /**
          * 会议发布APP推送模板编码
          */
-        private String meetingPublishPush = "meeting_publish_push_v1";
+        private String meetingPublishPush = "New_Notice_PUSH";
 
         public String getMeetingPublishIm() {
             return meetingPublishIm;
