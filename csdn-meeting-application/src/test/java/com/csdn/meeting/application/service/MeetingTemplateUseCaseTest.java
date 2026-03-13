@@ -157,6 +157,58 @@ class MeetingTemplateUseCaseTest {
     }
 
     @Test
+    @DisplayName("create: 目标人群和技术标签全角逗号规范为半角")
+    void create_normalizesCommaSeparatedFields() {
+        MeetingTemplateDTO dto = new MeetingTemplateDTO();
+        dto.setName("新模板");
+        dto.setScene("开发者会议");
+        dto.setDefaultTags("Java，Python，Go");    // 全角逗号
+        dto.setTargetAudience("开发者，架构师，经理");  // 全角逗号
+        MeetingTemplate saved = new MeetingTemplate();
+        saved.setId(1L);
+        when(templateRepository.save(argThat(e ->
+                "Java,Python,Go".equals(e.getDefaultTags())
+                        && "开发者,架构师,经理".equals(e.getTargetAudience())
+        ))).thenAnswer(inv -> {
+            MeetingTemplate e = inv.getArgument(0);
+            saved.setId(1L);
+            saved.setDefaultTags(e.getDefaultTags());
+            saved.setTargetAudience(e.getTargetAudience());
+            return saved;
+        });
+
+        useCase.create(dto);
+
+        verify(templateRepository).save(argThat(e ->
+                "Java,Python,Go".equals(e.getDefaultTags())
+                        && "开发者,架构师,经理".equals(e.getTargetAudience())
+        ));
+    }
+
+    @Test
+    @DisplayName("update: 目标人群和技术标签全角逗号规范为半角")
+    void update_normalizesCommaSeparatedFields() {
+        MeetingTemplate existing = new MeetingTemplate();
+        existing.setId(1L);
+        existing.setName("旧模板");
+        existing.setDefaultTags("old");
+        existing.setTargetAudience("old");
+        when(templateRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(templateRepository.save(any(MeetingTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        MeetingTemplateDTO dto = new MeetingTemplateDTO();
+        dto.setDefaultTags("前端，后端");
+        dto.setTargetAudience("技术 leader，CTO");
+
+        useCase.update(1L, dto);
+
+        verify(templateRepository).save(argThat(e ->
+                "前端,后端".equals(e.getDefaultTags())
+                        && "技术 leader,CTO".equals(e.getTargetAudience())
+        ));
+    }
+
+    @Test
     @DisplayName("shelve: 上架模板")
     void shelve_setsActive() {
         MeetingTemplate t = new MeetingTemplate();
