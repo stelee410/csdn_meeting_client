@@ -80,4 +80,78 @@ public class MeetingAnalyticsService {
         // TODO【CSDN对接-数据分析】：调用CSDN数据分析平台接口上报埋点
         logger.info("[Analytics:MeetingClick-待对接CSDN数据分析平台] userId={}, meetingId={}, position={}", userId, meetingId, position);
     }
+
+    // ========== 移动端特有埋点 ==========
+
+    /**
+     * 记录会议频道添加事件
+     * 用户将「会议」加入「我的频道」
+     *
+     * @param userId 用户ID
+     *
+     * TODO【CSDN对接-数据分析】：上报频道添加埋点，统计用户发现会议频道的转化率
+     */
+    public void trackMobileChannelAdd(Long userId) {
+        logger.info("[Analytics:MobileChannelAdd-待对接CSDN数据分析平台] userId={}", userId);
+    }
+
+    /**
+     * 记录会议首页曝光事件
+     * 用户进入会议首页（卡片列表页）
+     *
+     * @param userId 用户ID
+     * @param source 来源（channel_tab-频道tab/my_events-我的会议入口）
+     *
+     * TODO【CSDN对接-数据分析】：上报首页曝光埋点，统计会议频道活跃度
+     */
+    public void trackMobileHomeExposure(Long userId, String source) {
+        logger.info("[Analytics:MobileHomeExposure-待对接CSDN数据分析平台] userId={}, source={}", userId, source);
+    }
+
+    /**
+     * 记录移动端发起会议入口点击事件
+     *
+     * @param userId 用户ID
+     * @param source 来源（home-首页/other-其他）
+     *
+     * TODO【CSDN对接-数据分析】：上报发起会议入口点击埋点，统计移动端发起会议意愿
+     */
+    public void trackMobileCreateEntryClick(Long userId, String source) {
+        logger.info("[Analytics:MobileCreateEntryClick-待对接CSDN数据分析平台] userId={}, source={}", userId, source);
+    }
+
+    /**
+     * 记录我的会议入口点击事件
+     *
+     * @param userId 用户ID
+     *
+     * TODO【CSDN对接-数据分析】：上报我的会议入口点击埋点，统计用户管理会议意愿
+     */
+    public void trackMobileMyEventsEntryClick(Long userId) {
+        logger.info("[Analytics:MobileMyEventsEntryClick-待对接CSDN数据分析平台] userId={}", userId);
+    }
+
+    /**
+     * 记录我收藏的会议页签点击事件
+     *
+     * @param userId 用户ID
+     *
+     * TODO【CSDN对接-数据分析】：上报收藏页签点击埋点，统计收藏功能使用率
+     */
+    public void trackMobileFavoritesTabClick(Long userId) {
+        logger.info("[Analytics:MobileFavoritesTabClick-待对接CSDN数据分析平台] userId={}", userId);
+    }
+
+    /**
+     * 记录会议签到扫码事件
+     *
+     * @param userId    用户ID
+     * @param meetingId 会议ID
+     * @param result    扫码结果（success-签到成功/not_registered-未报名/duplicate-重复签到/invalid_code-无效码）
+     *
+     * TODO【CSDN对接-数据分析】：上报签到扫码埋点，统计现场签到使用率
+     */
+    public void trackMobileCheckinScan(Long userId, String meetingId, String result) {
+        logger.info("[Analytics:MobileCheckinScan-待对接CSDN数据分析平台] userId={}, meetingId={}, result={}", userId, meetingId, result);
+    }
 }

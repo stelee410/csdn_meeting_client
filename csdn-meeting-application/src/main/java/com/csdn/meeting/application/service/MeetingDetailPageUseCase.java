@@ -66,7 +66,7 @@ public class MeetingDetailPageUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
         MeetingDTO meetingDTO = meetingApplicationService.getMeetingDetailById(meeting.getId());
-        MeetingDetailDTO detailDTO = convertToDetailDTO(meetingDTO);
+        MeetingDetailDTO detailDTO = convertToDetailDTO(meetingDTO, meeting);
 
         // 2. 组装详情页数据
         MeetingDetailPageDTO pageDTO = new MeetingDetailPageDTO();
@@ -274,7 +274,7 @@ public class MeetingDetailPageUseCase {
      * 将MeetingDTO转换为MeetingDetailDTO
      * 简化版本，只映射实际存在的字段
      */
-    private MeetingDetailDTO convertToDetailDTO(MeetingDTO meetingDTO) {
+    private MeetingDetailDTO convertToDetailDTO(MeetingDTO meetingDTO, Meeting meeting) {
         MeetingDetailDTO detailDTO = new MeetingDetailDTO();
         detailDTO.setMeetingId(meetingDTO.getMeetingId());
         detailDTO.setTitle(meetingDTO.getTitle());
@@ -285,8 +285,23 @@ public class MeetingDetailPageUseCase {
         detailDTO.setStatus(1); // 默认值
         detailDTO.setStatusName(meetingDTO.getStatus());
         detailDTO.setMaxParticipants(meetingDTO.getMaxParticipants());
+
+        // 设置报名人数信息（从Meeting实体获取更准确的数据）
+        Integer currentParticipants = meeting.getCurrentParticipants() != null ? meeting.getCurrentParticipants() : 0;
+        Integer maxParticipants = meeting.getMaxParticipants();
+        detailDTO.setCurrentParticipants(currentParticipants);
+
+        // 计算报名进度百分比（用于移动端展示进度条）
+        if (maxParticipants != null && maxParticipants > 0) {
+            int progress = (int) ((double) currentParticipants / maxParticipants * 100);
+            detailDTO.setParticipantsProgress(Math.min(progress, 100)); // 最大100%
+            detailDTO.setParticipantsDisplay(currentParticipants + " / " + maxParticipants + " 人");
+        } else {
+            detailDTO.setParticipantsProgress(0);
+            detailDTO.setParticipantsDisplay(currentParticipants + " 人");
+        }
+
         // 设置默认值
-        detailDTO.setCurrentParticipants(0);
         detailDTO.setHotScore(0);
         return detailDTO;
     }

@@ -149,7 +149,32 @@ public class MyMeetingsUseCase {
         dto.setTakedownReason(meeting.getTakedownReason());
         dto.setRejectReason(meeting.getRejectReason());
         dto.setScheduleDays(toScheduleDayDTOs(meeting.getScheduleDays()));
+        // 设置移动端操作标记
+        dto.setMobileOperations(buildMobileOperations(meeting));
         return dto;
+    }
+
+    /**
+     * 构建移动端操作标记
+     * 移动端仅保留查看详情、查看简报、下载简报（会议结束后），不提供其他管理操作
+     */
+    private MeetingDTO.MobileOperationDTO buildMobileOperations(Meeting meeting) {
+        MeetingDTO.MobileOperationDTO ops = new MeetingDTO.MobileOperationDTO();
+
+        // 移动端可查看详情和简报
+        ops.setCanViewDetail(true);
+        ops.setCanViewBrief(true);
+
+        // 会议结束后可下载简报
+        boolean canDownload = meeting.getStatus() == Meeting.MeetingStatus.ENDED
+                || meeting.getStatus() == Meeting.MeetingStatus.PUBLISHED
+                || meeting.getStatus() == Meeting.MeetingStatus.IN_PROGRESS;
+        ops.setCanDownloadBrief(canDownload);
+
+        // 其他操作移动端不提供（默认为false）
+        // canPromote, canAudit, canSubmit, canWithdraw, canTakedown, canDelete
+
+        return ops;
     }
 
     private List<com.csdn.meeting.application.dto.ScheduleDayDTO> toScheduleDayDTOs(List<ScheduleDay> days) {

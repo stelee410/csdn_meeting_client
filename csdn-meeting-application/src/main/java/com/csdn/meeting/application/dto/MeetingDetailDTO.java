@@ -89,6 +89,9 @@ public class MeetingDetailDTO {
     @Schema(description = "报名人数显示", example = "856 / 1000 人")
     private String participantsDisplay;
 
+    @Schema(description = "报名进度百分比（0-100），用于移动端展示进度条", example = "85")
+    private Integer participantsProgress;
+
     @Schema(description = "关联标签列表（包含订阅状态）")
     private List<MeetingTagDTO> tags;
 

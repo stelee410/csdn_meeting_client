@@ -229,4 +229,105 @@ public class MeetingDTO {
     public void setScheduleDays(List<ScheduleDayDTO> scheduleDays) {
         this.scheduleDays = scheduleDays;
     }
+
+    // ========== 移动端可操作标记 ==========
+    private MobileOperationDTO mobileOperations;
+
+    public MobileOperationDTO getMobileOperations() {
+        return mobileOperations;
+    }
+
+    public void setMobileOperations(MobileOperationDTO mobileOperations) {
+        this.mobileOperations = mobileOperations;
+    }
+
+    /**
+     * 移动端可操作标记
+     * 用于指示该会议在移动端可执行的操作
+     */
+    public static class MobileOperationDTO {
+        private boolean canViewDetail = true;      // 可查看详情
+        private boolean canViewBrief = true;       // 可查看简报
+        private boolean canDownloadBrief = false;    // 可下载简报（会议结束后）
+
+        // 以下操作移动端不提供（默认false）
+        private boolean canPromote = false;          // 移动端不可推广
+        private boolean canAudit = false;            // 移动端不可审核报名
+        private boolean canSubmit = false;           // 移动端不可提交审核
+        private boolean canWithdraw = false;         // 移动端不可撤回审核
+        private boolean canTakedown = false;         // 移动端不可下架
+        private boolean canDelete = false;           // 移动端不可删除
+
+        public boolean isCanViewDetail() {
+            return canViewDetail;
+        }
+
+        public void setCanViewDetail(boolean canViewDetail) {
+            this.canViewDetail = canViewDetail;
+        }
+
+        public boolean isCanViewBrief() {
+            return canViewBrief;
+        }
+
+        public void setCanViewBrief(boolean canViewBrief) {
+            this.canViewBrief = canViewBrief;
+        }
+
+        public boolean isCanDownloadBrief() {
+            return canDownloadBrief;
+        }
+
+        public void setCanDownloadBrief(boolean canDownloadBrief) {
+            this.canDownloadBrief = canDownloadBrief;
+        }
+
+        public boolean isCanPromote() {
+            return canPromote;
+        }
+
+        public void setCanPromote(boolean canPromote) {
+            this.canPromote = canPromote;
+        }
+
+        public boolean isCanAudit() {
+            return canAudit;
+        }
+
+        public void setCanAudit(boolean canAudit) {
+            this.canAudit = canAudit;
+        }
+
+        public boolean isCanSubmit() {
+            return canSubmit;
+        }
+
+        public void setCanSubmit(boolean canSubmit) {
+            this.canSubmit = canSubmit;
+        }
+
+        public boolean isCanWithdraw() {
+            return canWithdraw;
+        }
+
+        public void setCanWithdraw(boolean canWithdraw) {
+            this.canWithdraw = canWithdraw;
+        }
+
+        public boolean isCanTakedown() {
+            return canTakedown;
+        }
+
+        public void setCanTakedown(boolean canTakedown) {
+            this.canTakedown = canTakedown;
+        }
+
+        public boolean isCanDelete() {
+            return canDelete;
+        }
+
+        public void setCanDelete(boolean canDelete) {
+            this.canDelete = canDelete;
+        }
+    }
 }

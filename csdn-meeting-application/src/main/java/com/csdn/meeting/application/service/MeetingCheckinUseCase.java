@@ -53,6 +53,11 @@ public class MeetingCheckinUseCase {
     @Value("${checkin.scheme:app://csdn.meeting/checkin}")
     private String checkinScheme;
 
+    // 微信小程序Scheme（小程序扫码后跳转的页面路径）
+    // TODO【需CSDN小程序对接】：与微信小程序团队确认页面路径
+    @Value("${checkin.miniapp-scheme:/pages/meeting/checkin}")
+    private String miniappScheme;
+
     private final MeetingRepository meetingRepository;
     private final RegistrationRepository registrationRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -94,6 +99,7 @@ public class MeetingCheckinUseCase {
         qrDTO.setMeetingTitle(meeting.getTitle());
         qrDTO.setCheckinToken(checkinToken);
         qrDTO.setQrContent(buildQrContent(meetingId, checkinToken));
+        qrDTO.setMiniappQrContent(buildMiniappQrContent(meetingId, checkinToken));
         qrDTO.setCheckinEnabled(true);
 
         return qrDTO;
@@ -102,7 +108,7 @@ public class MeetingCheckinUseCase {
     /**
      * 获取签到二维码数据
      * 用于主办方展示签到二维码
-     * 
+     *
      * @param meetingId 会议ID
      * @return 签到二维码数据
      */
@@ -111,7 +117,7 @@ public class MeetingCheckinUseCase {
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
         // 检查是否已启用签到
-        if (!Boolean.TRUE.equals(meeting.getRequireCheckin()) 
+        if (!Boolean.TRUE.equals(meeting.getRequireCheckin())
                 || meeting.getCheckinCode() == null) {
             // 未启用签到，自动生成
             return generateCheckinCode(meetingId);
@@ -122,6 +128,7 @@ public class MeetingCheckinUseCase {
         qrDTO.setMeetingTitle(meeting.getTitle());
         qrDTO.setCheckinToken(meeting.getCheckinCode());
         qrDTO.setQrContent(buildQrContent(meetingId, meeting.getCheckinCode()));
+        qrDTO.setMiniappQrContent(buildMiniappQrContent(meetingId, meeting.getCheckinCode()));
         qrDTO.setCheckinEnabled(true);
 
         return qrDTO;
@@ -284,6 +291,13 @@ public class MeetingCheckinUseCase {
      */
     private String buildQrContent(String meetingId, String checkinToken) {
         return String.format("%s?m=%s&t=%s", checkinScheme, meetingId, checkinToken);
+    }
+
+    /**
+     * 构建小程序二维码内容
+     */
+    private String buildMiniappQrContent(String meetingId, String checkinToken) {
+        return String.format("%s?m=%s&t=%s", miniappScheme, meetingId, checkinToken);
     }
 
     /**

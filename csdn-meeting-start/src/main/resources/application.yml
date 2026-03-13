@@ -102,8 +102,11 @@ checkin:
   # 签到码签名密钥（生产环境建议使用更复杂的密钥，并通过环境变量注入）
   signing-key: ${CHECKIN_SIGNING_KEY:csdn-meeting-checkin-secret-key-2026}
   # 二维码Scheme（APP扫码后跳转的协议）
-  # TODO【需与CSDN协调】：与CSDN App团队确认Scheme协议
+  # TODO【需与CSDN App对接】：与CSDN App团队确认Scheme协议
   scheme: app://csdn.meeting/checkin
+  # 微信小程序Scheme（小程序扫码后跳转的页面路径）
+  # TODO【需CSDN小程序对接】：与微信小程序团队确认页面路径
+  miniapp-scheme: /pages/meeting/checkin
   # 二维码有效期（分钟，0表示长期有效）
   code-validity-minutes: 0
   # 是否允许重复签到（false时重复签到会提示已签到）

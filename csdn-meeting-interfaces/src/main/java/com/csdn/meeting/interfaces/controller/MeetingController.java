@@ -17,9 +17,11 @@ import com.csdn.meeting.application.dto.RegistrationDTO;
 import com.csdn.meeting.application.dto.RegistrationStatusDTO;
 import com.csdn.meeting.application.dto.RightsPurchaseResultDTO;
 import com.csdn.meeting.application.dto.SuggestTagsRequest;
+import com.csdn.meeting.application.dto.TagDTO;
 import com.csdn.meeting.application.dto.TagSuggestionDTO;
 import com.csdn.meeting.application.dto.UpdateMeetingCommand;
 import com.csdn.meeting.application.service.AIParsingUseCase;
+import com.csdn.meeting.application.service.HotTagsUseCase;
 import com.csdn.meeting.application.service.MeetingApplicationService;
 import com.csdn.meeting.application.service.MeetingBriefUseCase;
 import com.csdn.meeting.application.service.MeetingDetailPageUseCase;
@@ -62,6 +64,7 @@ public class MeetingController {
     private final MeetingBriefUseCase meetingBriefUseCase;
     private final MeetingListUseCase meetingListUseCase;
     private final MeetingDetailPageUseCase meetingDetailPageUseCase;
+    private final HotTagsUseCase hotTagsUseCase;
 
     public MeetingController(MeetingApplicationService meetingApplicationService,
                              TagSuggestionUseCase tagSuggestionUseCase,
@@ -71,7 +74,8 @@ public class MeetingController {
                              MeetingRightsPurchaseUseCase meetingRightsPurchaseUseCase,
                              MeetingBriefUseCase meetingBriefUseCase,
                              MeetingListUseCase meetingListUseCase,
-                             MeetingDetailPageUseCase meetingDetailPageUseCase) {
+                             MeetingDetailPageUseCase meetingDetailPageUseCase,
+                             HotTagsUseCase hotTagsUseCase) {
         this.meetingApplicationService = meetingApplicationService;
         this.tagSuggestionUseCase = tagSuggestionUseCase;
         this.aiParsingUseCase = aiParsingUseCase;
@@ -81,6 +85,7 @@ public class MeetingController {
         this.meetingBriefUseCase = meetingBriefUseCase;
         this.meetingListUseCase = meetingListUseCase;
         this.meetingDetailPageUseCase = meetingDetailPageUseCase;
+        this.hotTagsUseCase = hotTagsUseCase;
     }
 
     @Operation(summary = "创建草稿", description = "创建会议草稿，仅校验会议标题必填，日程可为空。状态为 DRAFT。")
@@ -442,5 +447,25 @@ public class MeetingController {
     public ResponseEntity<FilterOptionsDTO> getFilterOptions() {
         FilterOptionsDTO options = meetingListUseCase.getFilterOptions();
         return ResponseEntity.ok(options);
+    }
+
+    /**
+     * 获取热门标签列表
+     * GET /api/meetings/hot-tags
+     *
+     * @param limit 返回数量限制，默认10个
+     * @return 热门标签列表
+     *
+     * TODO【移动端适配】：移动端会议首页展示热门标签（人工智能、云计算、区块链等）
+     */
+    @Operation(
+            summary = "获取热门标签",
+            description = "按使用该标签的已发布会议数量降序，返回热门标签列表。" +
+                    "供移动端会议首页展示热门技术标签使用。"
+    )
+    @GetMapping("/hot-tags")
+    public ResponseEntity<List<TagDTO>> getHotTags(
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(hotTagsUseCase.getHotTags(limit));
     }
 }
