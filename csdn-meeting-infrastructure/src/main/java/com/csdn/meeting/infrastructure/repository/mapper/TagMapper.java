@@ -29,4 +29,10 @@ public interface TagMapper extends BaseMapper<TagPO> {
      * 批量插入或更新标签（忽略重复）
      */
     int batchInsertOrIgnore(@Param("tags") List<TagPO> tags);
+
+    /**
+     * 热门标签：按使用该标签的已发布会议数量降序，返回前 limit 个
+     * issue001-9
+     */
+    List<TagPO> selectHotTags(@Param("limit") int limit);
 }

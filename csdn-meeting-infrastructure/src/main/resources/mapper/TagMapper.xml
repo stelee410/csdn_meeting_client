@@ -25,4 +25,19 @@
         update_by = VALUES(update_by)
     </insert>
 
+    <!-- 热门标签：按使用该标签的已发布会议数降序，MySQL 5.7 兼容 -->
+    <select id="selectHotTags" resultType="com.csdn.meeting.infrastructure.po.TagPO">
+        SELECT t.id, t.tag_name, t.tag_category, t.created_at, t.updated_at, t.is_deleted
+        FROM t_tag t
+        LEFT JOIN t_meeting m ON m.status IN (2, 3, 4)
+            AND (m.is_deleted = 0 OR m.is_deleted IS NULL)
+            AND m.tags IS NOT NULL
+            AND m.tags != ''
+            AND CONCAT(',', m.tags, ',') LIKE CONCAT('%,', t.id, ',%')
+        WHERE (t.is_deleted = 0 OR t.is_deleted IS NULL)
+        GROUP BY t.id, t.tag_name, t.tag_category, t.created_at, t.updated_at, t.is_deleted
+        ORDER BY COUNT(m.id) DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

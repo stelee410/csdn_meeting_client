@@ -1,5 +1,7 @@
 package com.csdn.meeting.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,7 +13,9 @@ public class MeetingDTO {
     private String description;
     private String creatorId;
     private String creatorName;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Shanghai")
     private LocalDateTime startTime;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Shanghai")
     private LocalDateTime endTime;
     private String status;
     private Integer maxParticipants;
@@ -23,7 +27,8 @@ public class MeetingDTO {
     private String scene;
     private String venue;
     private String regions;          // JSON
-    private String coverImage;
+    private String coverImage;       // 封面图（列表/详情均返回）
+    private String posterUrl;        // 海报图（详情页，API 文档要求）
     private String tags;             // 逗号分隔的 tagId，如 1,2,3
     private String targetAudience;   // JSON
     private Boolean isPremium;
@@ -167,6 +172,14 @@ public class MeetingDTO {
 
     public void setCoverImage(String coverImage) {
         this.coverImage = coverImage;
+    }
+
+    public String getPosterUrl() {
+        return posterUrl;
+    }
+
+    public void setPosterUrl(String posterUrl) {
+        this.posterUrl = posterUrl;
     }
 
     public String getTags() {

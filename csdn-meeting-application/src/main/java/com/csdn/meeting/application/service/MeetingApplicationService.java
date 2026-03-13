@@ -1,6 +1,7 @@
 package com.csdn.meeting.application.service;
 
 import com.csdn.meeting.application.dto.*;
+import com.csdn.meeting.application.util.UrlNormalizer;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.Participant;
 import com.csdn.meeting.domain.entity.ScheduleDay;
@@ -318,7 +319,7 @@ public class MeetingApplicationService {
         meeting.setScene(cmd.getScene());
         meeting.setVenue(cmd.getVenue());
         meeting.setRegions(cmd.getRegions());
-        meeting.setCoverImage(cmd.getCoverImage());
+        meeting.setCoverImage(UrlNormalizer.normalizeImageUrl(cmd.getCoverImage()));
         meeting.setTags(cmd.getTags());
         meeting.setTargetAudience(cmd.getTargetAudience());
         meeting.setIsPremium(cmd.getIsPremium());
@@ -336,7 +337,7 @@ public class MeetingApplicationService {
         if (cmd.getScene() != null) meeting.setScene(cmd.getScene());
         if (cmd.getVenue() != null) meeting.setVenue(cmd.getVenue());
         if (cmd.getRegions() != null) meeting.setRegions(cmd.getRegions());
-        if (cmd.getCoverImage() != null) meeting.setCoverImage(cmd.getCoverImage());
+        if (cmd.getCoverImage() != null) meeting.setCoverImage(UrlNormalizer.normalizeImageUrl(cmd.getCoverImage()));
         if (cmd.getTags() != null) meeting.setTags(cmd.getTags());
         if (cmd.getTargetAudience() != null) meeting.setTargetAudience(cmd.getTargetAudience());
         if (cmd.getIsPremium() != null) meeting.setIsPremium(cmd.getIsPremium());
@@ -439,7 +440,8 @@ public class MeetingApplicationService {
         dto.setScene(meeting.getScene());
         dto.setVenue(meeting.getVenue());
         dto.setRegions(meeting.getRegions());
-        dto.setCoverImage(meeting.getCoverImage());
+        dto.setCoverImage(meeting.getCoverImage() != null ? meeting.getCoverImage() : meeting.getPosterUrl());
+        dto.setPosterUrl(meeting.getPosterUrl() != null ? meeting.getPosterUrl() : meeting.getCoverImage());
         dto.setTags(meeting.getTags());
         dto.setTargetAudience(meeting.getTargetAudience());
         dto.setIsPremium(meeting.getIsPremium());

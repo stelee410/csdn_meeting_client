@@ -49,7 +49,19 @@ public class MeetingTemplateController {
         return ResponseEntity.ok(updated);
     }
 
-    @Operation(summary = "删除模板", description = "管理员删除/下线活动模板。")
+    @Operation(summary = "下架模板", description = "将模板下架（isActive=false），列表接口不再返回，可随时上架。")
+    @PatchMapping("/{id}/offline")
+    public ResponseEntity<MeetingTemplateDTO> offline(@PathVariable Long id) {
+        return ResponseEntity.ok(templateUseCase.offline(id));
+    }
+
+    @Operation(summary = "上架模板", description = "将已下架模板重新上架（isActive=true）。")
+    @PatchMapping("/{id}/shelve")
+    public ResponseEntity<MeetingTemplateDTO> shelve(@PathVariable Long id) {
+        return ResponseEntity.ok(templateUseCase.shelve(id));
+    }
+
+    @Operation(summary = "删除模板", description = "逻辑删除活动模板。")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         templateUseCase.delete(id);

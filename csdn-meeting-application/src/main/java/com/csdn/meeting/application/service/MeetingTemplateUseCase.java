@@ -66,7 +66,7 @@ public class MeetingTemplateUseCase {
 
     public MeetingTemplateDTO create(MeetingTemplateDTO dto) {
         MeetingTemplate entity = toEntity(dto);
-        entity.setIsActive(true);
+        entity.setIsActive(Boolean.TRUE.equals(dto.getIsActive()));
         MeetingTemplate saved = templateRepository.save(entity);
         return toDTO(saved);
     }
@@ -86,12 +86,35 @@ public class MeetingTemplateUseCase {
         templateRepository.deleteById(id);
     }
 
+    /**
+     * 模板下架（设置 isActive=false），不影响其他模板列表
+     */
+    public MeetingTemplateDTO offline(Long id) {
+        MeetingTemplate entity = templateRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("模板不存在: " + id));
+        entity.setIsActive(false);
+        return toDTO(templateRepository.save(entity));
+    }
+
+    /**
+     * 模板上架（设置 isActive=true）
+     */
+    public MeetingTemplateDTO shelve(Long id) {
+        MeetingTemplate entity = templateRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("模板不存在: " + id));
+        entity.setIsActive(true);
+        return toDTO(templateRepository.save(entity));
+    }
+
     private void applyUpdate(MeetingTemplate entity, MeetingTemplateDTO dto) {
         if (dto.getName() != null) entity.setName(dto.getName());
         if (dto.getScene() != null) entity.setScene(dto.getScene());
         if (dto.getDescriptionTemplate() != null) entity.setDescriptionTemplate(dto.getDescriptionTemplate());
         if (dto.getDefaultTags() != null) entity.setDefaultTags(dto.getDefaultTags());
         if (dto.getTargetAudience() != null) entity.setTargetAudience(dto.getTargetAudience());
+        if (dto.getMeetingDuration() != null) entity.setMeetingDuration(dto.getMeetingDuration());
+        if (dto.getMeetingScale() != null) entity.setMeetingScale(dto.getMeetingScale());
+        if (dto.getFrequency() != null) entity.setFrequency(dto.getFrequency());
         if (dto.getSortOrder() != null) entity.setSortOrder(dto.getSortOrder());
         if (dto.getIsActive() != null) entity.setIsActive(dto.getIsActive());
     }
@@ -103,6 +126,9 @@ public class MeetingTemplateUseCase {
         e.setDescriptionTemplate(dto.getDescriptionTemplate());
         e.setDefaultTags(dto.getDefaultTags());
         e.setTargetAudience(dto.getTargetAudience());
+        e.setMeetingDuration(dto.getMeetingDuration());
+        e.setMeetingScale(dto.getMeetingScale());
+        e.setFrequency(dto.getFrequency());
         e.setSortOrder(dto.getSortOrder());
         e.setIsActive(dto.getIsActive());
         return e;
@@ -116,6 +142,9 @@ public class MeetingTemplateUseCase {
         dto.setDescriptionTemplate(e.getDescriptionTemplate());
         dto.setDefaultTags(e.getDefaultTags());
         dto.setTargetAudience(e.getTargetAudience());
+        dto.setMeetingDuration(e.getMeetingDuration());
+        dto.setMeetingScale(e.getMeetingScale());
+        dto.setFrequency(e.getFrequency());
         dto.setSortOrder(e.getSortOrder());
         dto.setIsActive(e.getIsActive());
         return dto;

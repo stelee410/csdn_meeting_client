@@ -70,9 +70,9 @@ public class MeetingDomainService {
                 }
                 Session session = sessions.get(i);
                 List<SubVenue> subVenues = session.getSubVenues();
-                // 4. 每个 Session 下 SubVenue 数量 >= 1
+                // 4. 每个 Session 下 SubVenue 可选（issue001：产品原型无分会场设计时可省略）
                 if (subVenues == null || subVenues.isEmpty()) {
-                    throw new AgendaIntegrityException("AGENDA_INVALID: 第" + (d + 1) + "个日程日第" + (i + 1) + "个环节下至少需要1个分会场");
+                    continue;
                 }
                 for (int v = 0; v < subVenues.size(); v++) {
                     SubVenue subVenue = subVenues.get(v);

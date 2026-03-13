@@ -3,6 +3,8 @@
 <mapper namespace="com.csdn.meeting.infrastructure.repository.mapper.MeetingTemplatePOMapper">
 
     <select id="selectByIsActiveTrueOrderBySortOrderAsc" resultType="com.csdn.meeting.infrastructure.po.MeetingTemplatePO">
-        SELECT * FROM t_meeting_template WHERE is_active = 1 ORDER BY sort_order ASC
+        SELECT * FROM t_meeting_template
+        WHERE is_active = 1 AND (is_deleted = 0 OR is_deleted IS NULL)
+        ORDER BY sort_order ASC
     </select>
 </mapper>

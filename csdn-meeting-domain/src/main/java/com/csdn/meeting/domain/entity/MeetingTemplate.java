@@ -11,6 +11,9 @@ public class MeetingTemplate extends BaseEntity {
     private String descriptionTemplate;
     private String defaultTags;       // JSON
     private String targetAudience;    // JSON
+    private String meetingDuration;   // 会议时长
+    private String meetingScale;      // 会议规模
+    private String frequency;         // 举办频率
     private Integer sortOrder;
     private Boolean isActive;
 
@@ -52,6 +55,30 @@ public class MeetingTemplate extends BaseEntity {
 
     public void setTargetAudience(String targetAudience) {
         this.targetAudience = targetAudience;
+    }
+
+    public String getMeetingDuration() {
+        return meetingDuration;
+    }
+
+    public void setMeetingDuration(String meetingDuration) {
+        this.meetingDuration = meetingDuration;
+    }
+
+    public String getMeetingScale() {
+        return meetingScale;
+    }
+
+    public void setMeetingScale(String meetingScale) {
+        this.meetingScale = meetingScale;
+    }
+
+    public String getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(String frequency) {
+        this.frequency = frequency;
     }
 
     public Integer getSortOrder() {

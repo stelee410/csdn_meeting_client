@@ -42,6 +42,12 @@ public interface TagRepository {
     List<Tag> findByCategory(Tag.TagCategory category);
 
     /**
+     * 热门标签：按使用该标签的已发布会议数降序，返回前 limit 个
+     * issue001-9
+     */
+    List<Tag> findHotTags(int limit);
+
+    /**
      * 根据会议ID查询关联的标签
      * 通过 t_meeting.tags 字段解析标签名，再查 t_tag 得到标签实体
      */

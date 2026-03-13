@@ -25,6 +25,15 @@ public class MeetingTemplatePO {
     @TableField("target_audience")
     private String targetAudience;
 
+    @TableField("meeting_duration")
+    private String meetingDuration;
+
+    @TableField("meeting_scale")
+    private String meetingScale;
+
+    @TableField("frequency")
+    private String frequency;
+
     @TableField("sort_order")
     private Integer sortOrder;
 
@@ -56,6 +65,12 @@ public class MeetingTemplatePO {
     public void setDefaultTags(String defaultTags) { this.defaultTags = defaultTags; }
     public String getTargetAudience() { return targetAudience; }
     public void setTargetAudience(String targetAudience) { this.targetAudience = targetAudience; }
+    public String getMeetingDuration() { return meetingDuration; }
+    public void setMeetingDuration(String meetingDuration) { this.meetingDuration = meetingDuration; }
+    public String getMeetingScale() { return meetingScale; }
+    public void setMeetingScale(String meetingScale) { this.meetingScale = meetingScale; }
+    public String getFrequency() { return frequency; }
+    public void setFrequency(String frequency) { this.frequency = frequency; }
     public Integer getSortOrder() { return sortOrder; }
     public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
     public Boolean getIsActive() { return isActive; }

@@ -57,11 +57,44 @@ public class LocalImageStorageClient implements ImageStoragePort {
         }
 
         // 拼接可访问 URL：前缀 + /年/月/日/文件名
-        String accessUrlPrefix = properties.getAccessUrlPrefix();
-        if (accessUrlPrefix.endsWith("/")) {
-            accessUrlPrefix = accessUrlPrefix.substring(0, accessUrlPrefix.length() - 1);
+        // 修复 issue001：防止 URL 重复拼接 http、端口号及双斜杠
+        String accessUrlPrefix = normalizeAccessUrlPrefix(properties.getAccessUrlPrefix());
+        String path = datePath + "/" + uniqueFileName;
+        return appendPathWithoutDoubleSlash(accessUrlPrefix, path);
+    }
+
+    /**
+     * 规范化 accessUrlPrefix，避免配置错误导致重复的协议/端口/双斜杠
+     * 例如 SERVER_HOST 误填为 http://host 时会得到 http://http://host:port
+     */
+    private String normalizeAccessUrlPrefix(String prefix) {
+        if (prefix == null || prefix.trim().isEmpty()) {
+            return "http://localhost:8080/uploads/images";
         }
-        return accessUrlPrefix + "/" + datePath + "/" + uniqueFileName;
+        String s = prefix.trim();
+        // 去除重复的 http:// 或 https://，保留最后一个协议
+        if (s.contains("http://http://") || s.contains("https://https://")) {
+            int first = s.indexOf("://");
+            if (first >= 0) {
+                int next = s.indexOf("://", first + 3);
+                if (next > 0) {
+                    String proto = s.startsWith("https") ? "https" : "http";
+                    s = proto + "://" + s.substring(next + 3);
+                }
+            }
+        }
+        // 去除末尾斜杠
+        while (s.endsWith("/")) s = s.substring(0, s.length() - 1);
+        return s;
+    }
+
+    /**
+     * 安全拼接路径，避免双斜杠
+     */
+    private String appendPathWithoutDoubleSlash(String base, String path) {
+        if (path == null || path.isEmpty()) return base;
+        String p = path.startsWith("/") ? path.substring(1) : path;
+        return base.endsWith("/") ? base + p : base + "/" + p;
     }
 
     private String extractExtension(String fileName) {

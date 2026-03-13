@@ -17,6 +17,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -112,5 +113,62 @@ class MeetingTemplateUseCaseTest {
 
         assertThrows(IllegalArgumentException.class, () -> useCase.applyTemplate(999L, "1", "张三"));
         verify(meetingApplicationService, never()).createDraft(any());
+    }
+
+    @Test
+    @DisplayName("create: 默认 isActive=false（issue001 新建模板应为未上架）")
+    void create_defaultIsActiveFalse() {
+        MeetingTemplateDTO dto = new MeetingTemplateDTO();
+        dto.setName("新模板");
+        dto.setScene("开发者会议");
+        MeetingTemplate saved = new MeetingTemplate();
+        saved.setId(1L);
+        saved.setName("新模板");
+        saved.setIsActive(false);
+        when(templateRepository.save(any(MeetingTemplate.class))).thenAnswer(inv -> {
+            MeetingTemplate e = inv.getArgument(0);
+            saved.setId(1L);
+            saved.setName(e.getName());
+            saved.setIsActive(e.getIsActive());
+            return saved;
+        });
+
+        MeetingTemplateDTO result = useCase.create(dto);
+
+        assertNotNull(result);
+        assertFalse(result.getIsActive());
+    }
+
+    @Test
+    @DisplayName("offline: 下架模板")
+    void offline_setsInactive() {
+        MeetingTemplate t = new MeetingTemplate();
+        t.setId(1L);
+        t.setName("技术沙龙");
+        t.setIsActive(true);
+        when(templateRepository.findById(1L)).thenReturn(Optional.of(t));
+        when(templateRepository.save(any(MeetingTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        MeetingTemplateDTO result = useCase.offline(1L);
+
+        assertNotNull(result);
+        assertFalse(result.getIsActive());
+        verify(templateRepository).save(argThat(e -> !e.getIsActive()));
+    }
+
+    @Test
+    @DisplayName("shelve: 上架模板")
+    void shelve_setsActive() {
+        MeetingTemplate t = new MeetingTemplate();
+        t.setId(1L);
+        t.setName("技术沙龙");
+        t.setIsActive(false);
+        when(templateRepository.findById(1L)).thenReturn(Optional.of(t));
+        when(templateRepository.save(any(MeetingTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        MeetingTemplateDTO result = useCase.shelve(1L);
+
+        assertNotNull(result);
+        assertTrue(result.getIsActive());
     }
 }

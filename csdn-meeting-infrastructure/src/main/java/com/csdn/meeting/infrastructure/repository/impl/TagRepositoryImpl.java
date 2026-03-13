@@ -84,6 +84,15 @@ public class TagRepositoryImpl implements TagRepository {
     }
 
     @Override
+    public List<Tag> findHotTags(int limit) {
+        if (limit <= 0) return Collections.emptyList();
+        List<TagPO> poList = tagMapper.selectHotTags(limit);
+        return poList == null || poList.isEmpty()
+                ? Collections.emptyList()
+                : TagConverter.INSTANCE.poListToEntityList(poList);
+    }
+
+    @Override
     public List<Tag> findByMeetingId(String meetingId) {
         return meetingSearchRepository.findByMeetingId(meetingId)
                 .map(meeting -> parseTagIdsFromTagsString(meeting.getTags()))

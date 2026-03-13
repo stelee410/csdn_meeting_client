@@ -110,15 +110,14 @@ class MeetingDomainServiceAgendaTest {
     }
 
     @Nested
-    @DisplayName("缺失 SubVenue")
-    class MissingSubVenue {
+    @DisplayName("SubVenue 可选（issue001）")
+    class SubVenueOptional {
         @Test
-        void emptySubVenues_throws() {
+        void emptySubVenues_passes() {
             Session session = session("上午", LocalTime.of(9, 0), LocalTime.of(12, 0), Collections.emptyList());
             ScheduleDay day = day(LocalDate.of(2026, 3, 1), Collections.singletonList(session));
             Meeting m = createMeetingWithAgenda(Collections.singletonList(day));
-            AgendaIntegrityException ex = assertThrows(AgendaIntegrityException.class, () -> domainService.validateAgendaIntegrity(m));
-            assertTrue(ex.getMessage().contains("至少需要1个分会场"));
+            assertDoesNotThrow(() -> domainService.validateAgendaIntegrity(m));
         }
     }
 
