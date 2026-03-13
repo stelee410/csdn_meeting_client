@@ -107,6 +107,16 @@ public class MeetingPO {
     @TableField("updated_at")
     private LocalDateTime updatedAt;
 
+    // V12新增字段 - 报名签到功能
+    @TableField("reg_end_time")
+    private LocalDateTime regEndTime;
+
+    @TableField("checkin_code")
+    private String checkinCode;
+
+    @TableField("require_checkin")
+    private Boolean requireCheckin;
+
     /**
      * 软删除标志：0-未删除, 1-已删除
      */
@@ -180,6 +190,15 @@ public class MeetingPO {
     public void setOrganizerName(String organizerName) { this.organizerName = organizerName; }
     public String getOrganizerAvatar() { return organizerAvatar; }
     public void setOrganizerAvatar(String organizerAvatar) { this.organizerAvatar = organizerAvatar; }
+    
+    // V12新增字段的getter/setter
+    public LocalDateTime getRegEndTime() { return regEndTime; }
+    public void setRegEndTime(LocalDateTime regEndTime) { this.regEndTime = regEndTime; }
+    public String getCheckinCode() { return checkinCode; }
+    public void setCheckinCode(String checkinCode) { this.checkinCode = checkinCode; }
+    public Boolean getRequireCheckin() { return requireCheckin; }
+    public void setRequireCheckin(Boolean requireCheckin) { this.requireCheckin = requireCheckin; }
+    
     public Integer getIsDeleted() { return isDeleted; }
     public void setIsDeleted(Integer isDeleted) { this.isDeleted = isDeleted; }
 }

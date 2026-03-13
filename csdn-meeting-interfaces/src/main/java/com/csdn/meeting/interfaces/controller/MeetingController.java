@@ -5,6 +5,7 @@ import com.csdn.meeting.application.dto.CreateMeetingCommand;
 import com.csdn.meeting.application.dto.FilterOptionsDTO;
 import com.csdn.meeting.application.dto.JoinMeetingCommand;
 import com.csdn.meeting.application.dto.MeetingDTO;
+import com.csdn.meeting.application.dto.MeetingDetailPageDTO;
 import com.csdn.meeting.application.dto.MeetingListQueryDTO;
 import com.csdn.meeting.application.dto.MeetingListResultDTO;
 import com.csdn.meeting.application.dto.MeetingCardItemDTO;
@@ -13,6 +14,7 @@ import com.csdn.meeting.application.dto.MeetingStatisticsDTO;
 import com.csdn.meeting.application.dto.PagedResultDTO;
 import com.csdn.meeting.application.dto.ReasonRequest;
 import com.csdn.meeting.application.dto.RegistrationDTO;
+import com.csdn.meeting.application.dto.RegistrationStatusDTO;
 import com.csdn.meeting.application.dto.RightsPurchaseResultDTO;
 import com.csdn.meeting.application.dto.SuggestTagsRequest;
 import com.csdn.meeting.application.dto.TagSuggestionDTO;
@@ -20,6 +22,7 @@ import com.csdn.meeting.application.dto.UpdateMeetingCommand;
 import com.csdn.meeting.application.service.AIParsingUseCase;
 import com.csdn.meeting.application.service.MeetingApplicationService;
 import com.csdn.meeting.application.service.MeetingBriefUseCase;
+import com.csdn.meeting.application.service.MeetingDetailPageUseCase;
 import com.csdn.meeting.application.service.MeetingListUseCase;
 import com.csdn.meeting.application.service.MeetingRightsPurchaseUseCase;
 import com.csdn.meeting.application.service.MeetingStatisticsUseCase;
@@ -28,6 +31,7 @@ import com.csdn.meeting.application.service.TagSuggestionUseCase;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.Registration;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -57,6 +61,7 @@ public class MeetingController {
     private final MeetingRightsPurchaseUseCase meetingRightsPurchaseUseCase;
     private final MeetingBriefUseCase meetingBriefUseCase;
     private final MeetingListUseCase meetingListUseCase;
+    private final MeetingDetailPageUseCase meetingDetailPageUseCase;
 
     public MeetingController(MeetingApplicationService meetingApplicationService,
                              TagSuggestionUseCase tagSuggestionUseCase,
@@ -65,7 +70,8 @@ public class MeetingController {
                              MeetingStatisticsUseCase meetingStatisticsUseCase,
                              MeetingRightsPurchaseUseCase meetingRightsPurchaseUseCase,
                              MeetingBriefUseCase meetingBriefUseCase,
-                             MeetingListUseCase meetingListUseCase) {
+                             MeetingListUseCase meetingListUseCase,
+                             MeetingDetailPageUseCase meetingDetailPageUseCase) {
         this.meetingApplicationService = meetingApplicationService;
         this.tagSuggestionUseCase = tagSuggestionUseCase;
         this.aiParsingUseCase = aiParsingUseCase;
@@ -74,6 +80,7 @@ public class MeetingController {
         this.meetingRightsPurchaseUseCase = meetingRightsPurchaseUseCase;
         this.meetingBriefUseCase = meetingBriefUseCase;
         this.meetingListUseCase = meetingListUseCase;
+        this.meetingDetailPageUseCase = meetingDetailPageUseCase;
     }
 
     @Operation(summary = "创建草稿", description = "创建会议草稿，仅校验会议标题必填，日程可为空。状态为 DRAFT。")
@@ -95,6 +102,50 @@ public class MeetingController {
     public ResponseEntity<MeetingDTO> getDetail(@PathVariable Long id) {
         MeetingDTO meeting = meetingApplicationService.getMeetingDetailById(id);
         return ResponseEntity.ok(meeting);
+    }
+
+    /**
+     * 会议详情页API（V1.2新增）
+     * 包含会议信息、用户报名状态、收藏状态、报名按钮状态等完整数据
+     * 
+     * TODO【需与CSDN协调】：
+     * 1. 用户身份获取方式：当前从RequestParam获取userId，需对接CSDN统一认证
+     *    - 方案A：从JWT Token解析用户ID（推荐）
+     *    - 方案B：从Session获取用户ID
+     *    - 方案C：从Header中获取用户ID
+     * 2. 确认CSDN统一认证接口文档
+     * 3. 确认Token校验方式和密钥
+     * 4. 确认未登录用户的处理方式（是否允许浏览，报名时跳转登录）
+     */
+    @Operation(
+            summary = "获取会议详情页",
+            description = "获取会议详情页完整数据，包含会议信息、当前用户报名状态、收藏状态、报名按钮状态、报名表单配置等。"
+    )
+    @GetMapping("/{meetingId}/detail-page")
+    public ResponseEntity<MeetingDetailPageDTO> getMeetingDetailPage(
+            @Parameter(description = "会议ID", example = "M123456789")
+            @PathVariable String meetingId,
+            // TODO【需与CSDN协调】：改为从JWT Token或Session获取用户ID
+            @Parameter(description = "用户ID（可选，未登录不传）", example = "12345")
+            @RequestParam(required = false) Long userId) {
+        MeetingDetailPageDTO detailPage = meetingDetailPageUseCase.getMeetingDetailPage(meetingId, userId);
+        return ResponseEntity.ok(detailPage);
+    }
+
+    /**
+     * 报名状态查询API（V1.2新增）
+     * 查询会议的报名状态（名额、截止时间等）
+     */
+    @Operation(
+            summary = "查询会议报名状态",
+            description = "查询会议的报名状态，包括当前报名人数、名额上限、剩余名额、报名截止时间、是否已满等。"
+    )
+    @GetMapping("/{meetingId}/registration-status")
+    public ResponseEntity<RegistrationStatusDTO> getRegistrationStatus(
+            @Parameter(description = "会议ID", example = "M123456789")
+            @PathVariable String meetingId) {
+        RegistrationStatusDTO status = meetingDetailPageUseCase.getRegistrationStatus(meetingId);
+        return ResponseEntity.ok(status);
     }
 
     @Operation(summary = "AI 智能解析", description = "上传文档(PDF/Word)或图片(JPG/PNG)，自动提取会议信息填充表单。文档<20MB，图片<10MB。解析失败返回 422。")

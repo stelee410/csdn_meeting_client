@@ -43,6 +43,13 @@ public class RegistrationPO {
     @TableField("audit_remark")
     private String auditRemark;
 
+    // V1.2新增字段 - 签到相关
+    @TableField("checkin_time")
+    private LocalDateTime checkinTime;
+
+    @TableField("cancel_time")
+    private LocalDateTime cancelTime;
+
     /**
      * 软删除标志：0-未删除, 1-已删除
      */
@@ -74,6 +81,13 @@ public class RegistrationPO {
     public void setAuditedAt(LocalDateTime auditedAt) { this.auditedAt = auditedAt; }
     public String getAuditRemark() { return auditRemark; }
     public void setAuditRemark(String auditRemark) { this.auditRemark = auditRemark; }
+    
+    // V1.2新增字段的getter/setter
+    public LocalDateTime getCheckinTime() { return checkinTime; }
+    public void setCheckinTime(LocalDateTime checkinTime) { this.checkinTime = checkinTime; }
+    public LocalDateTime getCancelTime() { return cancelTime; }
+    public void setCancelTime(LocalDateTime cancelTime) { this.cancelTime = cancelTime; }
+    
     public Integer getIsDeleted() { return isDeleted; }
     public void setIsDeleted(Integer isDeleted) { this.isDeleted = isDeleted; }
 }

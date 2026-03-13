@@ -15,10 +15,14 @@ public class RegistrationDTO {
     private String email;
     private String company;
     private String position;
-    private String status;       // PENDING / APPROVED / REJECTED
+    private String status;       // PENDING / APPROVED / REJECTED / CANCELLED / CHECKED_IN
     private LocalDateTime registeredAt;
     private LocalDateTime auditedAt;
     private String auditRemark;
+    
+    // V1.2新增字段 - 签到相关
+    private LocalDateTime checkinTime;
+    private LocalDateTime cancelTime;
 
     public Long getId() {
         return id;
@@ -114,5 +118,22 @@ public class RegistrationDTO {
 
     public void setAuditRemark(String auditRemark) {
         this.auditRemark = auditRemark;
+    }
+
+    // V1.2新增字段的getter/setter
+    public LocalDateTime getCheckinTime() {
+        return checkinTime;
+    }
+
+    public void setCheckinTime(LocalDateTime checkinTime) {
+        this.checkinTime = checkinTime;
+    }
+
+    public LocalDateTime getCancelTime() {
+        return cancelTime;
+    }
+
+    public void setCancelTime(LocalDateTime cancelTime) {
+        this.cancelTime = cancelTime;
     }
 }

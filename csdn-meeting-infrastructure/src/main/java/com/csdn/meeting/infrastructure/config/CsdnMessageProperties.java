@@ -77,6 +77,26 @@ public class CsdnMessageProperties {
          */
         private String meetingPublishPush = "New_Notice_PUSH";
 
+        /**
+         * 报名审核通过IM站内信模板编码
+         */
+        private String registrationApprovedIm = "Registration_Approved_IM";
+
+        /**
+         * 报名审核通过APP推送模板编码
+         */
+        private String registrationApprovedPush = "Registration_Approved_PUSH";
+
+        /**
+         * 报名审核拒绝IM站内信模板编码
+         */
+        private String registrationRejectedIm = "Registration_Rejected_IM";
+
+        /**
+         * 报名审核拒绝APP推送模板编码
+         */
+        private String registrationRejectedPush = "Registration_Rejected_PUSH";
+
         public String getMeetingPublishIm() {
             return meetingPublishIm;
         }
@@ -91,6 +111,38 @@ public class CsdnMessageProperties {
 
         public void setMeetingPublishPush(String meetingPublishPush) {
             this.meetingPublishPush = meetingPublishPush;
+        }
+
+        public String getRegistrationApprovedIm() {
+            return registrationApprovedIm;
+        }
+
+        public void setRegistrationApprovedIm(String registrationApprovedIm) {
+            this.registrationApprovedIm = registrationApprovedIm;
+        }
+
+        public String getRegistrationApprovedPush() {
+            return registrationApprovedPush;
+        }
+
+        public void setRegistrationApprovedPush(String registrationApprovedPush) {
+            this.registrationApprovedPush = registrationApprovedPush;
+        }
+
+        public String getRegistrationRejectedIm() {
+            return registrationRejectedIm;
+        }
+
+        public void setRegistrationRejectedIm(String registrationRejectedIm) {
+            this.registrationRejectedIm = registrationRejectedIm;
+        }
+
+        public String getRegistrationRejectedPush() {
+            return registrationRejectedPush;
+        }
+
+        public void setRegistrationRejectedPush(String registrationRejectedPush) {
+            this.registrationRejectedPush = registrationRejectedPush;
         }
     }
 }

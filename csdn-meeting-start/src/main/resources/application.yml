@@ -64,6 +64,12 @@ upload:
     access-url-prefix: http://localhost:8080/uploads/images
 
 # CSDN消息推送配置
+# TODO【需与CSDN协调】：
+# 1. 确认消息中心接口文档和鉴权方式（已完成：Base URL、AppKey、AppSecret）
+# 2. 确认消息模板编码（已完成：New_Notice_IM, New_Notice_PUSH）
+# 3. 确认报名审核通知模板编码（待确认：Registration_Approved_IM等）
+# 4. 确认模板变量格式（meetingTitle, meetingId等）
+# 5. 确认消息发送频率限制和频控策略
 csdn:
   message:
     # 应用Key和密钥（生产环境建议通过环境变量或配置中心注入）
@@ -78,3 +84,62 @@ csdn:
       meeting-publish-im: New_Notice_IM
       # 会议发布APP推送模板 (文档要求: New_Notice_PUSH)
       meeting-publish-push: New_Notice_PUSH
+      # 报名审核通过IM站内信模板
+      registration-approved-im: Registration_Approved_IM
+      # 报名审核通过APP推送模板
+      registration-approved-push: Registration_Approved_PUSH
+      # 报名审核拒绝IM站内信模板
+      registration-rejected-im: Registration_Rejected_IM
+      # 报名审核拒绝APP推送模板
+      registration-rejected-push: Registration_Rejected_PUSH
+
+# 签到配置
+# TODO【需与CSDN协调】：
+# 1. 确认二维码Scheme协议（当前 app://csdn.meeting/checkin）
+# 2. 确认是否需要支持微信扫码跳转H5页面
+# 3. 确认高安全级别会议是否需要动态刷新二维码
+checkin:
+  # 签到码签名密钥（生产环境建议使用更复杂的密钥，并通过环境变量注入）
+  signing-key: ${CHECKIN_SIGNING_KEY:csdn-meeting-checkin-secret-key-2026}
+  # 二维码Scheme（APP扫码后跳转的协议）
+  # TODO【需与CSDN协调】：与CSDN App团队确认Scheme协议
+  scheme: app://csdn.meeting/checkin
+  # 二维码有效期（分钟，0表示长期有效）
+  code-validity-minutes: 0
+  # 是否允许重复签到（false时重复签到会提示已签到）
+  allow-duplicate: false
+
+# 报名配置
+# TODO【需与CSDN协调】：
+# 1. 确认报名表单字段配置（当前提供姓名、手机号、邮箱、公司、职位）
+# 2. 确认用户画像数据来源和接口
+# 3. 确认是否需要接入CSDN统一支付（如报名收费）
+registration:
+  # 并发控制
+  concurrent:
+    # 最大QPS限制
+    max-qps: 1000
+    # 分布式锁等待超时时间（毫秒）
+    lock-timeout-ms: 5000
+  # 默认报名表单字段配置（可通过运维接口动态调整）
+  default-fields:
+    - name: name
+      label: 姓名
+      required: true
+      source: user_profile
+    - name: phone
+      label: 手机号
+      required: true
+      source: user_profile
+    - name: email
+      label: 邮箱
+      required: false
+      source: user_profile
+    - name: company
+      label: 公司
+      required: false
+      source: none
+    - name: position
+      label: 职位
+      required: false
+      source: none

@@ -120,6 +120,22 @@ public class Meeting extends BaseEntity {
      */
     private LocalDateTime publishTime;
 
+    // V1.2新增字段 - 报名签到功能
+    /**
+     * 报名截止时间
+     */
+    private LocalDateTime regEndTime;
+
+    /**
+     * 签到码（用于生成二维码）
+     */
+    private String checkinCode;
+
+    /**
+     * 是否启用签到
+     */
+    private Boolean requireCheckin;
+
     public enum MeetingStatus {
         DRAFT(0),
         PENDING_REVIEW(1),
@@ -512,5 +528,30 @@ public class Meeting extends BaseEntity {
 
     public void setScheduleDays(List<ScheduleDay> scheduleDays) {
         this.scheduleDays = scheduleDays == null ? new ArrayList<>() : new ArrayList<>(scheduleDays);
+    }
+
+    // V1.2新增字段的getter/setter
+    public LocalDateTime getRegEndTime() {
+        return regEndTime;
+    }
+
+    public void setRegEndTime(LocalDateTime regEndTime) {
+        this.regEndTime = regEndTime;
+    }
+
+    public String getCheckinCode() {
+        return checkinCode;
+    }
+
+    public void setCheckinCode(String checkinCode) {
+        this.checkinCode = checkinCode;
+    }
+
+    public Boolean getRequireCheckin() {
+        return requireCheckin;
+    }
+
+    public void setRequireCheckin(Boolean requireCheckin) {
+        this.requireCheckin = requireCheckin;
     }
 }
