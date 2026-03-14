@@ -44,3 +44,26 @@ startDate、endDate 数据返回格式有误（示例：startDate: "2026-03-24T0
 9. 热门标签
 
 问题描述: 缺少热门标签数据的获取接口。
+
+10. 创建会议 (/api/meetings) —— 时间字段格式错误导致 400
+
+问题描述:
+
+前端发送请求体时，两处时间字段格式与后端期望不一致，导致 Jackson 反序列化失败，返回"请求体格式错误或参数类型不正确"。
+
+（a）外层 startTime / endTime（对应 CreateMeetingCommand.LocalDateTime）：
+前端发送带 UTC 时区后缀的 ISO-8601 字符串，如 "2026-03-14T16:00:00.000Z"，
+而 LocalDateTime 的默认解析器不支持 "Z" 后缀，会抛出解析异常。
+
+（b）scheduleDays[].sessions[].startTime / endTime（对应 SessionDTO.LocalTime）：
+前端发送 Java 对象格式 {"hour":12,"minute":2,"second":0,"nano":0}，
+而 LocalTime 的 Jackson 默认解析器期望字符串格式，如 "12:02:00"，无法识别对象格式。
+
+后端修复方案：
+已在 csdn-meeting-start/src/main/java/com/csdn/meeting/config/JacksonConfig.java 中增加自定义反序列化器：
+- FlexibleLocalDateTimeDeserializer：兼容带/不带时区后缀的 ISO-8601 字符串
+- FlexibleLocalTimeDeserializer：同时兼容字符串格式（"12:02:00"）和对象格式（{"hour":12,...}）
+
+前端建议格式（可不改前端，后端已兼容）：
+- startTime / endTime → "2026-03-14T16:00:00.000Z" ✓（后端已兼容）
+- sessions[].startTime / endTime → "12:02:00" 或 {"hour":12,"minute":2,"second":0,"nano":0} ✓（后端已兼容）
