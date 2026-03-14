@@ -11,6 +11,7 @@ import com.csdn.meeting.infrastructure.po.MeetingAgendaItemPO;
 import com.csdn.meeting.infrastructure.po.MeetingPO;
 import com.csdn.meeting.infrastructure.repository.mapper.MeetingAgendaItemPOMapper;
 import com.csdn.meeting.infrastructure.repository.mapper.MeetingPOMapper;
+import com.csdn.meeting.infrastructure.util.TargetAudienceJsonConverter;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +45,7 @@ public class MeetingRepositoryImpl implements MeetingRepository {
     @Transactional
     public Meeting save(Meeting meeting) {
         MeetingPO po = MeetingMapper.INSTANCE.toPO(meeting);
+        po.setTargetAudience(TargetAudienceJsonConverter.toJson(po.getTargetAudience()));
         if (po.getId() == null) {
             meetingPOMapper.insert(po);
         } else {

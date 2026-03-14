@@ -9,3 +9,15 @@ spring:
     hibernate:
       ddl-auto: none   # 由 Flyway 管理 schema
     show-sql: true
+
+  devtools:
+    restart:
+      enabled: true
+      # 监听所有子模块编译输出，class 文件变化即自动重启
+      additional-paths:
+        - ../../csdn-meeting-domain/target/classes
+        - ../../csdn-meeting-application/target/classes
+        - ../../csdn-meeting-infrastructure/target/classes
+        - ../../csdn-meeting-interfaces/target/classes
+      poll-interval: 1s
+      quiet-period: 400ms

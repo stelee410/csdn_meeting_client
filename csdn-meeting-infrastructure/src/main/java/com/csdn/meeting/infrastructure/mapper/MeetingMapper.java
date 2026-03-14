@@ -16,6 +16,7 @@ public interface MeetingMapper {
 
     @Mapping(target = "status", source = "status", qualifiedByName = "statusToInt")
     @Mapping(target = "format", source = "format", qualifiedByName = "formatToString")
+    @Mapping(target = "targetAudience", source = "targetAudience", qualifiedByName = "toJsonArray")
     MeetingPO toPO(Meeting meeting);
 
     @Mapping(target = "status", source = "status", qualifiedByName = "intToStatus")
@@ -55,5 +56,31 @@ public interface MeetingMapper {
     @Named("stringToMeetingType")
     default MeetingType stringToMeetingType(String s) {
         return MeetingType.of(s);
+    }
+
+    /**
+     * 将逗号分隔字符串或已有 JSON 转为合法 JSON 数组字符串。
+     * 若值本身已是 JSON（以 [ 开头），直接返回；否则按逗号拆分后序列化。
+     */
+    @Named("toJsonArray")
+    default String toJsonArray(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        String trimmed = value.trim();
+        if (trimmed.startsWith("[")) {
+            return trimmed;
+        }
+        String[] parts = trimmed.split(",");
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < parts.length; i++) {
+            String item = parts[i].trim().replace("\"", "\\\"");
+            sb.append("\"").append(item).append("\"");
+            if (i < parts.length - 1) {
+                sb.append(",");
+            }
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }
