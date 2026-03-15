@@ -63,6 +63,17 @@ public class RegistrationRepositoryImpl implements RegistrationRepository {
     }
 
     @Override
+    public List<Registration> findByMeetingIdAndPhone(Long meetingId, String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<RegistrationPO> list = registrationPOMapper.selectByMeetingIdAndPhone(meetingId, phone.trim());
+        return list == null ? Collections.emptyList() : list.stream()
+                .map(RegistrationMapper.INSTANCE::toEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public PageResult<Registration> findByUserIdAndMeetingStatusIn(Long userId,
                                                                    List<Meeting.MeetingStatus> meetingStatuses,
                                                                    int page, int size) {

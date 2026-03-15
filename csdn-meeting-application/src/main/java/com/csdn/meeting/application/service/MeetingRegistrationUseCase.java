@@ -68,6 +68,10 @@ public class MeetingRegistrationUseCase {
         Long userId = command.getUserId();
         Map<String, String> formData = command.getFormData();
 
+        if (userId == null) {
+            throw new IllegalArgumentException("用户ID不能为空，请先登录");
+        }
+
         logger.info("用户 {} 申请报名会议 {}", userId, meetingId);
 
         // 1. 基础校验
@@ -84,7 +88,7 @@ public class MeetingRegistrationUseCase {
             throw new IllegalStateException("报名已截止");
         }
 
-        // 2. 检查是否已存在有效报名
+        // 2. 按用户ID判重：同一用户同一会议仅允许一条有效报名
         Optional<Registration> existingReg = registrationRepository
                 .findByUserIdAndMeetingId(userId, meeting.getId());
         if (existingReg.isPresent() && existingReg.get().isValid()) {
@@ -115,7 +119,9 @@ public class MeetingRegistrationUseCase {
             registration.setMeetingId(freshMeeting.getId());
             registration.setUserId(userId);
             registration.setName(formData.get("name"));
-            registration.setPhone(maskPhone(formData.get("phone")));
+            String phoneRaw = formData != null ? formData.get("phone") : null;
+            String phoneNormalized = phoneRaw != null ? phoneRaw.trim() : null;
+            registration.setPhone(phoneNormalized != null ? phoneNormalized : formData.get("phone"));
             registration.setEmail(formData.get("email"));
             registration.setCompany(formData.get("company"));
             registration.setPosition(formData.get("position"));
@@ -329,7 +335,7 @@ public class MeetingRegistrationUseCase {
         dto.setMeetingId(registration.getMeetingId());
         dto.setUserId(registration.getUserId());
         dto.setName(registration.getName());
-        dto.setPhone(registration.getPhone());
+        dto.setPhone(maskPhone(registration.getPhone()));
         dto.setEmail(registration.getEmail());
         dto.setCompany(registration.getCompany());
         dto.setPosition(registration.getPosition());

@@ -201,11 +201,12 @@ public class Meeting extends BaseEntity {
     }
 
     /**
-     * 审核通过：PENDING_REVIEW -> PUBLISHED
-     * 由管理员触发，审计日志由调用方记录
+     * 审核通过：DRAFT 或 PENDING_REVIEW -> PUBLISHED
+     * 由管理员触发，审计日志由调用方记录。
+     * 业务上 DRAFT（草稿）与 PENDING_REVIEW（已提交待审核）均视为「待审核」，管理员均可直接通过。
      */
     public void approve() {
-        if (this.status != MeetingStatus.PENDING_REVIEW) {
+        if (this.status != MeetingStatus.DRAFT && this.status != MeetingStatus.PENDING_REVIEW) {
             throw new IllegalStateException(
                 "只有待审核状态才能审核通过，当前状态: " + this.status);
         }
@@ -213,13 +214,13 @@ public class Meeting extends BaseEntity {
     }
 
     /**
-     * 审核拒绝：PENDING_REVIEW -> REJECTED
-     * 由管理员触发，rejectReason 必填
+     * 审核拒绝：DRAFT 或 PENDING_REVIEW -> REJECTED
+     * 由管理员触发，rejectReason 必填。DRAFT 与 PENDING_REVIEW 均视为「待审核」，管理员均可驳回。
      *
      * @param reason 拒绝原因，不能为空
      */
     public void reject(String reason) {
-        if (this.status != MeetingStatus.PENDING_REVIEW) {
+        if (this.status != MeetingStatus.DRAFT && this.status != MeetingStatus.PENDING_REVIEW) {
             throw new IllegalStateException(
                 "只有待审核状态才能审核拒绝，当前状态: " + this.status);
         }

@@ -209,6 +209,10 @@ public class MeetingApplicationService {
 
     @Transactional
     public MeetingDTO joinMeeting(JoinMeetingCommand command) {
+        if (command.getUserId() == null) {
+            throw new IllegalArgumentException("用户ID不能为空，请先登录");
+        }
+
         Meeting meeting = meetingRepository.findByMeetingId(command.getMeetingId())
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + command.getMeetingId()));
 
@@ -218,12 +222,16 @@ public class MeetingApplicationService {
             throw new IllegalStateException("会议已结束、已下架或已删除");
         }
 
+        // 按用户ID判重：同一用户同一会议仅允许一条有效报名/参与，已报名则拒绝重复提交
         Optional<Participant> existingParticipant = participantRepository
                 .findByMeetingIdAndUserId(command.getMeetingId(), command.getUserId());
 
         Participant participant;
         if (existingParticipant.isPresent()) {
             participant = existingParticipant.get();
+            if (participant.getStatus() == Participant.ParticipantStatus.JOINED) {
+                throw new IllegalStateException("您已报名该会议，请勿重复报名");
+            }
             participant.join();
         } else {
             participant = new Participant();

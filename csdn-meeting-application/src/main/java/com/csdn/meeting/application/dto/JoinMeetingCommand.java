@@ -5,6 +5,8 @@ public class JoinMeetingCommand {
     private String meetingId;
     private Long userId;
     private String userName;
+    /** 手机号，用于同一会议下按手机号防重复报名 */
+    private String phone;
 
     public String getMeetingId() {
         return meetingId;
@@ -28,5 +30,13 @@ public class JoinMeetingCommand {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 }

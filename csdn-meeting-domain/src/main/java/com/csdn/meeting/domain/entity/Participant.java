@@ -22,6 +22,9 @@ public class Participant extends BaseEntity {
     }
 
     public void join() {
+        if (this.status == ParticipantStatus.JOINED) {
+            throw new IllegalStateException("您已报名该会议，请勿重复报名");
+        }
         if (this.status == ParticipantStatus.LEFT || this.status == ParticipantStatus.REJECTED) {
             throw new IllegalStateException("无法加入会议");
         }

@@ -14,6 +14,10 @@
         SELECT * FROM t_registration WHERE user_id = #{userId} AND meeting_id = #{meetingId} LIMIT 1
     </select>
 
+    <select id="selectByMeetingIdAndPhone" resultType="com.csdn.meeting.infrastructure.po.RegistrationPO">
+        SELECT * FROM t_registration WHERE meeting_id = #{meetingId} AND phone = #{phone}
+    </select>
+
     <select id="selectPageByUserIdAndMeetingStatusIn" resultType="com.csdn.meeting.infrastructure.po.RegistrationPO">
         SELECT r.* FROM t_registration r
         INNER JOIN t_meeting m ON r.meeting_id = m.id

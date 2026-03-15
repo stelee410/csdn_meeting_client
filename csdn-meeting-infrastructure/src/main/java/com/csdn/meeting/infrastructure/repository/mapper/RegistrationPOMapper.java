@@ -20,6 +20,8 @@ public interface RegistrationPOMapper extends BaseMapper<RegistrationPO> {
 
     RegistrationPO selectByUserIdAndMeetingId(@Param("userId") Long userId, @Param("meetingId") Long meetingId);
 
+    List<RegistrationPO> selectByMeetingIdAndPhone(@Param("meetingId") Long meetingId, @Param("phone") String phone);
+
     IPage<RegistrationPO> selectPageByUserIdAndMeetingStatusIn(Page<RegistrationPO> page,
                                                                @Param("userId") Long userId,
                                                                @Param("statusCodes") List<Integer> statusCodes);

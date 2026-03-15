@@ -22,6 +22,11 @@ public interface RegistrationRepository {
     Optional<Registration> findByUserIdAndMeetingId(Long userId, Long meetingId);
 
     /**
+     * 按会议 ID + 手机号查询报名记录（用于同一手机号重复报名校验）
+     */
+    List<Registration> findByMeetingIdAndPhone(Long meetingId, String phone);
+
+    /**
      * 按 userId 查询报名，且关联的会议 status 在指定列表中，按会议 startTime 倒序分页
      */
     PageResult<Registration> findByUserIdAndMeetingStatusIn(Long userId,
