@@ -94,9 +94,7 @@ public class RegistrationController {
             @Parameter(description = "用户ID", example = "12345")
             @RequestParam Long userId) {
         RegistrationDTO dto = meetingRegistrationUseCase.getMyRegistration(meetingId, userId);
-        if (dto == null) {
-            return ResponseEntity.notFound().build();
-        }
+        // 未报名返回 200 + null body，而非 404（未报名是正常业务状态，不是资源不存在）
         return ResponseEntity.ok(dto);
     }
 

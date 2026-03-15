@@ -182,9 +182,11 @@ public class Meeting extends BaseEntity {
      * 四级日程完整性由 MeetingDomainService 在调用前校验
      */
     public void submit() {
-        if (this.status != MeetingStatus.DRAFT && this.status != MeetingStatus.REJECTED) {
+        if (this.status != MeetingStatus.DRAFT
+                && this.status != MeetingStatus.REJECTED
+                && this.status != MeetingStatus.OFFLINE) {
             throw new IllegalStateException(
-                "只有草稿或已拒绝状态才能提交审核，当前状态: " + this.status);
+                "只有草稿、已拒绝或已下架状态才能提交审核，当前状态: " + this.status);
         }
         this.status = MeetingStatus.PENDING_REVIEW;
     }

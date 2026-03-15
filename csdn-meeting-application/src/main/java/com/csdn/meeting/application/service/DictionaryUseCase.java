@@ -1,69 +1,52 @@
 package com.csdn.meeting.application.service;
 
 import com.csdn.meeting.application.dto.DictionaryDTO;
+import com.csdn.meeting.infrastructure.po.DictionaryPO;
+import com.csdn.meeting.infrastructure.repository.mapper.DictionaryPOMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 字典/下拉选项 UseCase
- * issue001-2/6：提供会议时长、规模、频率、地域、目标人群、开发者类型等选项
+ * V14 起：flat 类型选项从 t_dictionary 表读取，地域仍保持静态（层级结构较复杂）。
  */
 @Service
 public class DictionaryUseCase {
 
+    private final DictionaryPOMapper dictionaryPOMapper;
+
+    public DictionaryUseCase(DictionaryPOMapper dictionaryPOMapper) {
+        this.dictionaryPOMapper = dictionaryPOMapper;
+    }
+
     public DictionaryDTO getCreateMeetingDictionaries() {
         DictionaryDTO dto = new DictionaryDTO();
-        dto.setMeetingDurations(getMeetingDurationOptions());
-        dto.setMeetingScales(getMeetingScaleOptions());
-        dto.setFrequencies(getFrequencyOptions());
+        dto.setMeetingDurations(loadOptions("meeting_duration"));
+        dto.setMeetingScales(loadOptions("meeting_scale"));
+        dto.setFrequencies(loadOptions("meeting_frequency"));
         dto.setRegions(getRegionOptions());
-        dto.setTargetAudiences(getTargetAudienceOptions());
-        dto.setDeveloperTypes(getDeveloperTypeOptions());
+        dto.setTargetAudiences(loadOptions("target_audience"));
+        dto.setDeveloperTypes(loadOptions("developer_type"));
+        dto.setOrganizers(loadOptions("organizer"));
         return dto;
     }
 
     /**
-     * 会议时长选项
+     * 从 t_dictionary 按分类读取启用项并转换为 Option 列表。
      */
-    public List<DictionaryDTO.Option> getMeetingDurationOptions() {
-        return Arrays.asList(
-                new DictionaryDTO.Option("half_day", "半天"),
-                new DictionaryDTO.Option("one_day", "1天"),
-                new DictionaryDTO.Option("two_days", "2天"),
-                new DictionaryDTO.Option("three_days", "3天"),
-                new DictionaryDTO.Option("more", "3天以上")
-        );
+    private List<DictionaryDTO.Option> loadOptions(String dictType) {
+        List<DictionaryPO> items = dictionaryPOMapper.selectActiveByType(dictType);
+        return items.stream()
+                .map(po -> new DictionaryDTO.Option(po.getItemCode(), po.getItemLabel()))
+                .collect(Collectors.toList());
     }
 
     /**
-     * 会议规模选项
-     */
-    public List<DictionaryDTO.Option> getMeetingScaleOptions() {
-        return Arrays.asList(
-                new DictionaryDTO.Option("small", "50人以下"),
-                new DictionaryDTO.Option("medium", "50-200人"),
-                new DictionaryDTO.Option("large", "200-500人"),
-                new DictionaryDTO.Option("xlarge", "500人以上")
-        );
-    }
-
-    /**
-     * 举办频率选项
-     */
-    public List<DictionaryDTO.Option> getFrequencyOptions() {
-        return Arrays.asList(
-                new DictionaryDTO.Option("once", "一次性"),
-                new DictionaryDTO.Option("series", "系列活动"),
-                new DictionaryDTO.Option("annual", "每年一届"),
-                new DictionaryDTO.Option("irregular", "不定期")
-        );
-    }
-
-    /**
-     * 会议举办地域（省/市），常用省份+重点城市
+     * 会议举办地域（省/市），层级结构保持静态配置。
      */
     public List<DictionaryDTO.RegionOption> getRegionOptions() {
         return Arrays.asList(
@@ -96,37 +79,6 @@ public class DictionaryUseCase {
                         Collections.singletonList(new DictionaryDTO.CityOption("510100", "成都市"))),
                 new DictionaryDTO.RegionOption("420000", "湖北省",
                         Collections.singletonList(new DictionaryDTO.CityOption("420100", "武汉市")))
-        );
-    }
-
-    /**
-     * 目标人群选项
-     */
-    public List<DictionaryDTO.Option> getTargetAudienceOptions() {
-        return Arrays.asList(
-                new DictionaryDTO.Option("developer", "开发者"),
-                new DictionaryDTO.Option("architect", "架构师"),
-                new DictionaryDTO.Option("product_manager", "产品经理"),
-                new DictionaryDTO.Option("cto", "技术管理者"),
-                new DictionaryDTO.Option("student", "学生"),
-                new DictionaryDTO.Option("general", "泛技术人群")
-        );
-    }
-
-    /**
-     * 开发者类型选项
-     */
-    public List<DictionaryDTO.Option> getDeveloperTypeOptions() {
-        return Arrays.asList(
-                new DictionaryDTO.Option("frontend", "前端开发"),
-                new DictionaryDTO.Option("backend", "后端开发"),
-                new DictionaryDTO.Option("fullstack", "全栈开发"),
-                new DictionaryDTO.Option("mobile", "移动端开发"),
-                new DictionaryDTO.Option("devops", "运维/DevOps"),
-                new DictionaryDTO.Option("data", "大数据/AI"),
-                new DictionaryDTO.Option("embedded", "嵌入式/物联网"),
-                new DictionaryDTO.Option("game", "游戏开发"),
-                new DictionaryDTO.Option("other", "其他")
         );
     }
 }

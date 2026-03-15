@@ -63,6 +63,19 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!--
+                        将所有子模块的 target/classes 加入运行时 classpath，
+                        优先级高于 ~/.m2 中的 JAR。
+                        这样 dev-watch.sh 编译后 DevTools 能正确热重启加载新代码。
+                    -->
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>${project.basedir}/../csdn-meeting-domain/target/classes</additionalClasspathElement>
+                        <additionalClasspathElement>${project.basedir}/../csdn-meeting-application/target/classes</additionalClasspathElement>
+                        <additionalClasspathElement>${project.basedir}/../csdn-meeting-infrastructure/target/classes</additionalClasspathElement>
+                        <additionalClasspathElement>${project.basedir}/../csdn-meeting-interfaces/target/classes</additionalClasspathElement>
+                    </additionalClasspathElements>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>

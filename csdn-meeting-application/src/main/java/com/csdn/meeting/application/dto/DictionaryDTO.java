@@ -31,6 +31,9 @@ public class DictionaryDTO {
     @Schema(description = "开发者类型")
     private List<Option> developerTypes;
 
+    @Schema(description = "主办方 / 公司（支持模糊匹配的候选列表）")
+    private List<Option> organizers;
+
     @Data
     @Schema(description = "选项项")
     public static class Option {

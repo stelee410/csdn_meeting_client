@@ -22,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -34,17 +36,20 @@ public class MeetingApplicationService {
     private final MeetingDomainService meetingDomainService;
     private final TagRepository tagRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final MeetingRegistrationUseCase meetingRegistrationUseCase;
 
     public MeetingApplicationService(MeetingRepository meetingRepository,
                                      ParticipantRepository participantRepository,
                                      MeetingDomainService meetingDomainService,
                                      TagRepository tagRepository,
-                                     ApplicationEventPublisher eventPublisher) {
+                                     ApplicationEventPublisher eventPublisher,
+                                     MeetingRegistrationUseCase meetingRegistrationUseCase) {
         this.meetingRepository = meetingRepository;
         this.participantRepository = participantRepository;
         this.meetingDomainService = meetingDomainService;
         this.tagRepository = tagRepository;
         this.eventPublisher = eventPublisher;
+        this.meetingRegistrationUseCase = meetingRegistrationUseCase;
     }
 
     /**
@@ -71,8 +76,9 @@ public class MeetingApplicationService {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
         if (meeting.getStatus() != Meeting.MeetingStatus.DRAFT
-                && meeting.getStatus() != Meeting.MeetingStatus.REJECTED) {
-            throw new IllegalStateException("只有草稿或已拒绝状态才能编辑");
+                && meeting.getStatus() != Meeting.MeetingStatus.REJECTED
+                && meeting.getStatus() != Meeting.MeetingStatus.OFFLINE) {
+            throw new IllegalStateException("只有草稿、已拒绝或已下架状态才能编辑");
         }
         applyUpdateCommandToMeeting(meeting, command);
         Meeting savedMeeting = meetingRepository.save(meeting);
@@ -209,40 +215,17 @@ public class MeetingApplicationService {
 
     @Transactional
     public MeetingDTO joinMeeting(JoinMeetingCommand command) {
-        if (command.getUserId() == null) {
-            throw new IllegalArgumentException("用户ID不能为空，请先登录");
-        }
+        // 委托给统一的报名服务，确保与 POST /api/registrations 共用同一套业务逻辑
+        RegistrationCommand regCmd = new RegistrationCommand();
+        regCmd.setMeetingId(command.getMeetingId());
+        regCmd.setUserId(command.getUserId());
 
-        Meeting meeting = meetingRepository.findByMeetingId(command.getMeetingId())
-                .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + command.getMeetingId()));
+        Map<String, String> formData = new HashMap<>();
+        if (command.getUserName() != null) formData.put("name", command.getUserName());
+        if (command.getPhone() != null) formData.put("phone", command.getPhone());
+        regCmd.setFormData(formData);
 
-        if (meeting.getStatus() == Meeting.MeetingStatus.ENDED
-                || meeting.getStatus() == Meeting.MeetingStatus.OFFLINE
-                || meeting.getStatus() == Meeting.MeetingStatus.DELETED) {
-            throw new IllegalStateException("会议已结束、已下架或已删除");
-        }
-
-        // 按用户ID判重：同一用户同一会议仅允许一条有效报名/参与，已报名则拒绝重复提交
-        Optional<Participant> existingParticipant = participantRepository
-                .findByMeetingIdAndUserId(command.getMeetingId(), command.getUserId());
-
-        Participant participant;
-        if (existingParticipant.isPresent()) {
-            participant = existingParticipant.get();
-            if (participant.getStatus() == Participant.ParticipantStatus.JOINED) {
-                throw new IllegalStateException("您已报名该会议，请勿重复报名");
-            }
-            participant.join();
-        } else {
-            participant = new Participant();
-            participant.setMeetingId(command.getMeetingId());
-            participant.setUserId(command.getUserId());
-            participant.setUserName(command.getUserName());
-            participant.setRole(Participant.ParticipantRole.ATTENDEE);
-            participant.setStatus(Participant.ParticipantStatus.JOINED);
-        }
-
-        participantRepository.save(participant);
+        meetingRegistrationUseCase.register(regCmd);
         return getMeetingDetail(command.getMeetingId());
     }
 

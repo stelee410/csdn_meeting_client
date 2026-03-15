@@ -74,13 +74,19 @@ public class MeetingRegistrationUseCase {
 
         logger.info("用户 {} 申请报名会议 {}", userId, meetingId);
 
-        // 1. 基础校验
-        Meeting meeting = meetingRepository.findByMeetingId(meetingId)
-                .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        // 1. 基础校验（兼容字符串业务 ID 和数字数据库 ID）
+        Meeting meeting = meetingRepository.findByMeetingId(meetingId).orElse(null);
+        if (meeting == null && meetingId != null && meetingId.matches("\\d+")) {
+            meeting = meetingRepository.findById(Long.parseLong(meetingId)).orElse(null);
+        }
+        if (meeting == null) {
+            throw new IllegalArgumentException("会议不存在: " + meetingId);
+        }
 
-        // 检查会议状态
-        if (meeting.getStatus() != Meeting.MeetingStatus.PUBLISHED) {
-            throw new IllegalStateException("会议未发布，不可报名，当前状态: " + meeting.getStatus());
+        // 检查会议状态：已发布或进行中均可报名
+        if (meeting.getStatus() != Meeting.MeetingStatus.PUBLISHED
+                && meeting.getStatus() != Meeting.MeetingStatus.IN_PROGRESS) {
+            throw new IllegalStateException("会议未开放报名，当前状态: " + meeting.getStatus());
         }
 
         // 检查报名截止时间
@@ -194,7 +200,11 @@ public class MeetingRegistrationUseCase {
      * @return 报名DTO，未报名返回null
      */
     public RegistrationDTO getMyRegistration(String meetingId, Long userId) {
+        // 先按字符串业务 ID 查，找不到时判断是否为纯数字并按数据库 ID 兜底查
         Meeting meeting = meetingRepository.findByMeetingId(meetingId).orElse(null);
+        if (meeting == null && meetingId != null && meetingId.matches("\\d+")) {
+            meeting = meetingRepository.findById(Long.parseLong(meetingId)).orElse(null);
+        }
         if (meeting == null) {
             return null;
         }
