@@ -23,7 +23,12 @@ public enum MeetingType {
     /**
      * 技术研讨会
      */
-    WORKSHOP(3, "技术研讨会", "workshop");
+    WORKSHOP(3, "技术研讨会", "workshop"),
+
+
+    PRODUCT_LAUNCH(4, "产品发布会", "product_launch"),
+
+    DEVELOPER_CONFERENCE(5, "开发者大会", "developer_conference");
 
     private final int code;
     private final String displayName;
