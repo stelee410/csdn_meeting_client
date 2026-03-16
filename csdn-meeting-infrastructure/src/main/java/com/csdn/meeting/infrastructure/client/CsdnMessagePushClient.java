@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * CSDN消息推送客户端
@@ -118,7 +119,14 @@ public class CsdnMessagePushClient {
      */
     private CsdnMessageResponse doSend(String bizId, String msgType, String path, CsdnMessageRequest request) {
         String url = properties.getBaseUrl() + path;
-        String jsonBody = JSONUtil.toJsonStr(request);
+
+        // 1. 构建有序的业务参数 (推荐做法，非强制)
+        TreeMap<String, Object> params = new TreeMap<>();
+        params.put("templateCode", request.getTemplateCode());
+        params.put("toUsers", request.getToUsers().toArray());
+        params.put("params", request.getParams());
+
+        String jsonBody = JSONUtil.toJsonStr(params);
         int userCount = request.getToUsers() != null ? request.getToUsers().size() : 0;
 
         // 记录发送前日志
@@ -141,7 +149,7 @@ public class CsdnMessagePushClient {
                 logger.error("[CSDN推送] AppSecret 未配置");
             }
 
-            String signature = CsdnMessageSigner.sign2(
+            String signature = CsdnMessageSigner.sign3(
                     appKey,
                     appSecret,
                     timestamp,

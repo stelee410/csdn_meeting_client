@@ -72,4 +72,56 @@ public class CsdnMessageSigner {
         System.out.println("Body to send: " + body);
         return signature;
     }
+
+    public static String sign3(String appKey, String appSecret, String timestamp, String nonce, String body) {
+        try {
+            String data = appKey + timestamp + nonce + body;
+            if(appSecret==null){
+                appSecret="";
+            }
+            Mac sha256HMAC = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(appSecret.getBytes(), "HmacSHA256");
+            sha256HMAC.init(secretKey);
+            return Base64.getEncoder().encodeToString(sha256HMAC.doFinal(data.getBytes()));
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException("Error generating signature", e);
+        }
+    }
+
+    public static void main(String[] args) {
+        String appKey = "Conference_New_Notice";
+        String secret = "086e138b358948b8a30a8b29313bb45f";
+        String timestamp = "1773579693493";
+        String nonce = "6b0b0982-34b6-4e";
+
+        String requestBody ="{\n" +
+                "    \"templateCode\": \"New_Notice_IM\",\n" +
+                "    \"toUsers\": [\n" +
+                "        \"qq_42400267\"\n" +
+                "    ],\n" +
+                "    \"params\": {\n" +
+                "        \"tag\": \"测试ing\"\n" +
+                "    }\n" +
+                "}";
+
+        String dataToSign = appKey + timestamp + nonce + requestBody;
+        String signature = sign(secret, dataToSign);
+        System.out.println(signature);
+
+
+    }
+    static String HMAC_SHA256 = "HmacSHA256";
+    public static String sign(String secret, String data) {
+        try {
+            if(secret==null){
+                secret="";
+            }
+            Mac sha256HMAC = Mac.getInstance(HMAC_SHA256);
+            SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(), HMAC_SHA256);
+            sha256HMAC.init(secretKey);
+            return Base64.getEncoder().encodeToString(sha256HMAC.doFinal(data.getBytes()));
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException("Error generating signature", e);
+        }
+    }
 }
