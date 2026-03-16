@@ -71,3 +71,7 @@ Thumbs.db
 # Logs
 logs/
 csdn-meeting-start/uploads/
+/docs/会议ID35完整数据说明.md
+/csdn-meeting-start/src/main/resources/test-data-0314-2.sql
+/csdn-meeting-start/src/main/resources/test-data-0314.sql
+/csdn-meeting-start/src/main/resources/db/seed/seed_meeting_id35_test_data.sql

@@ -52,6 +52,7 @@ management:
 
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.csdn.meeting.infrastructure.mapper,com.csdn.meeting.infrastructure.po,com.csdn.meeting.infrastructure.po.analytics
   configuration:
     map-underscore-to-camel-case: true
 

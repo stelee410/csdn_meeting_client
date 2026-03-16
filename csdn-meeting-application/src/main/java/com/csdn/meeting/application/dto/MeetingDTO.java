@@ -23,6 +23,9 @@ public class MeetingDTO {
 
     // agent.prd §1.1 新增字段
     private String organizer;
+    private Long organizerId;        // 主办方用户ID
+    private String organizerName;    // 主办方名称
+    private String organizerAvatar;  // 主办方头像URL
     private String format;           // ONLINE/OFFLINE/HYBRID
     private String scene;
     private String venue;
@@ -34,6 +37,7 @@ public class MeetingDTO {
     private Boolean isPremium;
     private String takedownReason;
     private String rejectReason;
+    private String meetingType;      // 会议类型：SUMMIT/SALON/WORKSHOP
 
     // 四级日程结构
     private List<ScheduleDayDTO> scheduleDays;
@@ -134,6 +138,30 @@ public class MeetingDTO {
         this.organizer = organizer;
     }
 
+    public Long getOrganizerId() {
+        return organizerId;
+    }
+
+    public void setOrganizerId(Long organizerId) {
+        this.organizerId = organizerId;
+    }
+
+    public String getOrganizerName() {
+        return organizerName;
+    }
+
+    public void setOrganizerName(String organizerName) {
+        this.organizerName = organizerName;
+    }
+
+    public String getOrganizerAvatar() {
+        return organizerAvatar;
+    }
+
+    public void setOrganizerAvatar(String organizerAvatar) {
+        this.organizerAvatar = organizerAvatar;
+    }
+
     public String getFormat() {
         return format;
     }
@@ -220,6 +248,14 @@ public class MeetingDTO {
 
     public void setRejectReason(String rejectReason) {
         this.rejectReason = rejectReason;
+    }
+
+    public String getMeetingType() {
+        return meetingType;
+    }
+
+    public void setMeetingType(String meetingType) {
+        this.meetingType = meetingType;
     }
 
     public List<ScheduleDayDTO> getScheduleDays() {
