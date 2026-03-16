@@ -3,6 +3,7 @@ package com.csdn.meeting.infrastructure.client;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson2.JSON;
 import com.csdn.meeting.infrastructure.client.dto.CsdnMessageRequest;
 import com.csdn.meeting.infrastructure.client.dto.CsdnMessageResponse;
 import com.csdn.meeting.infrastructure.config.CsdnMessageProperties;
@@ -126,7 +127,7 @@ public class CsdnMessagePushClient {
         params.put("toUsers", request.getToUsers().toArray());
         params.put("params", request.getParams());
 
-        String jsonBody = JSONUtil.toJsonStr(params);
+        String jsonBody = JSON.toJSONString(params);
         int userCount = request.getToUsers() != null ? request.getToUsers().size() : 0;
 
         // 记录发送前日志

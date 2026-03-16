@@ -35,6 +35,7 @@
         <hutool.version>5.8.23</hutool.version>
         <!-- Flyway 7.x 兼容 MySQL 5.7；8.x+ Community 不再支持 MySQL 5.7 -->
         <flyway.version>7.15.0</flyway.version>
+        <fastjson.version>2.0.43</fastjson.version>
     </properties>
 
     <dependencyManagement>
@@ -112,6 +113,16 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2</artifactId>
+                <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.fastjson2</groupId>
+                <artifactId>fastjson2-extension</artifactId>
+                <version>${fastjson.version}</version>
             </dependency>
             <!-- 覆盖 Spring Boot BOM 的 Flyway 版本，使用 7.x 以支持 MySQL 5.7 -->
             <dependency>

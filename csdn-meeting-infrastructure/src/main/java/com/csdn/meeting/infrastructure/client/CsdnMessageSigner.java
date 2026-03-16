@@ -94,15 +94,7 @@ public class CsdnMessageSigner {
         String timestamp = "1773579693493";
         String nonce = "6b0b0982-34b6-4e";
 
-        String requestBody ="{\n" +
-                "    \"templateCode\": \"New_Notice_IM\",\n" +
-                "    \"toUsers\": [\n" +
-                "        \"qq_42400267\"\n" +
-                "    ],\n" +
-                "    \"params\": {\n" +
-                "        \"tag\": \"测试ing\"\n" +
-                "    }\n" +
-                "}";
+        String requestBody ="{\"templateCode\":\"New_Notice_IM\",\"toUsers\":[\"qq_42400267\"],\"params\":{\"tag\":\"测试ing\"}}";
 
         String dataToSign = appKey + timestamp + nonce + requestBody;
         String signature = sign(secret, dataToSign);
