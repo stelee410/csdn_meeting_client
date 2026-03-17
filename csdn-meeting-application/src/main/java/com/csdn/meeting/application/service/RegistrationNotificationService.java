@@ -6,14 +6,12 @@ import com.csdn.meeting.domain.event.RegistrationAuditedEvent;
 import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.infrastructure.client.CsdnMessagePushClient;
 import com.csdn.meeting.infrastructure.client.dto.CsdnMessageResponse;
-import com.csdn.meeting.infrastructure.config.CsdnMessageProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,16 +30,18 @@ public class RegistrationNotificationService {
 
     private static final Logger logger = LoggerFactory.getLogger(RegistrationNotificationService.class);
 
+    /**
+     * 每批最大用户数（CSDN消息中心限制）
+     */
+    private static final int MAX_BATCH_SIZE = 1000;
+
     private final MeetingRepository meetingRepository;
     private final CsdnMessagePushClient messagePushClient;
-    private final CsdnMessageProperties messageProperties;
 
     public RegistrationNotificationService(MeetingRepository meetingRepository,
-                                           CsdnMessagePushClient messagePushClient,
-                                           CsdnMessageProperties messageProperties) {
+                                           CsdnMessagePushClient messagePushClient) {
         this.meetingRepository = meetingRepository;
         this.messagePushClient = messagePushClient;
-        this.messageProperties = messageProperties;
     }
 
     /**
@@ -76,64 +76,108 @@ public class RegistrationNotificationService {
 
     /**
      * 发送报名通过通知
+     * 支持分批处理，每批最多1000人
      */
-    private void sendApprovedNotification(RegistrationAuditedEvent event, 
-                                          Meeting meeting, 
+    private void sendApprovedNotification(RegistrationAuditedEvent event,
+                                          Meeting meeting,
                                           List<String> userIds) {
         String meetingId = meeting.getMeetingId();
-        String meetingTitle = meeting.getTitle();
-        String startTime = meeting.getStartTime() != null ? 
+        String meetingName = meeting.getTitle();
+        String startTime = meeting.getStartTime() != null ?
                 meeting.getStartTime().toString() : "";
         String venue = meeting.getVenue() != null ? meeting.getVenue() : "";
 
         // 准备模板变量
         Map<String, String> params = new HashMap<>();
-        params.put("meetingTitle", meetingTitle);
+        params.put("meetingTitle", meetingName);
         params.put("meetingId", meetingId);
         params.put("startTime", startTime);
         params.put("venue", venue);
 
-        // 1. 发送IM站内信
-        try {
-            String imTemplate = messageProperties.getTemplates().getRegistrationApprovedIm();
-            CsdnMessageResponse imResponse = messagePushClient.sendImMessage(
-                    "registration_" + event.getRegistrationId(), 
-                    imTemplate, userIds, params);
-            
-            if (imResponse.isSuccess()) {
-                logger.info("报名通过IM通知发送成功: registrationId={}, userCount={}",
-                        event.getRegistrationId(), userIds.size());
-            } else {
-                logger.warn("报名通过IM通知发送失败: registrationId={}, code={}, message={}",
-                        event.getRegistrationId(), imResponse.getCode(), imResponse.getMessage());
-            }
-        } catch (Exception e) {
-            logger.error("报名通过IM通知发送异常: registrationId={}", event.getRegistrationId(), e);
-        }
+        String bizId = "registration_" + event.getRegistrationId();
 
-        // 2. 发送APP Push
-        try {
-            String pushTemplate = messageProperties.getTemplates().getRegistrationApprovedPush();
-            CsdnMessageResponse pushResponse = messagePushClient.sendPushNotification(
-                    "registration_" + event.getRegistrationId(),
-                    pushTemplate, userIds, params);
-            
-            if (pushResponse.isSuccess()) {
-                logger.info("报名通过Push通知发送成功: registrationId={}, userCount={}",
-                        event.getRegistrationId(), userIds.size());
-            } else {
-                logger.warn("报名通过Push通知发送失败: registrationId={}, code={}, message={}",
-                        event.getRegistrationId(), pushResponse.getCode(), pushResponse.getMessage());
-            }
-        } catch (Exception e) {
-            logger.error("报名通过Push通知发送异常: registrationId={}", event.getRegistrationId(), e);
-        }
+        // 1. 发送IM站内信（分批处理，使用审核配置）
+        sendVerifySuccessImBatch(bizId, userIds, params, event.getRegistrationId());
+
+        // 2. 发送APP Push（分批处理，使用审核配置）
+        sendVerifySuccessPushBatch(bizId, userIds, params, event.getRegistrationId());
 
         // TODO: 3. 发送邮件通知（需接入邮件服务）
     }
 
     /**
+     * 分批发送审核通过IM站内信
+     */
+    private void sendVerifySuccessImBatch(String bizId, List<String> userIds,
+                                          Map<String, String> params, Long registrationId) {
+        int totalBatches = (userIds.size() + MAX_BATCH_SIZE - 1) / MAX_BATCH_SIZE;
+        int totalUsers = userIds.size();
+        int successCount = 0;
+
+        for (int i = 0; i < userIds.size(); i += MAX_BATCH_SIZE) {
+            List<String> batch = userIds.subList(i, Math.min(i + MAX_BATCH_SIZE, userIds.size()));
+            int batchNum = i / MAX_BATCH_SIZE + 1;
+
+            try {
+                CsdnMessageResponse response = messagePushClient.sendVerifySuccessIm(
+                        bizId + "_batch" + batchNum, batch, params);
+
+                if (response.isSuccess()) {
+                    successCount += batch.size();
+                    logger.info("报名通过IM通知批次发送成功: registrationId={}, batch={}/{}, users={}",
+                            registrationId, batchNum, totalBatches, batch.size());
+                } else {
+                    logger.warn("报名通过IM通知批次发送失败: registrationId={}, batch={}/{}, code={}, message={}",
+                            registrationId, batchNum, totalBatches, response.getCode(), response.getMessage());
+                }
+            } catch (Exception e) {
+                logger.error("报名通过IM通知批次发送异常: registrationId={}, batch={}/{}",
+                        registrationId, batchNum, totalBatches, e);
+            }
+        }
+
+        logger.info("报名通过IM通知发送完成: registrationId={}, totalUsers={}, successCount={}",
+                registrationId, totalUsers, successCount);
+    }
+
+    /**
+     * 分批发送审核通过APP Push
+     */
+    private void sendVerifySuccessPushBatch(String bizId, List<String> userIds,
+                                            Map<String, String> params, Long registrationId) {
+        int totalBatches = (userIds.size() + MAX_BATCH_SIZE - 1) / MAX_BATCH_SIZE;
+        int totalUsers = userIds.size();
+        int successCount = 0;
+
+        for (int i = 0; i < userIds.size(); i += MAX_BATCH_SIZE) {
+            List<String> batch = userIds.subList(i, Math.min(i + MAX_BATCH_SIZE, userIds.size()));
+            int batchNum = i / MAX_BATCH_SIZE + 1;
+
+            try {
+                CsdnMessageResponse response = messagePushClient.sendVerifySuccessPush(
+                        bizId + "_batch" + batchNum, batch, params);
+
+                if (response.isSuccess()) {
+                    successCount += batch.size();
+                    logger.info("报名通过Push通知批次发送成功: registrationId={}, batch={}/{}, users={}",
+                            registrationId, batchNum, totalBatches, batch.size());
+                } else {
+                    logger.warn("报名通过Push通知批次发送失败: registrationId={}, batch={}/{}, code={}, message={}",
+                            registrationId, batchNum, totalBatches, response.getCode(), response.getMessage());
+                }
+            } catch (Exception e) {
+                logger.error("报名通过Push通知批次发送异常: registrationId={}, batch={}/{}",
+                        registrationId, batchNum, totalBatches, e);
+            }
+        }
+
+        logger.info("报名通过Push通知发送完成: registrationId={}, totalUsers={}, successCount={}",
+                registrationId, totalUsers, successCount);
+    }
+
+    /**
      * 发送报名拒绝通知
+     * 支持分批处理，每批最多1000人
      */
     private void sendRejectedNotification(RegistrationAuditedEvent event,
                                           Meeting meeting,
@@ -148,42 +192,84 @@ public class RegistrationNotificationService {
         params.put("meetingId", meetingId);
         params.put("rejectReason", auditRemark);
 
-        // 1. 发送IM站内信
-        try {
-            String imTemplate = messageProperties.getTemplates().getRegistrationRejectedIm();
-            CsdnMessageResponse imResponse = messagePushClient.sendImMessage(
-                    "registration_" + event.getRegistrationId(),
-                    imTemplate, userIds, params);
+        String bizId = "registration_" + event.getRegistrationId();
 
-            if (imResponse.isSuccess()) {
-                logger.info("报名拒绝IM通知发送成功: registrationId={}, userCount={}",
-                        event.getRegistrationId(), userIds.size());
-            } else {
-                logger.warn("报名拒绝IM通知发送失败: registrationId={}, code={}, message={}",
-                        event.getRegistrationId(), imResponse.getCode(), imResponse.getMessage());
-            }
-        } catch (Exception e) {
-            logger.error("报名拒绝IM通知发送异常: registrationId={}", event.getRegistrationId(), e);
-        }
+        // 1. 发送IM站内信（分批处理，使用审核配置）
+        sendVerifyFailureImBatch(bizId, userIds, params, event.getRegistrationId());
 
-        // 2. 发送APP Push
-        try {
-            String pushTemplate = messageProperties.getTemplates().getRegistrationRejectedPush();
-            CsdnMessageResponse pushResponse = messagePushClient.sendPushNotification(
-                    "registration_" + event.getRegistrationId(),
-                    pushTemplate, userIds, params);
-
-            if (pushResponse.isSuccess()) {
-                logger.info("报名拒绝Push通知发送成功: registrationId={}, userCount={}",
-                        event.getRegistrationId(), userIds.size());
-            } else {
-                logger.warn("报名拒绝Push通知发送失败: registrationId={}, code={}, message={}",
-                        event.getRegistrationId(), pushResponse.getCode(), pushResponse.getMessage());
-            }
-        } catch (Exception e) {
-            logger.error("报名拒绝Push通知发送异常: registrationId={}", event.getRegistrationId(), e);
-        }
+        // 2. 发送APP Push（分批处理，使用审核配置）
+        sendVerifyFailurePushBatch(bizId, userIds, params, event.getRegistrationId());
 
         // TODO: 3. 发送邮件通知（需接入邮件服务）
+    }
+
+    /**
+     * 分批发送审核拒绝IM站内信
+     */
+    private void sendVerifyFailureImBatch(String bizId, List<String> userIds,
+                                          Map<String, String> params, Long registrationId) {
+        int totalBatches = (userIds.size() + MAX_BATCH_SIZE - 1) / MAX_BATCH_SIZE;
+        int totalUsers = userIds.size();
+        int successCount = 0;
+
+        for (int i = 0; i < userIds.size(); i += MAX_BATCH_SIZE) {
+            List<String> batch = userIds.subList(i, Math.min(i + MAX_BATCH_SIZE, userIds.size()));
+            int batchNum = i / MAX_BATCH_SIZE + 1;
+
+            try {
+                CsdnMessageResponse response = messagePushClient.sendVerifyFailureIm(
+                        bizId + "_batch" + batchNum, batch, params);
+
+                if (response.isSuccess()) {
+                    successCount += batch.size();
+                    logger.info("报名拒绝IM通知批次发送成功: registrationId={}, batch={}/{}, users={}",
+                            registrationId, batchNum, totalBatches, batch.size());
+                } else {
+                    logger.warn("报名拒绝IM通知批次发送失败: registrationId={}, batch={}/{}, code={}, message={}",
+                            registrationId, batchNum, totalBatches, response.getCode(), response.getMessage());
+                }
+            } catch (Exception e) {
+                logger.error("报名拒绝IM通知批次发送异常: registrationId={}, batch={}/{}",
+                        registrationId, batchNum, totalBatches, e);
+            }
+        }
+
+        logger.info("报名拒绝IM通知发送完成: registrationId={}, totalUsers={}, successCount={}",
+                registrationId, totalUsers, successCount);
+    }
+
+    /**
+     * 分批发送审核拒绝APP Push
+     */
+    private void sendVerifyFailurePushBatch(String bizId, List<String> userIds,
+                                            Map<String, String> params, Long registrationId) {
+        int totalBatches = (userIds.size() + MAX_BATCH_SIZE - 1) / MAX_BATCH_SIZE;
+        int totalUsers = userIds.size();
+        int successCount = 0;
+
+        for (int i = 0; i < userIds.size(); i += MAX_BATCH_SIZE) {
+            List<String> batch = userIds.subList(i, Math.min(i + MAX_BATCH_SIZE, userIds.size()));
+            int batchNum = i / MAX_BATCH_SIZE + 1;
+
+            try {
+                CsdnMessageResponse response = messagePushClient.sendVerifyFailurePush(
+                        bizId + "_batch" + batchNum, batch, params);
+
+                if (response.isSuccess()) {
+                    successCount += batch.size();
+                    logger.info("报名拒绝Push通知批次发送成功: registrationId={}, batch={}/{}, users={}",
+                            registrationId, batchNum, totalBatches, batch.size());
+                } else {
+                    logger.warn("报名拒绝Push通知批次发送失败: registrationId={}, batch={}/{}, code={}, message={}",
+                            registrationId, batchNum, totalBatches, response.getCode(), response.getMessage());
+                }
+            } catch (Exception e) {
+                logger.error("报名拒绝Push通知批次发送异常: registrationId={}, batch={}/{}",
+                        registrationId, batchNum, totalBatches, e);
+            }
+        }
+
+        logger.info("报名拒绝Push通知发送完成: registrationId={}, totalUsers={}, successCount={}",
+                registrationId, totalUsers, successCount);
     }
 }

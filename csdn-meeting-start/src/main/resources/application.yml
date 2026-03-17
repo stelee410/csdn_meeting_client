@@ -68,15 +68,18 @@ upload:
 # TODO【需与CSDN协调】：
 # 1. 确认消息中心接口文档和鉴权方式（已完成：Base URL、AppKey、AppSecret）
 # 2. 确认消息模板编码（已完成：New_Notice_IM, New_Notice_PUSH）
-# 3. 确认报名审核通知模板编码（待确认：Registration_Approved_IM等）
+# 3. 确认报名审核通知模板编码（已完成：Verify_Success_IM等）
 # 4. 确认模板变量格式（meetingTitle, meetingId等）
 # 5. 确认消息发送频率限制和频控策略
 csdn:
   message:
-    # 应用Key和密钥（生产环境建议通过环境变量或配置中心注入）
+    # 会议发布推送配置（应用Key和密钥，生产环境建议通过环境变量或配置中心注入）
     # 文档要求AppKey: Conference_New_Notice
     app-key: ${CSDN_APP_KEY:Conference_New_Notice}
     app-secret: ${CSDN_APP_SECRET:086e138b358948b8a30a8b29313bb45f}
+    # 审核推送专用配置
+    verify-app-key: Conference_Verify_Notice
+    verify-app-secret: ${CSDN_VERIFY_APP_SECRET:6ba09ff6d4254abb8c6f92f1265edf3e}
     # 接口基础URL
     base-url: https://msg.csdn.net
     # 模板编码配置
@@ -85,14 +88,14 @@ csdn:
       meeting-publish-im: New_Notice_IM
       # 会议发布APP推送模板 (文档要求: New_Notice_PUSH)
       meeting-publish-push: New_Notice_PUSH
-      # 报名审核通过IM站内信模板
-      registration-approved-im: Registration_Approved_IM
-      # 报名审核通过APP推送模板
-      registration-approved-push: Registration_Approved_PUSH
-      # 报名审核拒绝IM站内信模板
-      registration-rejected-im: Registration_Rejected_IM
-      # 报名审核拒绝APP推送模板
-      registration-rejected-push: Registration_Rejected_PUSH
+      # 审核通过IM站内信模板
+      verify-success-im: Verify_Success_IM
+      # 审核通过APP推送模板
+      verify-success-push: Verify_Success_PUSH
+      # 审核失败IM站内信模板
+      verify-failure-im: Verify_Failure_IM
+      # 审核失败APP推送模板
+      verify-failure-push: Verify_Failure_PUSH
 
 # 签到配置
 # TODO【需与CSDN协调】：
