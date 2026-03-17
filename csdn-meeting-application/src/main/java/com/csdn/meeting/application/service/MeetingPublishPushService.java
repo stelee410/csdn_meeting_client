@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,16 +35,13 @@ public class MeetingPublishPushService {
 
     private final UserTagSubscribeRepository userTagSubscribeRepository;
     private final TagRepository tagRepository;
-    private final MeetingAnalyticsService analyticsService;
     private final CsdnMessagePushClient messagePushClient;
 
     public MeetingPublishPushService(UserTagSubscribeRepository userTagSubscribeRepository,
                                       TagRepository tagRepository,
-                                      MeetingAnalyticsService analyticsService,
                                       CsdnMessagePushClient messagePushClient) {
         this.userTagSubscribeRepository = userTagSubscribeRepository;
         this.tagRepository = tagRepository;
-        this.analyticsService = analyticsService;
         this.messagePushClient = messagePushClient;
     }
 
@@ -108,11 +104,6 @@ public class MeetingPublishPushService {
             sendPushNotification(tagId, tagName, userIds, event);
         }
 
-        // 记录埋点（使用去重后的所有用户）
-        for (String userId : allUsers) {
-            analyticsService.trackMeetingClick(userId, event.getMeetingId(), -1);
-        }
-        
         logger.info("会议 {} 推送完成，共处理 {} 个标签", event.getMeetingId(), tagUserMap.size());
     }
 

@@ -33,18 +33,15 @@ public class MeetingListUseCase {
     private final MeetingRepository meetingRepository;
     private final TagRepository tagRepository;
     private final TimeRangeCalculator timeRangeCalculator;
-    private final MeetingAnalyticsService analyticsService;
 
     public MeetingListUseCase(MeetingSearchRepository meetingSearchRepository,
                               MeetingRepository meetingRepository,
                               TagRepository tagRepository,
-                              TimeRangeCalculator timeRangeCalculator,
-                              MeetingAnalyticsService analyticsService) {
+                              TimeRangeCalculator timeRangeCalculator) {
         this.meetingSearchRepository = meetingSearchRepository;
         this.meetingRepository = meetingRepository;
         this.tagRepository = tagRepository;
         this.timeRangeCalculator = timeRangeCalculator;
-        this.analyticsService = analyticsService;
     }
 
     /**
@@ -54,11 +51,6 @@ public class MeetingListUseCase {
      * @return 列表结果（统一为 card 卡片结构）
      */
     public MeetingListResultDTO<MeetingCardItemDTO> queryMeetingList(MeetingListQueryDTO query) {
-        // 记录埋点
-        if (query.getUserId() != null) {
-            analyticsService.trackFilter(String.valueOf(query.getUserId()), "all", buildFilterDesc(query));
-        }
-
         // 转换筛选条件
         Integer formatCode = new Integer(0).equals(query.getFormat()) ? null : query.getFormat();
         Integer typeCode = new Integer(0).equals(query.getType()) ? null : query.getType();
@@ -345,26 +337,4 @@ public class MeetingListUseCase {
         return ms != null ? ms.getCode() : null;
     }
 
-    /**
-     * 构建筛选描述（用于埋点）
-     */
-    private String buildFilterDesc(MeetingListQueryDTO query) {
-        StringBuilder sb = new StringBuilder();
-        if (query.getFormat() != null) {
-            sb.append("format=").append(query.getFormat()).append(";");
-        }
-        if (query.getType() != null) {
-            sb.append("type=").append(query.getType()).append(";");
-        }
-        if (query.getScene() != null) {
-            sb.append("scene=").append(query.getScene()).append(";");
-        }
-        if (query.getTimeRange() != null) {
-            sb.append("timeRange=").append(query.getTimeRange()).append(";");
-        }
-        if (query.getKeyword() != null) {
-            sb.append("keyword=").append(query.getKeyword());
-        }
-        return sb.toString();
-    }
 }
