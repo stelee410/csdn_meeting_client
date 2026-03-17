@@ -15,6 +15,7 @@ public class UpdateMeetingCommand {
     private Integer maxParticipants;
     private String organizer;
     private String format;
+    private String meetingType;
     private String scene;
     private String venue;
     private String regions;
@@ -78,6 +79,14 @@ public class UpdateMeetingCommand {
 
     public void setFormat(String format) {
         this.format = format;
+    }
+
+    public String getMeetingType() {
+        return meetingType;
+    }
+
+    public void setMeetingType(String meetingType) {
+        this.meetingType = meetingType;
     }
 
     public String getScene() {

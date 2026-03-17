@@ -16,6 +16,7 @@ public interface MeetingMapper {
 
     @Mapping(target = "status", source = "status", qualifiedByName = "statusToInt")
     @Mapping(target = "format", source = "format", qualifiedByName = "formatToString")
+    @Mapping(target = "meetingType", source = "meetingType", qualifiedByName = "meetingTypeToString")
     @Mapping(target = "targetAudience", source = "targetAudience", qualifiedByName = "toJsonArray")
     MeetingPO toPO(Meeting meeting);
 
@@ -56,6 +57,11 @@ public interface MeetingMapper {
     @Named("stringToMeetingType")
     default MeetingType stringToMeetingType(String s) {
         return MeetingType.of(s);
+    }
+
+    @Named("meetingTypeToString")
+    default String meetingTypeToString(MeetingType meetingType) {
+        return meetingType == null ? null : meetingType.name();
     }
 
     /**

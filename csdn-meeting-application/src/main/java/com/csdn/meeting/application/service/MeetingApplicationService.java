@@ -9,6 +9,7 @@ import com.csdn.meeting.domain.entity.Session;
 import com.csdn.meeting.domain.entity.SubVenue;
 import com.csdn.meeting.domain.entity.Topic;
 import com.csdn.meeting.domain.valueobject.MeetingFormat;
+import com.csdn.meeting.domain.valueobject.MeetingType;
 import com.csdn.meeting.domain.event.MeetingPublishedEvent;
 import com.csdn.meeting.domain.event.MeetingStatusChangedEvent;
 import com.csdn.meeting.domain.repository.MeetingRepository;
@@ -307,6 +308,7 @@ public class MeetingApplicationService {
         meeting.setMaxParticipants(cmd.getMaxParticipants());
         meeting.setOrganizer(cmd.getOrganizer());
         meeting.setFormat(parseFormat(cmd.getFormat()));
+        meeting.setMeetingType(parseMeetingType(cmd.getMeetingType()));
         meeting.setScene(cmd.getScene());
         meeting.setVenue(cmd.getVenue());
         meeting.setRegions(cmd.getRegions());
@@ -325,6 +327,7 @@ public class MeetingApplicationService {
         if (cmd.getMaxParticipants() != null) meeting.setMaxParticipants(cmd.getMaxParticipants());
         if (cmd.getOrganizer() != null) meeting.setOrganizer(cmd.getOrganizer());
         if (cmd.getFormat() != null) meeting.setFormat(parseFormat(cmd.getFormat()));
+        if (cmd.getMeetingType() != null) meeting.setMeetingType(parseMeetingType(cmd.getMeetingType()));
         if (cmd.getScene() != null) meeting.setScene(cmd.getScene());
         if (cmd.getVenue() != null) meeting.setVenue(cmd.getVenue());
         if (cmd.getRegions() != null) meeting.setRegions(cmd.getRegions());
@@ -342,6 +345,11 @@ public class MeetingApplicationService {
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    private MeetingType parseMeetingType(String meetingType) {
+        if (meetingType == null || meetingType.trim().isEmpty()) return null;
+        return MeetingType.of(meetingType);
     }
 
     private List<ScheduleDay> toScheduleDays(List<ScheduleDayDTO> dtos) {
@@ -428,6 +436,7 @@ public class MeetingApplicationService {
         dto.setMaxParticipants(meeting.getMaxParticipants());
         dto.setOrganizer(meeting.getOrganizer());
         dto.setFormat(meeting.getFormat() != null ? meeting.getFormat().name() : null);
+        dto.setMeetingType(meeting.getMeetingType() != null ? meeting.getMeetingType().name() : null);
         dto.setScene(meeting.getScene());
         dto.setVenue(meeting.getVenue());
         dto.setRegions(meeting.getRegions());

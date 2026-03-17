@@ -27,6 +27,7 @@ public class MeetingDTO {
     private String organizerName;    // 主办方名称
     private String organizerAvatar;  // 主办方头像URL
     private String format;           // ONLINE/OFFLINE/HYBRID
+    private String meetingType;      // SUMMIT/SALON/WORKSHOP...
     private String scene;
     private String venue;
     private String regions;          // JSON
@@ -168,6 +169,14 @@ public class MeetingDTO {
 
     public void setFormat(String format) {
         this.format = format;
+    }
+
+    public String getMeetingType() {
+        return meetingType;
+    }
+
+    public void setMeetingType(String meetingType) {
+        this.meetingType = meetingType;
     }
 
     public String getScene() {

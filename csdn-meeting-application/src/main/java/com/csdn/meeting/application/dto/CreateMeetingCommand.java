@@ -20,6 +20,7 @@ public class CreateMeetingCommand {
     // agent.prd §1.1 新增字段
     private String organizer;
     private String format;           // ONLINE/OFFLINE/HYBRID
+    private String meetingType;      // SUMMIT/SALON/WORKSHOP...
     private String scene;
     private String venue;
     private String regions;          // JSON
@@ -101,6 +102,14 @@ public class CreateMeetingCommand {
 
     public void setFormat(String format) {
         this.format = format;
+    }
+
+    public String getMeetingType() {
+        return meetingType;
+    }
+
+    public void setMeetingType(String meetingType) {
+        this.meetingType = meetingType;
     }
 
     public String getScene() {
