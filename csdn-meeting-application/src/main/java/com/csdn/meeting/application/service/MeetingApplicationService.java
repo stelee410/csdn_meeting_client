@@ -434,6 +434,7 @@ public class MeetingApplicationService {
         dto.setEndTime(meeting.getEndTime());
         dto.setStatus(meeting.getStatus().name());
         dto.setMaxParticipants(meeting.getMaxParticipants());
+        dto.setCurrentParticipants(meeting.getCurrentParticipants());
         dto.setOrganizer(meeting.getOrganizer());
         dto.setFormat(meeting.getFormat() != null ? meeting.getFormat().name() : null);
         dto.setMeetingType(meeting.getMeetingType() != null ? meeting.getMeetingType().name() : null);

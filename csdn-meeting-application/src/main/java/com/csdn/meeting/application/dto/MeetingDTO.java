@@ -19,6 +19,7 @@ public class MeetingDTO {
     private LocalDateTime endTime;
     private String status;
     private Integer maxParticipants;
+    private Integer currentParticipants;
     private List<ParticipantDTO> participants;
 
     // agent.prd §1.1 新增字段
@@ -121,6 +122,14 @@ public class MeetingDTO {
 
     public void setMaxParticipants(Integer maxParticipants) {
         this.maxParticipants = maxParticipants;
+    }
+
+    public Integer getCurrentParticipants() {
+        return currentParticipants;
+    }
+
+    public void setCurrentParticipants(Integer currentParticipants) {
+        this.currentParticipants = currentParticipants;
     }
 
     public List<ParticipantDTO> getParticipants() {

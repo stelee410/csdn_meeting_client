@@ -93,7 +93,14 @@ public class MyMeetingsUseCase {
         LocalDateTime startFrom = startDate != null ? startDate.atStartOfDay() : null;
         LocalDateTime endTo = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
         PageResult<Meeting> meetingPage = meetingRepository.findPageByCreatorId(userId, statuses, startFrom, endTo, page, size);
-        List<MeetingDTO> dtos = meetingPage.getContent().stream().map(this::toMeetingDTO).collect(Collectors.toList());
+        List<MeetingDTO> dtos = meetingPage.getContent().stream().map(meeting -> {
+            MeetingDTO dto = toMeetingDTO(meeting);
+            long totalRegistrations = registrationRepository
+                    .findByMeetingIdAndStatus(meeting.getId(), null, 0, 1)
+                    .getTotalElements();
+            dto.setCurrentParticipants((int) totalRegistrations);
+            return dto;
+        }).collect(Collectors.toList());
         return new PageResult<>(dtos, meetingPage.getTotalElements(), page, size);
     }
 
@@ -137,6 +144,7 @@ public class MyMeetingsUseCase {
         dto.setEndTime(meeting.getEndTime());
         dto.setStatus(meeting.getStatus().name());
         dto.setMaxParticipants(meeting.getMaxParticipants());
+        dto.setCurrentParticipants(meeting.getCurrentParticipants());
         dto.setOrganizer(meeting.getOrganizer());
         dto.setFormat(meeting.getFormat() != null ? meeting.getFormat().name() : null);
         dto.setScene(meeting.getScene());
