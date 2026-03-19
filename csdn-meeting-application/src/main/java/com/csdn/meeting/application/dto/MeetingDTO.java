@@ -39,7 +39,6 @@ public class MeetingDTO {
     private Boolean isPremium;
     private String takedownReason;
     private String rejectReason;
-    private String meetingType;      // 会议类型：SUMMIT/SALON/WORKSHOP
 
     // 四级日程结构
     private List<ScheduleDayDTO> scheduleDays;
@@ -178,14 +177,6 @@ public class MeetingDTO {
 
     public void setFormat(String format) {
         this.format = format;
-    }
-
-    public String getMeetingType() {
-        return meetingType;
-    }
-
-    public void setMeetingType(String meetingType) {
-        this.meetingType = meetingType;
     }
 
     public String getScene() {

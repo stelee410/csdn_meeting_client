@@ -1,6 +1,5 @@
 package com.csdn.meeting.interfaces.controller;
 
-import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import com.csdn.meeting.infrastructure.client.CsdnMessagePushClient;
 import com.csdn.meeting.infrastructure.client.dto.CsdnMessageResponse;
@@ -116,68 +115,6 @@ public class MessagePushTestController {
             return ResponseEntity.ok(ApiResponse.error(500, "PUSH推送失败: " + response.getMessage() , JSONUtil.toJsonStr(result)));
         }
     }
-
-    /**
-     * 同时测试IM和PUSH推送
-     */
-    @Operation(
-            summary = "同时测试IM和PUSH推送",
-            description = "同时发送IM站内信和APP Push到指定用户列表，用于全面测试消息推送功能"
-    )
-    @PostMapping("/both")
-    public ResponseEntity<ApiResponse<BothPushTestResult>> sendBoth(
-            @Valid @RequestBody PushTestRequest request) {
-
-        log.info("[测试双通道推送] 开始发送: bizId={}, users={}",
-                request.getBizId(), request.getUserIds().size());
-
-        BothPushTestResult result = new BothPushTestResult();
-        result.setBizId(request.getBizId());
-        result.setUserCount(request.getUserIds().size());
-
-        // 发送IM
-        long imStartTime = System.currentTimeMillis();
-        CsdnMessageResponse imResponse = messagePushClient.sendImMessage(
-                request.getBizId(),
-                request.getTemplateCode(),
-                request.getUserIds(),
-                request.getParams()
-        );
-        result.setImCostTimeMs(System.currentTimeMillis() - imStartTime);
-        result.setImSuccess(imResponse.isSuccess());
-        result.setImCode(imResponse.getCode());
-        result.setImMessage(imResponse.getMessage());
-
-        // 发送PUSH
-        long pushStartTime = System.currentTimeMillis();
-        CsdnMessageResponse pushResponse = messagePushClient.sendPushNotification(
-                request.getBizId(),
-                request.getTemplateCode(),
-                request.getUserIds(),
-                request.getParams()
-        );
-        result.setPushCostTimeMs(System.currentTimeMillis() - pushStartTime);
-        result.setPushSuccess(pushResponse.isSuccess());
-        result.setPushCode(pushResponse.getCode());
-        result.setPushMessage(pushResponse.getMessage());
-
-        boolean allSuccess = imResponse.isSuccess() && pushResponse.isSuccess();
-
-        log.info("[测试双通道推送] 发送完成: bizId={}, IM={}({}), PUSH={}({})",
-                request.getBizId(),
-                imResponse.isSuccess() ? "成功" : "失败", imResponse.getCode(),
-                pushResponse.isSuccess() ? "成功" : "失败", pushResponse.getCode());
-
-        if (allSuccess) {
-            return ResponseEntity.ok(ApiResponse.success(result));
-        } else {
-            String errorMsg = "推送部分失败: " +
-                    (imResponse.isSuccess() ? "" : "IM[" + imResponse.getMessage() + "] ") +
-                    (pushResponse.isSuccess() ? "" : "PUSH[" + pushResponse.getMessage() + "]");
-            return ResponseEntity.ok(ApiResponse.error(500, errorMsg.trim(), JSONUtil.toJsonStr(result)));
-        }
-    }
-
     /**
      * 使用会议发布模板测试推送（推荐）
      */
@@ -243,6 +180,135 @@ public class MessagePushTestController {
         }
     }
 
+    /**
+     * 测试审核通过推送（使用审核配置）
+     */
+    @Operation(
+            summary = "测试审核通过推送",
+            description = "使用审核推送专用配置(appKey=Conference_Verify_Notice)和模板(Verify_Success_IM/PUSH)，同时发送IM和PUSH，模拟真实的审核通过场景"
+    )
+    @PostMapping("/verify-success")
+    public ResponseEntity<ApiResponse<BothPushTestResult>> testVerifySuccessPush(
+            @Valid @RequestBody VerifyPushTestRequest request) {
+
+        log.info("[测试审核通过推送] 开始发送: registrationId={}, userId={}, meetingTitle={}",
+                request.getRegistrationId(), request.getUserIds(), request.getMeetingTitle());
+
+        BothPushTestResult result = new BothPushTestResult();
+        result.setBizId(request.getRegistrationId());
+        result.setUserCount(request.getUserIds() != null ? request.getUserIds().size()  : 0);
+
+        List<String> userIds = request.getUserIds();
+
+        // 准备模板变量
+        java.util.Map<String, String> params = new java.util.HashMap<>();
+        params.put("meetingName", request.getMeetingTitle());
+
+        // 发送IM
+        long imStartTime = System.currentTimeMillis();
+        CsdnMessageResponse imResponse = messagePushClient.sendVerifySuccessIm(
+                request.getRegistrationId(),
+                userIds,
+                params
+        );
+        result.setImCostTimeMs(System.currentTimeMillis() - imStartTime);
+        result.setImSuccess(imResponse.isSuccess());
+        result.setImCode(imResponse.getCode());
+        result.setImMessage(imResponse.getMessage());
+
+        // 发送PUSH
+        long pushStartTime = System.currentTimeMillis();
+        CsdnMessageResponse pushResponse = messagePushClient.sendVerifySuccessPush(
+                request.getRegistrationId(),
+                userIds,
+                params
+        );
+        result.setPushCostTimeMs(System.currentTimeMillis() - pushStartTime);
+        result.setPushSuccess(pushResponse.isSuccess());
+        result.setPushCode(pushResponse.getCode());
+        result.setPushMessage(pushResponse.getMessage());
+
+        boolean allSuccess = imResponse.isSuccess() && pushResponse.isSuccess();
+
+        log.info("[测试审核通过推送] 发送完成: registrationId={}, IM={}({}), PUSH=({})",
+                request.getRegistrationId(),
+                imResponse.isSuccess() ? "成功" : "失败", imResponse.getCode(),
+                pushResponse.isSuccess() ? "成功" : "失败", pushResponse.getCode());
+
+        if (allSuccess) {
+            return ResponseEntity.ok(ApiResponse.success(result));
+        } else {
+            String errorMsg = "推送部分失败: " +
+                    (imResponse.isSuccess() ? "" : "IM[" + imResponse.getMessage() + "] ") +
+                    (pushResponse.isSuccess() ? "" : "PUSH[" + pushResponse.getMessage() + "]");
+            return ResponseEntity.ok(ApiResponse.error(500, errorMsg.trim(), JSONUtil.toJsonStr(result)));
+        }
+    }
+
+    /**
+     * 测试审核拒绝推送（使用审核配置）
+     */
+    @Operation(
+            summary = "测试审核拒绝推送",
+            description = "使用审核推送专用配置(appKey=Conference_Verify_Notice)和模板(Verify_Failure_IM/PUSH)，同时发送IM和PUSH，模拟真实的审核拒绝场景"
+    )
+    @PostMapping("/verify-failure")
+    public ResponseEntity<ApiResponse<BothPushTestResult>> testVerifyFailurePush(
+            @Valid @RequestBody VerifyPushTestRequest request) {
+
+        log.info("[测试审核拒绝推送] 开始发送: registrationId={}, userId={}, meetingTitle={}",
+                request.getRegistrationId(), request.getUserIds(), request.getMeetingTitle());
+
+        BothPushTestResult result = new BothPushTestResult();
+        result.setBizId(request.getRegistrationId());
+        result.setUserCount(request.getUserIds() != null ? request.getUserIds().size() : 0);
+
+        List<String> userIds = request.getUserIds();
+
+        // 准备模板变量
+        java.util.Map<String, String> params = new java.util.HashMap<>();
+        params.put("meetingName", request.getMeetingTitle());
+        // 发送IM
+        long imStartTime = System.currentTimeMillis();
+        CsdnMessageResponse imResponse = messagePushClient.sendVerifyFailureIm(
+                request.getRegistrationId(),
+                userIds,
+                params
+        );
+        result.setImCostTimeMs(System.currentTimeMillis() - imStartTime);
+        result.setImSuccess(imResponse.isSuccess());
+        result.setImCode(imResponse.getCode());
+        result.setImMessage(imResponse.getMessage());
+
+        // 发送PUSH
+        long pushStartTime = System.currentTimeMillis();
+        CsdnMessageResponse pushResponse = messagePushClient.sendVerifyFailurePush(
+                request.getRegistrationId(),
+                userIds,
+                params
+        );
+        result.setPushCostTimeMs(System.currentTimeMillis() - pushStartTime);
+        result.setPushSuccess(pushResponse.isSuccess());
+        result.setPushCode(pushResponse.getCode());
+        result.setPushMessage(pushResponse.getMessage());
+
+        boolean allSuccess = imResponse.isSuccess() && pushResponse.isSuccess();
+
+        log.info("[测试审核拒绝推送] 发送完成: registrationId={}, IM={}({}), PUSH=({})",
+                request.getRegistrationId(),
+                imResponse.isSuccess() ? "成功" : "失败", imResponse.getCode(),
+                pushResponse.isSuccess() ? "成功" : "失败", pushResponse.getCode());
+
+        if (allSuccess) {
+            return ResponseEntity.ok(ApiResponse.success(result));
+        } else {
+            String errorMsg = "推送部分失败: " +
+                    (imResponse.isSuccess() ? "" : "IM[" + imResponse.getMessage() + "] ") +
+                    (pushResponse.isSuccess() ? "" : "PUSH[" + pushResponse.getMessage() + "]");
+            return ResponseEntity.ok(ApiResponse.error(500, errorMsg.trim(), JSONUtil.toJsonStr(result)));
+        }
+    }
+
     // ==================== DTO ====================
 
     /**
@@ -287,6 +353,27 @@ public class MessagePushTestController {
         @Parameter(description = "标签名称", required = true, example = "人工智能")
         @NotBlank(message = "标签名称不能为空")
         private String tagName;
+
+        @Parameter(description = "接收用户ID列表（单次最多1000人）", required = true)
+        @NotEmpty(message = "用户列表不能为空")
+        private List<String> userIds;
+    }
+
+    /**
+     * 审核推送测试请求
+     */
+    @Data
+    public static class VerifyPushTestRequest {
+
+        @Parameter(description = "报名记录ID", required = true, example = "registration_123")
+        private String registrationId;
+
+        @Parameter(description = "会议ID", required = true, example = "meeting_123")
+        private String meetingId;
+
+        @Parameter(description = "会议标题", required = true, example = "2025 AI开发者大会")
+        @NotBlank(message = "会议标题不能为空")
+        private String meetingTitle;
 
         @Parameter(description = "接收用户ID列表（单次最多1000人）", required = true)
         @NotEmpty(message = "用户列表不能为空")

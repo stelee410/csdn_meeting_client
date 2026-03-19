@@ -61,4 +61,10 @@ public class MeetingListQueryDTO {
     @Schema(description = "用户ID，用于个性化推荐和埋点统计", example = "12345")
     private Long userId;
 
+    /**
+     * 展示类型 1-卡片 2-列表
+     */
+    @Schema(description = "展示类型,1-卡片 2-列表", example = "1")
+    private Integer viewType;
+
 }

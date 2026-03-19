@@ -62,6 +62,6 @@ public class CsdnMessageResponse {
      * 判断响应是否成功
      */
     public boolean isSuccess() {
-        return Boolean.TRUE.equals(status) && "200".equals(code);
+        return Boolean.TRUE.equals(status) || "200".equals(code);
     }
 }

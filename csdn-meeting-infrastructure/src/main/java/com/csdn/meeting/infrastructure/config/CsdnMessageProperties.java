@@ -27,6 +27,16 @@ public class CsdnMessageProperties {
     private String baseUrl = "https://msg.csdn.net";
 
     /**
+     * 审核推送专用应用Key
+     */
+    private String verifyAppKey = "Conference_Verify_Notice";
+
+    /**
+     * 审核推送专用应用密钥
+     */
+    private String verifyAppSecret = "";
+
+    /**
      * 模板编码配置
      */
     private Templates templates = new Templates();
@@ -55,6 +65,22 @@ public class CsdnMessageProperties {
         this.baseUrl = baseUrl;
     }
 
+    public String getVerifyAppKey() {
+        return verifyAppKey;
+    }
+
+    public void setVerifyAppKey(String verifyAppKey) {
+        this.verifyAppKey = verifyAppKey;
+    }
+
+    public String getVerifyAppSecret() {
+        return verifyAppSecret;
+    }
+
+    public void setVerifyAppSecret(String verifyAppSecret) {
+        this.verifyAppSecret = verifyAppSecret;
+    }
+
     public Templates getTemplates() {
         return templates;
     }
@@ -78,24 +104,24 @@ public class CsdnMessageProperties {
         private String meetingPublishPush = "New_Notice_PUSH";
 
         /**
-         * 报名审核通过IM站内信模板编码
+         * 审核通过IM站内信模板编码
          */
-        private String registrationApprovedIm = "Registration_Approved_IM";
+        private String verifySuccessIm = "Verify_Success_IM";
 
         /**
-         * 报名审核通过APP推送模板编码
+         * 审核通过APP推送模板编码
          */
-        private String registrationApprovedPush = "Registration_Approved_PUSH";
+        private String verifySuccessPush = "Verify_Success_PUSH";
 
         /**
-         * 报名审核拒绝IM站内信模板编码
+         * 审核失败IM站内信模板编码
          */
-        private String registrationRejectedIm = "Registration_Rejected_IM";
+        private String verifyFailureIm = "Verify_Failure_IM";
 
         /**
-         * 报名审核拒绝APP推送模板编码
+         * 审核失败APP推送模板编码
          */
-        private String registrationRejectedPush = "Registration_Rejected_PUSH";
+        private String verifyFailurePush = "Verify_Failure_PUSH";
 
         public String getMeetingPublishIm() {
             return meetingPublishIm;
@@ -113,36 +139,36 @@ public class CsdnMessageProperties {
             this.meetingPublishPush = meetingPublishPush;
         }
 
-        public String getRegistrationApprovedIm() {
-            return registrationApprovedIm;
+        public String getVerifySuccessIm() {
+            return verifySuccessIm;
         }
 
-        public void setRegistrationApprovedIm(String registrationApprovedIm) {
-            this.registrationApprovedIm = registrationApprovedIm;
+        public void setVerifySuccessIm(String verifySuccessIm) {
+            this.verifySuccessIm = verifySuccessIm;
         }
 
-        public String getRegistrationApprovedPush() {
-            return registrationApprovedPush;
+        public String getVerifySuccessPush() {
+            return verifySuccessPush;
         }
 
-        public void setRegistrationApprovedPush(String registrationApprovedPush) {
-            this.registrationApprovedPush = registrationApprovedPush;
+        public void setVerifySuccessPush(String verifySuccessPush) {
+            this.verifySuccessPush = verifySuccessPush;
         }
 
-        public String getRegistrationRejectedIm() {
-            return registrationRejectedIm;
+        public String getVerifyFailureIm() {
+            return verifyFailureIm;
         }
 
-        public void setRegistrationRejectedIm(String registrationRejectedIm) {
-            this.registrationRejectedIm = registrationRejectedIm;
+        public void setVerifyFailureIm(String verifyFailureIm) {
+            this.verifyFailureIm = verifyFailureIm;
         }
 
-        public String getRegistrationRejectedPush() {
-            return registrationRejectedPush;
+        public String getVerifyFailurePush() {
+            return verifyFailurePush;
         }
 
-        public void setRegistrationRejectedPush(String registrationRejectedPush) {
-            this.registrationRejectedPush = registrationRejectedPush;
+        public void setVerifyFailurePush(String verifyFailurePush) {
+            this.verifyFailurePush = verifyFailurePush;
         }
     }
 }

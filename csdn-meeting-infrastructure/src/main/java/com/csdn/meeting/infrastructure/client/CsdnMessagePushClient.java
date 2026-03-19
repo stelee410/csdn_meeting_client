@@ -97,7 +97,7 @@ public class CsdnMessagePushClient {
      * @param tagName      标签名称
      * @return 发送结果
      */
-    public CsdnMessageResponse sendMeetingPublishPush(String bizId, List<String> userIds, 
+    public CsdnMessageResponse sendMeetingPublishPush(String bizId, List<String> userIds,
                                                        String meetingTitle, String meetingId,
                                                        Long tagId, String tagName) {
         String templateCode = properties.getTemplates().getMeetingPublishPush();
@@ -107,6 +107,70 @@ public class CsdnMessagePushClient {
         params.put("tag", tagName);
         params.put("tagId", String.valueOf(tagId));
         return sendPushNotification(bizId, templateCode, userIds, params);
+    }
+
+    /**
+     * 发送审核通过IM站内信
+     *
+     * @param bizId   业务ID
+     * @param userIds 接收用户ID列表
+     * @param params  模板变量
+     * @return 发送结果
+     */
+    public CsdnMessageResponse sendVerifySuccessIm(String bizId, List<String> userIds, Map<String, String> params) {
+        String templateCode = properties.getTemplates().getVerifySuccessIm();
+        String appKey = properties.getVerifyAppKey();
+        String appSecret = properties.getVerifyAppSecret();
+        CsdnMessageRequest request = new CsdnMessageRequest(templateCode, userIds, params);
+        return doSendWithAuth(bizId, "IM", IM_SEND_PATH, request, appKey, appSecret);
+    }
+
+    /**
+     * 发送审核通过APP推送
+     *
+     * @param bizId   业务ID
+     * @param userIds 接收用户ID列表
+     * @param params  模板变量
+     * @return 发送结果
+     */
+    public CsdnMessageResponse sendVerifySuccessPush(String bizId, List<String> userIds, Map<String, String> params) {
+        String templateCode = properties.getTemplates().getVerifySuccessPush();
+        String appKey = properties.getVerifyAppKey();
+        String appSecret = properties.getVerifyAppSecret();
+        CsdnMessageRequest request = new CsdnMessageRequest(templateCode, userIds, params);
+        return doSendWithAuth(bizId, "PUSH", PUSH_SEND_PATH, request, appKey, appSecret);
+    }
+
+    /**
+     * 发送审核拒绝IM站内信
+     *
+     * @param bizId   业务ID
+     * @param userIds 接收用户ID列表
+     * @param params  模板变量
+     * @return 发送结果
+     */
+    public CsdnMessageResponse sendVerifyFailureIm(String bizId, List<String> userIds, Map<String, String> params) {
+        String templateCode = properties.getTemplates().getVerifyFailureIm();
+        String appKey = properties.getVerifyAppKey();
+        String appSecret = properties.getVerifyAppSecret();
+        CsdnMessageRequest request = new CsdnMessageRequest(templateCode, userIds, params);
+        return doSendWithAuth(bizId, "IM", IM_SEND_PATH, request, appKey, appSecret);
+    }
+
+    /**
+     * 发送审核拒绝APP推送
+     *
+     * @param bizId   业务ID
+     * @param userIds 接收用户ID列表
+     * @param params  模板变量
+     * @return 发送结果
+     */
+    public CsdnMessageResponse sendVerifyFailurePush(String bizId, List<String> userIds, Map<String, String> params) {
+        String templateCode = properties.getTemplates().getVerifyFailurePush();
+        String appKey = properties.getVerifyAppKey();
+        String appSecret = properties.getVerifyAppSecret();
+        CsdnMessageRequest request = new CsdnMessageRequest(templateCode, userIds, params);
+        return doSendWithAuth(bizId, "PUSH", PUSH_SEND_PATH, request, appKey, appSecret);
     }
 
     /**
@@ -191,7 +255,101 @@ public class CsdnMessagePushClient {
 
         } catch (Exception e) {
             logger.error("[CSDN推送] 发送异常 - bizId={}, type={}, error={}", bizId, msgType, e.getMessage(), e);
-            
+
+            // 构造失败响应
+            CsdnMessageResponse errorResponse = new CsdnMessageResponse();
+            errorResponse.setStatus(false);
+            errorResponse.setCode("500");
+            errorResponse.setMessage("发送异常: " + e.getMessage());
+            return errorResponse;
+        }
+    }
+
+    /**
+     * 执行发送（支持自定义认证信息）
+     *
+     * @param bizId     业务ID
+     * @param msgType   消息类型(IM/PUSH)
+     * @param path      接口路径
+     * @param request   请求对象
+     * @param appKey    应用Key
+     * @param appSecret 应用密钥
+     * @return 响应结果
+     */
+    private CsdnMessageResponse doSendWithAuth(String bizId, String msgType, String path,
+                                               CsdnMessageRequest request,
+                                               String appKey, String appSecret) {
+        String url = properties.getBaseUrl() + path;
+
+        // 构建有序的业务参数
+        TreeMap<String, Object> params = new TreeMap<>();
+        params.put("templateCode", request.getTemplateCode());
+        params.put("toUsers", request.getToUsers().toArray());
+        params.put("params", request.getParams());
+
+        String jsonBody = JSON.toJSONString(params);
+        int userCount = request.getToUsers() != null ? request.getToUsers().size() : 0;
+
+        // 记录发送前日志
+        logger.info("[CSDN推送] 发送中 - bizId={}, type={}, template={}, users={}, url={}",
+                bizId, msgType, request.getTemplateCode(), userCount, url);
+        logger.debug("[CSDN推送] 请求体 - bizId={}, body={}", bizId, jsonBody);
+
+        try {
+            // 生成签名参数
+            String timestamp = CsdnMessageSigner.generateTimestamp();
+            String nonce = CsdnMessageSigner.generateNonce();
+
+            // 检查配置
+            if (appKey == null || appKey.isEmpty()) {
+                logger.error("[CSDN推送] AppKey 未配置");
+            }
+            if (appSecret == null || appSecret.isEmpty()) {
+                logger.error("[CSDN推送] AppSecret 未配置");
+            }
+
+            String signature = CsdnMessageSigner.sign3(
+                    appKey,
+                    appSecret,
+                    timestamp,
+                    nonce,
+                    jsonBody
+            );
+
+            // 记录请求头（用于调试）
+            logger.debug("[CSDN推送] 请求头 - App-Key={}, Timestamp={}, Nonce={}, Signature={}",
+                    appKey, timestamp, nonce, signature);
+
+            // 发送HTTP请求
+            HttpResponse response = HttpRequest.post(url)
+                    .header("Content-Type", "application/json")
+                    .header("App-Key", appKey)
+                    .header("Timestamp", timestamp)
+                    .header("Nonce", nonce)
+                    .header("Signature", signature)
+                    .body(jsonBody)
+                    .timeout(30000)
+                    .execute();
+
+            // 解析响应
+            String responseBody = response.body();
+            CsdnMessageResponse result = JSONUtil.toBean(responseBody, CsdnMessageResponse.class);
+
+            // 记录响应日志
+            if (result.isSuccess()) {
+                logger.info("[CSDN推送] 发送成功 - bizId={}, type={}, status={}, code={}",
+                        bizId, msgType, result.getStatus(), result.getCode());
+            } else {
+                logger.warn("[CSDN推送] 发送失败 - bizId={}, type={}, status={}, code={}, message={}",
+                        bizId, msgType, result.getStatus(), result.getCode(), result.getMessage());
+            }
+            logger.debug("[CSDN推送] 响应体 - bizId={}, body={}", bizId, responseBody);
+
+            return result;
+
+        } catch (Exception e) {
+            logger.error("[CSDN推送] 发送异常 - bizId={}, type={}, error={}", bizId, msgType, e.getMessage(), e);
+
             // 构造失败响应
             CsdnMessageResponse errorResponse = new CsdnMessageResponse();
             errorResponse.setStatus(false);
