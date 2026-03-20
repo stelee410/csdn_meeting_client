@@ -85,6 +85,7 @@ start_app() {
   # 这样 DevTools 能监听所有模块的类变化，dev-watch.sh 的热重载才真正生效
   mvn spring-boot:run \
     -pl csdn-meeting-start \
+    -am \
     -Dspring-boot.run.profiles=dev \
     --no-transfer-progress
 }

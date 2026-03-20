@@ -150,3 +150,9 @@ registration:
       label: 职位
       required: false
       source: none
+
+doubao:
+  api-key: ${DOUBAO_API_KEY:ecd79a0c-e5b4-47db-bc8d-dd65a606292a}
+  base-url: https://ark.cn-beijing.volces.com/api/v3/responses
+  model: doubao-seed-2-0-mini-260215
+  timeout-ms: 30000

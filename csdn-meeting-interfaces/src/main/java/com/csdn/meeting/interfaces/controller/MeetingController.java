@@ -3,6 +3,10 @@ package com.csdn.meeting.interfaces.controller;
 import com.csdn.meeting.application.dto.AIParseResultDTO;
 import com.csdn.meeting.application.dto.CreateMeetingCommand;
 import com.csdn.meeting.application.dto.FilterOptionsDTO;
+import com.csdn.meeting.application.dto.GenerateDescriptionDTO;
+import com.csdn.meeting.application.dto.GenerateDescriptionRequest;
+import com.csdn.meeting.application.dto.GenerateImageDTO;
+import com.csdn.meeting.application.dto.GenerateImageRequest;
 import com.csdn.meeting.application.dto.JoinMeetingCommand;
 import com.csdn.meeting.application.dto.MeetingDTO;
 import com.csdn.meeting.application.dto.MeetingDetailPageDTO;
@@ -21,6 +25,8 @@ import com.csdn.meeting.application.dto.TagDTO;
 import com.csdn.meeting.application.dto.TagSuggestionDTO;
 import com.csdn.meeting.application.dto.UpdateMeetingCommand;
 import com.csdn.meeting.application.service.AIParsingUseCase;
+import com.csdn.meeting.application.service.GenerateDescriptionUseCase;
+import com.csdn.meeting.application.service.GenerateImageUseCase;
 import com.csdn.meeting.application.service.HotTagsUseCase;
 import com.csdn.meeting.application.service.MeetingApplicationService;
 import com.csdn.meeting.application.service.MeetingBriefUseCase;
@@ -65,6 +71,8 @@ public class MeetingController {
     private final MeetingListUseCase meetingListUseCase;
     private final MeetingDetailPageUseCase meetingDetailPageUseCase;
     private final HotTagsUseCase hotTagsUseCase;
+    private final GenerateDescriptionUseCase generateDescriptionUseCase;
+    private final GenerateImageUseCase generateImageUseCase;
 
     public MeetingController(MeetingApplicationService meetingApplicationService,
                              TagSuggestionUseCase tagSuggestionUseCase,
@@ -75,7 +83,9 @@ public class MeetingController {
                              MeetingBriefUseCase meetingBriefUseCase,
                              MeetingListUseCase meetingListUseCase,
                              MeetingDetailPageUseCase meetingDetailPageUseCase,
-                             HotTagsUseCase hotTagsUseCase) {
+                             HotTagsUseCase hotTagsUseCase,
+                             GenerateDescriptionUseCase generateDescriptionUseCase,
+                             GenerateImageUseCase generateImageUseCase) {
         this.meetingApplicationService = meetingApplicationService;
         this.tagSuggestionUseCase = tagSuggestionUseCase;
         this.aiParsingUseCase = aiParsingUseCase;
@@ -86,6 +96,8 @@ public class MeetingController {
         this.meetingListUseCase = meetingListUseCase;
         this.meetingDetailPageUseCase = meetingDetailPageUseCase;
         this.hotTagsUseCase = hotTagsUseCase;
+        this.generateDescriptionUseCase = generateDescriptionUseCase;
+        this.generateImageUseCase = generateImageUseCase;
     }
 
     @Operation(summary = "创建草稿", description = "创建会议草稿，仅校验会议标题必填，日程可为空。状态为 DRAFT。")
@@ -175,6 +187,20 @@ public class MeetingController {
         TagSuggestionDTO dto = tagSuggestionUseCase.suggestTags(
                 request != null ? request.getTitle() : null,
                 request != null ? request.getDescription() : null);
+        return ResponseEntity.ok(dto);
+    }
+
+    @Operation(summary = "AI 生成会议简介", description = "根据会议标题和标签，调用豆包大模型生成 100-200 字的专业会议简介。")
+    @PostMapping("/actions/generate-description")
+    public ResponseEntity<GenerateDescriptionDTO> generateDescription(@RequestBody GenerateDescriptionRequest request) {
+        GenerateDescriptionDTO dto = generateDescriptionUseCase.generate(request);
+        return ResponseEntity.ok(dto);
+    }
+
+    @Operation(summary = "AI 生成会议背景图", description = "根据会议标题和简介，生成适合的会议封面背景图 URL。")
+    @PostMapping("/actions/generate-image")
+    public ResponseEntity<GenerateImageDTO> generateImage(@RequestBody GenerateImageRequest request) {
+        GenerateImageDTO dto = generateImageUseCase.generate(request);
         return ResponseEntity.ok(dto);
     }
 
