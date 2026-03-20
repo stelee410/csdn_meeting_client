@@ -91,7 +91,10 @@ public class AIServiceClient implements AIParsePort {
                     log.warn("[AIServiceClient] 文件文本提取为空，fileName={}", fileName);
                     return new AIParseResult();
                 }
+                log.debug("[AIServiceClient] 提取文本长度={} 内容预览={}", extractedText.length(),
+                        truncate(extractedText.replace('\n', ' '), 200));
                 String prompt = AI_PARSE_PROMPT + "\n以下是文件内容：\n" + truncate(extractedText, 4000);
+                log.debug("[AIServiceClient] 发送给豆包的 prompt 长度={}\n{}", prompt.length(), prompt);
                 responseText = doubaoClient.callText(prompt);
             }
             AIParseResult result = parseJsonToResult(responseText);

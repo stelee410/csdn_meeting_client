@@ -151,12 +151,18 @@ registration:
       required: false
       source: none
 
+logging:
+  level:
+    com.csdn.meeting.infrastructure.client.AIServiceClient: DEBUG
+    com.csdn.meeting.infrastructure.client.DoubaoClient: DEBUG
+
 doubao:
   api-key: ${DOUBAO_API_KEY:ecd79a0c-e5b4-47db-bc8d-dd65a606292a}
   base-url: https://ark.cn-beijing.volces.com/api/v3/responses
-  model: doubao-seed-2-0-mini-260215
-  timeout-ms: 30000
+  model: doubao-seed-2-0-lite-260215
+  # HTTP socket 超时必须大于 ai.parse-timeout-seconds，否则底层 socket 会先断开
+  timeout-ms: ${DOUBAO_TIMEOUT_MS:90000}
 
 ai:
   # AI 解析流程总超时（秒）。文档类通常比图片耗时更长。
-  parse-timeout-seconds: ${AI_PARSE_TIMEOUT_SECONDS:40}
+  parse-timeout-seconds: ${AI_PARSE_TIMEOUT_SECONDS:60}

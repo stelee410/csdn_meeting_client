@@ -81,8 +81,9 @@ build() {
 start_app() {
   log "启动 Spring Boot（profile: dev，端口: 8080）..."
   echo ""
-  # 先用 -am 编译依赖模块，确保 domain/infrastructure/application 的最新代码生效
-  mvn -pl csdn-meeting-start -am package -DskipTests --no-transfer-progress -q
+  # install（而不是 package）：把各模块新 JAR 写入本地 .m2，
+  # spring-boot:run 解析依赖时才能读到最新编译产物，而非旧版本 JAR。
+  mvn -pl csdn-meeting-start -am install -DskipTests --no-transfer-progress -q
 
   # 再仅运行 start 模块，避免父聚合模块触发 spring-boot:run（无 main class 会报错）
   mvn spring-boot:run \

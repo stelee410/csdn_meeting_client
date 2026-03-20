@@ -101,7 +101,8 @@ public class DoubaoClient {
 
     private String doCall(JSONObject requestBody) {
         String jsonBody = requestBody.toJSONString();
-        log.debug("[Doubao] request model={} body_len={}", properties.getModel(), jsonBody.length());
+        log.debug("[Doubao] request model={} body_len={} body={}", properties.getModel(), jsonBody.length(),
+                jsonBody.length() > 2000 ? jsonBody.substring(0, 2000) + "...(truncated)" : jsonBody);
 
         HttpResponse response = HttpRequest.post(properties.getBaseUrl())
                 .header("Authorization", "Bearer " + properties.getApiKey())
