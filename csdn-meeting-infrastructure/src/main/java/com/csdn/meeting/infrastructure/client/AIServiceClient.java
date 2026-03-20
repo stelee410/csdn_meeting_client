@@ -88,6 +88,7 @@ public class AIServiceClient implements AIParsePort {
                 responseText = doubaoClient.callText(prompt);
             }
             AIParseResult result = parseJsonToResult(responseText);
+            fillTitleFallbackIfNeeded(result, fileName);
             if (!hasAnyField(result)) {
                 String snippet = responseText == null ? "" : truncate(responseText.replace('\n', ' '), 400);
                 throw new RuntimeException("AI 返回成功但未提取到任何字段，response=" + snippet);
@@ -157,7 +158,16 @@ public class AIServiceClient implements AIParsePort {
                 obj = data;
             }
 
-            result.setTitle(safeStr(obj, "title"));
+            result.setTitle(firstNonBlank(
+                    safeStr(obj, "title"),
+                    safeStr(obj, "meetingTitle"),
+                    safeStr(obj, "meetingName"),
+                    safeStr(obj, "name"),
+                    safeStr(obj, "subject"),
+                    safeStr(obj, "会议名称"),
+                    safeStr(obj, "会议标题"),
+                    safeStr(obj, "主题")
+            ));
             result.setDescription(safeStr(obj, "description"));
             result.setOrganizer(safeStr(obj, "organizer"));
             result.setFormat(safeStr(obj, "format"));
@@ -247,5 +257,74 @@ public class AIServiceClient implements AIParsePort {
 
     private boolean notBlank(String s) {
         return s != null && !s.trim().isEmpty();
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) return null;
+        for (String value : values) {
+            if (notBlank(value)) return value.trim();
+        }
+        return null;
+    }
+
+    private void fillTitleFallbackIfNeeded(AIParseResult result, String fileName) {
+        if (result == null) return;
+        if (notBlank(result.getTitle())) return;
+        // 仅当已经解析出其他字段时兜底标题，避免“全空数据”被误判为成功
+        if (!hasAnyFieldExcludingTitle(result)) return;
+
+        String titleFromDesc = extractTitleFromDescription(result.getDescription());
+        if (notBlank(titleFromDesc)) {
+            result.setTitle(titleFromDesc);
+            return;
+        }
+
+        String titleFromFileName = extractTitleFromFileName(fileName);
+        if (notBlank(titleFromFileName)) {
+            result.setTitle(titleFromFileName);
+        }
+    }
+
+    private boolean hasAnyFieldExcludingTitle(AIParseResult r) {
+        if (r == null) return false;
+        return notBlank(r.getDescription())
+                || notBlank(r.getOrganizer())
+                || notBlank(r.getFormat())
+                || notBlank(r.getScene())
+                || notBlank(r.getVenue())
+                || notBlank(r.getRegions())
+                || notBlank(r.getCoverImage())
+                || !r.getTags().isEmpty()
+                || notBlank(r.getTargetAudience())
+                || r.getStartTime() != null
+                || r.getEndTime() != null
+                || notBlank(r.getScheduleDaysJson());
+    }
+
+    private String extractTitleFromDescription(String description) {
+        if (!notBlank(description)) return null;
+        String d = description.trim().replace('\n', ' ').replace('\r', ' ');
+        String[] separators = new String[]{"。", "！", "？", ".", "!", "?", "；", ";", "，", ","};
+        int end = d.length();
+        for (String separator : separators) {
+            int idx = d.indexOf(separator);
+            if (idx > 0 && idx < end) end = idx;
+        }
+        String candidate = d.substring(0, Math.min(end, 30)).trim();
+        return candidate.isEmpty() ? null : candidate;
+    }
+
+    private String extractTitleFromFileName(String fileName) {
+        if (!notBlank(fileName)) return null;
+        String name = fileName.trim();
+        int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+        if (slash >= 0 && slash + 1 < name.length()) {
+            name = name.substring(slash + 1);
+        }
+        int dot = name.lastIndexOf('.');
+        if (dot > 0) {
+            name = name.substring(0, dot);
+        }
+        return name.trim();
     }
 }

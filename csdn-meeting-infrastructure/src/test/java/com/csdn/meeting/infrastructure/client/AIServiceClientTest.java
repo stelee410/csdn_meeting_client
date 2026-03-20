@@ -56,4 +56,22 @@ class AIServiceClientTest {
         AIServiceClient client = new AIServiceClient(doubaoClient);
         assertThrows(RuntimeException.class, () -> client.parse("fake".getBytes(), "poster.jpg"));
     }
+
+    @Test
+    @DisplayName("image parse: title empty should fallback from description first sentence")
+    void parse_image_titleEmpty_fallbackFromDescription() {
+        DoubaoClient doubaoClient = mock(DoubaoClient.class);
+        String aiJson = "{"
+                + "\"title\":\"\","
+                + "\"description\":\"CSDN 开发者大会，聚焦 AI 工程化实践。\","
+                + "\"organizer\":\"CSDN\""
+                + "}";
+        when(doubaoClient.callWithImage(any(byte[].class), anyString(), anyString())).thenReturn(aiJson);
+
+        AIServiceClient client = new AIServiceClient(doubaoClient);
+        AIParseResult result = client.parse("fake-image".getBytes(), "会议海报.png");
+
+        assertEquals("CSDN 开发者大会", result.getTitle());
+        assertEquals("CSDN", result.getOrganizer());
+    }
 }
