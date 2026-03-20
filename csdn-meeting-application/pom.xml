@@ -44,4 +44,14 @@
             <artifactId>swagger-annotations</artifactId>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 显式声明以继承父 pom 的 annotationProcessorPaths（Lombok/MapStruct） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

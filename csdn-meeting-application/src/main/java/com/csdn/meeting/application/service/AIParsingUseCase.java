@@ -45,13 +45,6 @@ public class AIParsingUseCase {
                             AIParsePort aiParsePort,
                             SensitiveWordFilterPort sensitiveWordFilterPort,
                             @Value("${ai.parse-timeout-seconds:" + DEFAULT_PARSE_TIMEOUT_SECONDS + "}") int parseTimeoutSeconds) {
-        this(virusScanPort, aiParsePort, sensitiveWordFilterPort, parseTimeoutSeconds);
-    }
-
-    AIParsingUseCase(VirusScanPort virusScanPort,
-                     AIParsePort aiParsePort,
-                     SensitiveWordFilterPort sensitiveWordFilterPort,
-                     int parseTimeoutSeconds) {
         this.virusScanPort = virusScanPort;
         this.aiParsePort = aiParsePort;
         this.sensitiveWordFilterPort = sensitiveWordFilterPort;
