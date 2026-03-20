@@ -49,6 +49,12 @@ public class AIServiceClient implements AIParsePort {
             "  \"tags\": [\"标签1\", \"标签2\"],\n" +
             "  \"targetAudience\": \"目标受众，如：开发者、产品经理\"\n" +
             "}\n";
+    private static final String OCR_PROMPT =
+            "请识别这张图片中的全部可见文字，按阅读顺序输出为纯文本。\n" +
+            "要求：\n" +
+            "1) 只输出识别到的文本，不要解释\n" +
+            "2) 保留关键字段（标题、时间、地点、主办方、议程等）\n" +
+            "3) 如果有多段内容可换行输出\n";
 
     private static final List<String> IMAGE_EXTS = Arrays.asList(".jpg", ".jpeg", ".png", ".gif", ".webp");
     private static final List<DateTimeFormatter> DT_FORMATTERS = Arrays.asList(
@@ -70,13 +76,14 @@ public class AIServiceClient implements AIParsePort {
         try {
             log.info("[AIServiceClient] start parse, fileName={}", fileName);
             String responseText;
+            String imageMimeType = null;
             if (isImage(lowerName)) {
                 log.info("[AIServiceClient] parse mode=image");
-                String mimeType = lowerName.endsWith(".png") ? "image/png"
+                imageMimeType = lowerName.endsWith(".png") ? "image/png"
                         : lowerName.endsWith(".gif") ? "image/gif"
                         : lowerName.endsWith(".webp") ? "image/webp"
                         : "image/jpeg";
-                responseText = doubaoClient.callWithImage(fileBytes, mimeType, AI_PARSE_PROMPT);
+                responseText = doubaoClient.callWithImage(fileBytes, imageMimeType, AI_PARSE_PROMPT);
             } else {
                 log.info("[AIServiceClient] parse mode=text, ext={}", lowerName);
                 String extractedText = extractText(fileBytes, lowerName);
@@ -88,6 +95,16 @@ public class AIServiceClient implements AIParsePort {
                 responseText = doubaoClient.callText(prompt);
             }
             AIParseResult result = parseJsonToResult(responseText);
+            // 图片场景下首轮全空时，走 OCR -> 二次结构化提取兜底
+            if (!hasAnyField(result) && imageMimeType != null) {
+                log.warn("[AIServiceClient] first parse empty, try OCR fallback, fileName={}", fileName);
+                String ocrText = doubaoClient.callWithImage(fileBytes, imageMimeType, OCR_PROMPT);
+                if (notBlank(ocrText)) {
+                    String retryPrompt = AI_PARSE_PROMPT + "\n以下是图片 OCR 识别文本：\n" + truncate(ocrText, 4000);
+                    String retryResponse = doubaoClient.callText(retryPrompt);
+                    result = parseJsonToResult(retryResponse);
+                }
+            }
             fillTitleFallbackIfNeeded(result, fileName);
             if (!hasAnyField(result)) {
                 String snippet = responseText == null ? "" : truncate(responseText.replace('\n', ' '), 400);

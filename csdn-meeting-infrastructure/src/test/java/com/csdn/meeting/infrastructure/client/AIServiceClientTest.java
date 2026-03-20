@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
 @DisplayName("AIServiceClient: should call AI and parse fields")
 class AIServiceClientTest {
@@ -73,5 +74,25 @@ class AIServiceClientTest {
 
         assertEquals("CSDN 开发者大会", result.getTitle());
         assertEquals("CSDN", result.getOrganizer());
+    }
+
+    @Test
+    @DisplayName("image parse: first round empty then OCR fallback succeeds")
+    void parse_image_firstEmpty_thenOcrFallback() {
+        DoubaoClient doubaoClient = mock(DoubaoClient.class);
+        when(doubaoClient.callWithImage(any(byte[].class), anyString(), anyString()))
+                .thenReturn("{}")
+                .thenReturn("会议标题：CSDN AI 大会\n主办方：CSDN\n地点：北京");
+        when(doubaoClient.callText(anyString()))
+                .thenReturn("{\"title\":\"CSDN AI 大会\",\"organizer\":\"CSDN\",\"venue\":\"北京\"}");
+
+        AIServiceClient client = new AIServiceClient(doubaoClient);
+        AIParseResult result = client.parse("fake-image".getBytes(), "poster.png");
+
+        assertEquals("CSDN AI 大会", result.getTitle());
+        assertEquals("CSDN", result.getOrganizer());
+        assertEquals("北京", result.getVenue());
+        verify(doubaoClient, times(2)).callWithImage(any(byte[].class), anyString(), anyString());
+        verify(doubaoClient, times(1)).callText(anyString());
     }
 }
