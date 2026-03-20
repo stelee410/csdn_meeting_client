@@ -160,6 +160,7 @@ doubao:
   api-key: ${DOUBAO_API_KEY:ecd79a0c-e5b4-47db-bc8d-dd65a606292a}
   base-url: https://ark.cn-beijing.volces.com/api/v3/responses
   model: doubao-seed-2-0-lite-260215
+  image-model: ${DOUBAO_IMAGE_MODEL:doubao-seedream-5-0-260128}
   # HTTP socket 超时必须大于 ai.parse-timeout-seconds，否则底层 socket 会先断开
   timeout-ms: ${DOUBAO_TIMEOUT_MS:90000}
 

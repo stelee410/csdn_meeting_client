@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 豆包大模型通用 HTTP 客户端。
@@ -78,6 +80,42 @@ public class DoubaoClient {
         body.put("input", input);
 
         return doCall(body);
+    }
+
+    /**
+     * 文生图调用：使用 Seedream 模型根据 prompt 生成图片，返回第一张图片的 URL。
+     * 响应格式：output[].content[].text 中包含 Markdown 图片链接 ![Image N](url)
+     *
+     * @param prompt 中文图片描述 prompt
+     * @param size   分辨率，如 "2K"、"2848x1600"（16:9 宽屏）
+     * @return 图片 URL；失败时返回 null
+     */
+    public String callImageGenerate(String prompt, String size) {
+        JSONObject body = new JSONObject();
+        body.put("model", properties.getImageModel());
+        body.put("input", prompt);
+        body.put("size", size);
+        body.put("sequential_image_generation", "disabled");
+        body.put("response_format", "url");
+        body.put("watermark", false);
+
+        log.debug("[Doubao] image generate model={} size={} prompt={}", properties.getImageModel(), size,
+                prompt.length() > 100 ? prompt.substring(0, 100) + "..." : prompt);
+
+        String responseText = doCall(body);
+        return extractImageUrl(responseText);
+    }
+
+    /** 从 Markdown 文本中提取第一个图片 URL：![...](url) */
+    private String extractImageUrl(String text) {
+        if (text == null || text.isEmpty()) return null;
+        Matcher m = Pattern.compile("!\\[.*?]\\((https?://[^)]+)\\)").matcher(text);
+        if (m.find()) return m.group(1);
+        // 兜底：直接匹配火山 TOS 域名 URL
+        Matcher m2 = Pattern.compile("https?://ark-acg[^\\s\"')]+").matcher(text);
+        if (m2.find()) return m2.group(0);
+        log.warn("[Doubao] 图片 URL 提取失败，原始响应: {}", text);
+        return null;
     }
 
     // ---- private helpers ----

@@ -17,8 +17,11 @@ public class DoubaoProperties {
     /** 请求端点 */
     private String baseUrl = "https://ark.cn-beijing.volces.com/api/v3/responses";
 
-    /** 使用的模型名称 */
+    /** 使用的文本/多模态模型名称 */
     private String model = "doubao-seed-2-0-mini-260215";
+
+    /** 文生图模型名称 */
+    private String imageModel = "doubao-seedream-5-0-260128";
 
     /** 请求超时时间（毫秒） */
     private int timeoutMs = 30000;
@@ -45,6 +48,14 @@ public class DoubaoProperties {
 
     public void setModel(String model) {
         this.model = model;
+    }
+
+    public String getImageModel() {
+        return imageModel;
+    }
+
+    public void setImageModel(String imageModel) {
+        this.imageModel = imageModel;
     }
 
     public int getTimeoutMs() {
