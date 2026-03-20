@@ -14,8 +14,11 @@ public class DoubaoProperties {
     /** API Key，生产环境通过 DOUBAO_API_KEY 环境变量注入 */
     private String apiKey;
 
-    /** 请求端点 */
+    /** 文本/多模态模型端点 */
     private String baseUrl = "https://ark.cn-beijing.volces.com/api/v3/responses";
+
+    /** 文生图模型端点（images/generations，OpenAI DALL-E 兼容格式） */
+    private String imageBaseUrl = "https://ark.cn-beijing.volces.com/api/v3/images/generations";
 
     /** 使用的文本/多模态模型名称 */
     private String model = "doubao-seed-2-0-mini-260215";
@@ -40,6 +43,14 @@ public class DoubaoProperties {
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    public String getImageBaseUrl() {
+        return imageBaseUrl;
+    }
+
+    public void setImageBaseUrl(String imageBaseUrl) {
+        this.imageBaseUrl = imageBaseUrl;
     }
 
     public String getModel() {

@@ -83,38 +83,67 @@ public class DoubaoClient {
     }
 
     /**
-     * 文生图调用：使用 Seedream 模型根据 prompt 生成图片，返回第一张图片的 URL。
-     * 响应格式：output[].content[].text 中包含 Markdown 图片链接 ![Image N](url)
+     * 文生图调用：使用 /api/v3/images/generations 端点（OpenAI DALL-E 兼容格式）。
+     * 请求体：{"model":..., "prompt":..., "size":..., "n":1, "response_format":"url"}
+     * 响应体：{"data":[{"url":"https://..."}]}
      *
      * @param prompt 中文图片描述 prompt
-     * @param size   分辨率，如 "2K"、"2848x1600"（16:9 宽屏）
-     * @return 图片 URL；失败时返回 null
+     * @param size   分辨率，如 "1792x1024"（16:9）、"1024x1024"（1:1）
+     * @return 图片 URL；失败时抛出 RuntimeException
      */
     public String callImageGenerate(String prompt, String size) {
         JSONObject body = new JSONObject();
         body.put("model", properties.getImageModel());
-        body.put("input", prompt);
+        body.put("prompt", prompt);
         body.put("size", size);
-        body.put("sequential_image_generation", "disabled");
+        body.put("n", 1);
         body.put("response_format", "url");
-        body.put("watermark", false);
 
         log.debug("[Doubao] image generate model={} size={} prompt={}", properties.getImageModel(), size,
                 prompt.length() > 100 ? prompt.substring(0, 100) + "..." : prompt);
 
-        String responseText = doCall(body);
-        return extractImageUrl(responseText);
+        String jsonBody = body.toJSONString();
+        log.debug("[Doubao] image request body_len={}", jsonBody.length());
+
+        HttpResponse response = HttpRequest.post(properties.getImageBaseUrl())
+                .header("Authorization", "Bearer " + properties.getApiKey())
+                .header("Content-Type", "application/json")
+                .body(jsonBody)
+                .timeout(properties.getTimeoutMs())
+                .execute();
+
+        String responseBody = response.body();
+        log.debug("[Doubao] image response status={} body={}", response.getStatus(), responseBody);
+
+        if (!response.isOk()) {
+            throw new RuntimeException("豆包图片生成失败，HTTP " + response.getStatus() + ": " + responseBody);
+        }
+
+        return extractImageUrlFromGenerationsResponse(responseBody);
     }
 
-    /** 从 Markdown 文本中提取第一个图片 URL：![...](url) */
-    private String extractImageUrl(String text) {
-        if (text == null || text.isEmpty()) return null;
-        Matcher m = Pattern.compile("!\\[.*?]\\((https?://[^)]+)\\)").matcher(text);
-        if (m.find()) return m.group(1);
-        // 兜底：直接匹配火山 TOS 域名 URL
-        Matcher m2 = Pattern.compile("https?://ark-acg[^\\s\"')]+").matcher(text);
-        if (m2.find()) return m2.group(0);
-        log.warn("[Doubao] 图片 URL 提取失败，原始响应: {}", text);
+    /** 从 /api/v3/images/generations 响应中提取图片 URL：{"data":[{"url":"..."}]} */
+    private String extractImageUrlFromGenerationsResponse(String responseBody) {
+        try {
+            JSONObject root = JSON.parseObject(responseBody);
+            JSONArray data = root.getJSONArray("data");
+            if (data != null && !data.isEmpty()) {
+                JSONObject first = data.getJSONObject(0);
+                if (first != null) {
+                    String url = first.getString("url");
+                    if (url != null && !url.isEmpty()) return url;
+                    // b64_json 兜底（将 base64 转为 data URL 并警告）
+                    String b64 = first.getString("b64_json");
+                    if (b64 != null && !b64.isEmpty()) {
+                        log.warn("[Doubao] 图片以 b64_json 返回，建议改为 url 格式");
+                        return "data:image/jpeg;base64," + b64;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("[Doubao] 图片响应解析失败: {}", e.getMessage());
+        }
+        log.warn("[Doubao] 图片 URL 提取失败，原始响应: {}", responseBody);
         return null;
     }
 

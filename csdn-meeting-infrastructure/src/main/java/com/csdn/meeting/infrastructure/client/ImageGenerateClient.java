@@ -15,8 +15,8 @@ public class ImageGenerateClient implements ImageGeneratePort {
 
     private static final Logger log = LoggerFactory.getLogger(ImageGenerateClient.class);
 
-    /** 图片尺寸：16:9 宽屏，2K 分辨率（2848×1600） */
-    private static final String IMAGE_SIZE = "2848x1600";
+    /** 图片尺寸：Seedream 5.0 关键字，2K（约 2048×2048），API 自动根据 prompt 选择最佳宽高比 */
+    private static final String IMAGE_SIZE = "2K";
 
     private static final String IMAGE_PROMPT_TEMPLATE =
             "专业会议海报横幅背景图，宽屏16:9比例，无任何文字和文本。\n" +

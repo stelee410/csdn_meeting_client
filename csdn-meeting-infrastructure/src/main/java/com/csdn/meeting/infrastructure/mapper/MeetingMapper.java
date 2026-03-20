@@ -18,6 +18,7 @@ public interface MeetingMapper {
     @Mapping(target = "format", source = "format", qualifiedByName = "formatToString")
     @Mapping(target = "meetingType", source = "meetingType", qualifiedByName = "meetingTypeToString")
     @Mapping(target = "targetAudience", source = "targetAudience", qualifiedByName = "toJsonArray")
+    @Mapping(target = "regions", source = "regions", qualifiedByName = "toJsonArray")
     MeetingPO toPO(Meeting meeting);
 
     @Mapping(target = "status", source = "status", qualifiedByName = "intToStatus")

@@ -34,12 +34,14 @@ public class AIServiceClient implements AIParsePort {
     private static final Logger log = LoggerFactory.getLogger(AIServiceClient.class);
 
     private static final String AI_PARSE_PROMPT =
-            "请从以下会议资料中提取结构化信息，严格以 JSON 格式返回，不要任何解释或 markdown 标记，只返回 JSON。\n" +
-            "JSON 字段（未识别的字段留空字符串或空数组）：\n" +
+            "请从以下文件内容中提取与会议/活动相关的结构化信息，严格以 JSON 格式返回，不要任何解释或 markdown 标记，只返回 JSON。\n" +
+            "文件可能是会议通知、申报书、方案书、邀请函或其他文档，请尽量推断提取，无法确认的字段留空字符串或空数组。\n" +
+            "重要：title 字段必须填写，若找不到明确会议标题，可从文档主题或文件名推断。\n" +
+            "JSON 字段：\n" +
             "{\n" +
-            "  \"title\": \"会议标题\",\n" +
-            "  \"description\": \"会议简介（100-300字）\",\n" +
-            "  \"organizer\": \"主办方\",\n" +
+            "  \"title\": \"会议/活动标题（必填，若无明确标题则从文档主题推断）\",\n" +
+            "  \"description\": \"会议简介（100-300字，若为申报书等可摘要文档核心内容）\",\n" +
+            "  \"organizer\": \"主办方或申报单位\",\n" +
             "  \"format\": \"会议形式，只能是：线上 或 线下 或 线上+线下\",\n" +
             "  \"scene\": \"会议场景，如：开发者会议、产业会议、产品发布会议\",\n" +
             "  \"venue\": \"会议地点\",\n" +
@@ -93,7 +95,7 @@ public class AIServiceClient implements AIParsePort {
                 }
                 log.debug("[AIServiceClient] 提取文本长度={} 内容预览={}", extractedText.length(),
                         truncate(extractedText.replace('\n', ' '), 200));
-                String prompt = AI_PARSE_PROMPT + "\n以下是文件内容：\n" + truncate(extractedText, 4000);
+                String prompt = AI_PARSE_PROMPT + "\n以下是文件内容：\n" + truncate(extractedText, 8000);
                 log.debug("[AIServiceClient] 发送给豆包的 prompt 长度={}\n{}", prompt.length(), prompt);
                 responseText = doubaoClient.callText(prompt);
             }
@@ -290,15 +292,15 @@ public class AIServiceClient implements AIParsePort {
     private void fillTitleFallbackIfNeeded(AIParseResult result, String fileName) {
         if (result == null) return;
         if (notBlank(result.getTitle())) return;
-        // 仅当已经解析出其他字段时兜底标题，避免“全空数据”被误判为成功
-        if (!hasAnyFieldExcludingTitle(result)) return;
 
+        // 优先从 description 首句提取标题
         String titleFromDesc = extractTitleFromDescription(result.getDescription());
         if (notBlank(titleFromDesc)) {
             result.setTitle(titleFromDesc);
             return;
         }
 
+        // 最终兼底：用文件名作为标题，确保解析不会因 title 缺失而整体失败
         String titleFromFileName = extractTitleFromFileName(fileName);
         if (notBlank(titleFromFileName)) {
             result.setTitle(titleFromFileName);
