@@ -9,6 +9,7 @@ import com.csdn.meeting.domain.port.AIParseResult;
 import com.csdn.meeting.domain.port.SensitiveWordFilterPort;
 import com.csdn.meeting.domain.port.VirusScanPort;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeoutException;
 @Service
 public class AIParsingUseCase {
 
-    private static final int DEFAULT_PARSE_TIMEOUT_SECONDS = 15;
+    private static final int DEFAULT_PARSE_TIMEOUT_SECONDS = 40;
 
     private final VirusScanPort virusScanPort;
     private final AIParsePort aiParsePort;
@@ -42,8 +43,9 @@ public class AIParsingUseCase {
     @Autowired
     public AIParsingUseCase(VirusScanPort virusScanPort,
                             AIParsePort aiParsePort,
-                            SensitiveWordFilterPort sensitiveWordFilterPort) {
-        this(virusScanPort, aiParsePort, sensitiveWordFilterPort, DEFAULT_PARSE_TIMEOUT_SECONDS);
+                            SensitiveWordFilterPort sensitiveWordFilterPort,
+                            @Value("${ai.parse-timeout-seconds:" + DEFAULT_PARSE_TIMEOUT_SECONDS + "}") int parseTimeoutSeconds) {
+        this(virusScanPort, aiParsePort, sensitiveWordFilterPort, parseTimeoutSeconds);
     }
 
     AIParsingUseCase(VirusScanPort virusScanPort,
@@ -75,10 +77,11 @@ public class AIParsingUseCase {
             throw new BusinessException(400, "文件病毒扫描失败: " + e.getMessage(), e);
         }
 
-        // 2. LLM 解析（15s 超时）
+        // 2. LLM 解析（超时时间可配置）
         AIParseResult parseResult;
+        Future<AIParseResult> future = null;
         try {
-            Future<AIParseResult> future = executor.submit(new Callable<AIParseResult>() {
+            future = executor.submit(new Callable<AIParseResult>() {
                 @Override
                 public AIParseResult call() {
                     return aiParsePort.parse(fileBytes, fileName);
@@ -86,6 +89,9 @@ public class AIParsingUseCase {
             });
             parseResult = future.get(parseTimeoutSeconds, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
+            if (future != null) {
+                future.cancel(true);
+            }
             throw new AIParseException("AI 解析超时(" + parseTimeoutSeconds + "秒)");
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();

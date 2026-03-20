@@ -156,3 +156,7 @@ doubao:
   base-url: https://ark.cn-beijing.volces.com/api/v3/responses
   model: doubao-seed-2-0-mini-260215
   timeout-ms: 30000
+
+ai:
+  # AI 解析流程总超时（秒）。文档类通常比图片耗时更长。
+  parse-timeout-seconds: ${AI_PARSE_TIMEOUT_SECONDS:40}
