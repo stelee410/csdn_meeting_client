@@ -81,11 +81,12 @@ build() {
 start_app() {
   log "启动 Spring Boot（profile: dev，端口: 8080）..."
   echo ""
-  # -am: 同时编译所有依赖模块，Spring Boot 直接从各模块 target/classes 加载
-  # 这样 DevTools 能监听所有模块的类变化，dev-watch.sh 的热重载才真正生效
+  # 先用 -am 编译依赖模块，确保 domain/infrastructure/application 的最新代码生效
+  mvn -pl csdn-meeting-start -am package -DskipTests --no-transfer-progress -q
+
+  # 再仅运行 start 模块，避免父聚合模块触发 spring-boot:run（无 main class 会报错）
   mvn spring-boot:run \
     -pl csdn-meeting-start \
-    -am \
     -Dspring-boot.run.profiles=dev \
     --no-transfer-progress
 }
