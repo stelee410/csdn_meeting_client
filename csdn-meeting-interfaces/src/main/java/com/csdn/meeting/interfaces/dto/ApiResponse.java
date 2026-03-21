@@ -13,7 +13,7 @@ public class ApiResponse<T> {
     private int code;
 
     @Schema(description = "响应消息", example = "success")
-    private String message;
+    private String msg;
 
     @Schema(description = "响应数据")
     private T data;
@@ -24,22 +24,22 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> success(T data) {
         ApiResponse<T> response = new ApiResponse<>();
         response.setCode(200);
-        response.setMessage("success");
+        response.setMsg("success");
         response.setData(data);
         return response;
     }
 
-    public static <T> ApiResponse<T> error(int code, String message) {
+    public static <T> ApiResponse<T> error(int code, String msg) {
         ApiResponse<T> response = new ApiResponse<>();
         response.setCode(code);
-        response.setMessage(message);
+        response.setMsg(msg);
         return response;
     }
 
-    public static <T> ApiResponse<T> error(int code, String message, String field) {
+    public static <T> ApiResponse<T> error(int code, String msg, String field) {
         ApiResponse<T> response = new ApiResponse<>();
         response.setCode(code);
-        response.setMessage(message);
+        response.setMsg(msg);
         response.setField(field);
         return response;
     }
@@ -52,12 +52,12 @@ public class ApiResponse<T> {
         this.code = code;
     }
 
-    public String getMessage() {
-        return message;
+    public String getMsg() {
+        return msg;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 
     public T getData() {
