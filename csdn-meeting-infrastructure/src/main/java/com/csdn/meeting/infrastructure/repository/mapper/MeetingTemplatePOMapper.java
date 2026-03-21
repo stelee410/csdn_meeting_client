@@ -9,5 +9,5 @@ import java.util.List;
 @Mapper
 public interface MeetingTemplatePOMapper extends BaseMapper<MeetingTemplatePO> {
 
-    List<MeetingTemplatePO> selectByIsActiveTrueOrderBySortOrderAsc();
+    List<MeetingTemplatePO> selectListedOrderBySortWeightDesc();
 }

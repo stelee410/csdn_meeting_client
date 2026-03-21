@@ -42,7 +42,7 @@ class MeetingTemplateUseCaseTest {
         MeetingTemplate t1 = new MeetingTemplate();
         t1.setId(1L);
         t1.setName("技术沙龙");
-        t1.setIsActive(true);
+        t1.setStatus(2);
         when(templateRepository.findAllActive()).thenReturn(Arrays.asList(t1));
 
         List<MeetingTemplate> result = useCase.getAllActive();
@@ -81,10 +81,10 @@ class MeetingTemplateUseCaseTest {
         MeetingTemplate template = new MeetingTemplate();
         template.setId(1L);
         template.setName("技术沙龙");
-        template.setDescriptionTemplate("简介骨架");
-        template.setScene("开发者会议");
-        template.setDefaultTags("[\"Java\"]");
-        template.setTargetAudience("{\"level\":\"中级\"}");
+        template.setDefaultIntro("简介骨架");
+        template.setDefaultScene("开发者会议");
+        template.setDefaultTags("Java");
+        template.setDefaultAudience("中级工程师");
         when(templateRepository.findById(1L)).thenReturn(Optional.of(template));
 
         MeetingDTO expectedDto = new MeetingDTO();
@@ -116,111 +116,81 @@ class MeetingTemplateUseCaseTest {
     }
 
     @Test
-    @DisplayName("create: 默认 isActive=false（issue001 新建模板应为未上架）")
-    void create_defaultIsActiveFalse() {
+    @DisplayName("create: 新建模板默认 status=0（DRAFT）")
+    void create_defaultStatusDraft() {
         MeetingTemplateDTO dto = new MeetingTemplateDTO();
         dto.setName("新模板");
-        dto.setScene("开发者会议");
+        dto.setDefaultScene("开发者会议");
         MeetingTemplate saved = new MeetingTemplate();
         saved.setId(1L);
         saved.setName("新模板");
-        saved.setIsActive(false);
+        saved.setStatus(0);
         when(templateRepository.save(any(MeetingTemplate.class))).thenAnswer(inv -> {
             MeetingTemplate e = inv.getArgument(0);
-            saved.setId(1L);
             saved.setName(e.getName());
-            saved.setIsActive(e.getIsActive());
+            saved.setStatus(e.getStatus());
             return saved;
         });
 
         MeetingTemplateDTO result = useCase.create(dto);
 
         assertNotNull(result);
-        assertFalse(result.getIsActive());
+        assertEquals(0, result.getStatus());
     }
 
     @Test
-    @DisplayName("offline: 下架模板")
-    void offline_setsInactive() {
+    @DisplayName("offline: 下架模板（status → UNLISTED=1）")
+    void offline_setsUnlisted() {
         MeetingTemplate t = new MeetingTemplate();
         t.setId(1L);
         t.setName("技术沙龙");
-        t.setIsActive(true);
+        t.setStatus(2);
         when(templateRepository.findById(1L)).thenReturn(Optional.of(t));
         when(templateRepository.save(any(MeetingTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
 
         MeetingTemplateDTO result = useCase.offline(1L);
 
         assertNotNull(result);
-        assertFalse(result.getIsActive());
-        verify(templateRepository).save(argThat(e -> !e.getIsActive()));
+        assertEquals(1, result.getStatus());
+        verify(templateRepository).save(argThat(e -> Integer.valueOf(1).equals(e.getStatus())));
     }
 
     @Test
-    @DisplayName("create: 目标人群和技术标签全角逗号规范为半角")
-    void create_normalizesCommaSeparatedFields() {
-        MeetingTemplateDTO dto = new MeetingTemplateDTO();
-        dto.setName("新模板");
-        dto.setScene("开发者会议");
-        dto.setDefaultTags("Java，Python，Go");    // 全角逗号
-        dto.setTargetAudience("开发者，架构师，经理");  // 全角逗号
-        MeetingTemplate saved = new MeetingTemplate();
-        saved.setId(1L);
-        when(templateRepository.save(argThat(e ->
-                "Java,Python,Go".equals(e.getDefaultTags())
-                        && "开发者,架构师,经理".equals(e.getTargetAudience())
-        ))).thenAnswer(inv -> {
-            MeetingTemplate e = inv.getArgument(0);
-            saved.setId(1L);
-            saved.setDefaultTags(e.getDefaultTags());
-            saved.setTargetAudience(e.getTargetAudience());
-            return saved;
-        });
-
-        useCase.create(dto);
-
-        verify(templateRepository).save(argThat(e ->
-                "Java,Python,Go".equals(e.getDefaultTags())
-                        && "开发者,架构师,经理".equals(e.getTargetAudience())
-        ));
-    }
-
-    @Test
-    @DisplayName("update: 目标人群和技术标签全角逗号规范为半角")
-    void update_normalizesCommaSeparatedFields() {
+    @DisplayName("update: 更新 defaultTags 和 defaultAudience")
+    void update_updatesTagsAndAudience() {
         MeetingTemplate existing = new MeetingTemplate();
         existing.setId(1L);
         existing.setName("旧模板");
         existing.setDefaultTags("old");
-        existing.setTargetAudience("old");
+        existing.setDefaultAudience("old");
         when(templateRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(templateRepository.save(any(MeetingTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
 
         MeetingTemplateDTO dto = new MeetingTemplateDTO();
-        dto.setDefaultTags("前端，后端");
-        dto.setTargetAudience("技术 leader，CTO");
+        dto.setDefaultTags("Java,Python,Go");
+        dto.setDefaultAudience("开发者,架构师");
 
         useCase.update(1L, dto);
 
         verify(templateRepository).save(argThat(e ->
-                "前端,后端".equals(e.getDefaultTags())
-                        && "技术 leader,CTO".equals(e.getTargetAudience())
+                "Java,Python,Go".equals(e.getDefaultTags())
+                        && "开发者,架构师".equals(e.getDefaultAudience())
         ));
     }
 
     @Test
-    @DisplayName("shelve: 上架模板")
-    void shelve_setsActive() {
+    @DisplayName("shelve: 上架模板（status → LISTED=2）")
+    void shelve_setsListed() {
         MeetingTemplate t = new MeetingTemplate();
         t.setId(1L);
         t.setName("技术沙龙");
-        t.setIsActive(false);
+        t.setStatus(1);
         when(templateRepository.findById(1L)).thenReturn(Optional.of(t));
         when(templateRepository.save(any(MeetingTemplate.class))).thenAnswer(inv -> inv.getArgument(0));
 
         MeetingTemplateDTO result = useCase.shelve(1L);
 
         assertNotNull(result);
-        assertTrue(result.getIsActive());
+        assertEquals(2, result.getStatus());
     }
 }

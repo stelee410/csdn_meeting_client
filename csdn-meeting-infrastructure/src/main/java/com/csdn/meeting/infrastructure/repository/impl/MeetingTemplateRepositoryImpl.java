@@ -39,7 +39,7 @@ public class MeetingTemplateRepositoryImpl implements MeetingTemplateRepository 
 
     @Override
     public List<MeetingTemplate> findAllActive() {
-        return templatePOMapper.selectByIsActiveTrueOrderBySortOrderAsc().stream()
+        return templatePOMapper.selectListedOrderBySortWeightDesc().stream()
                 .map(MeetingTemplateMapper.INSTANCE::toEntity)
                 .collect(Collectors.toList());
     }

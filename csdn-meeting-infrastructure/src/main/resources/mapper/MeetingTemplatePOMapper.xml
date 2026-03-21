@@ -2,9 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.csdn.meeting.infrastructure.repository.mapper.MeetingTemplatePOMapper">
 
-    <select id="selectByIsActiveTrueOrderBySortOrderAsc" resultType="com.csdn.meeting.infrastructure.po.MeetingTemplatePO">
-        SELECT * FROM t_meeting_template
-        WHERE is_active = 1 AND (is_deleted = 0 OR is_deleted IS NULL)
-        ORDER BY sort_order ASC
+    <select id="selectListedOrderBySortWeightDesc" resultType="com.csdn.meeting.infrastructure.po.MeetingTemplatePO">
+        SELECT * FROM t_activity_template
+        WHERE status = 2 AND (is_deleted = 0 OR is_deleted IS NULL)
+        ORDER BY sort_weight DESC
     </select>
 </mapper>
