@@ -35,7 +35,6 @@ class AIParsingUseCaseTest {
     private AIParsePort aiParsePort;
     @Mock
     private SensitiveWordFilterPort sensitiveWordFilterPort;
-
     private AIParsingUseCase useCase;
 
     @BeforeEach

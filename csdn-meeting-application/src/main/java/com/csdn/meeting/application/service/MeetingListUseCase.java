@@ -187,8 +187,8 @@ public class MeetingListUseCase {
             try {
                 ids.add(Long.parseLong(trimmed));
             } catch (NumberFormatException ignored) {
-                // 忽略非法 ID
-                logger.error("tagsStr {} has error tag: {}", tagsStr, s);
+                // tags 字段存了名称（非 ID），跳过即可
+                logger.debug("tags 字段包含非 ID 值，已跳过: {}", s);
             }
         }
         return ids.stream().distinct().collect(Collectors.toList());

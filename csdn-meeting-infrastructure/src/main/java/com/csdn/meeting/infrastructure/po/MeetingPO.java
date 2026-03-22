@@ -117,6 +117,19 @@ public class MeetingPO {
     @TableField("require_checkin")
     private Boolean requireCheckin;
 
+    // V18新增字段 - 场景扩展
+    @TableField("scene_industry")
+    private String sceneIndustry;
+
+    @TableField("scene_product")
+    private String sceneProduct;
+
+    @TableField("scene_marketing_regions")
+    private String sceneMarketingRegions;
+
+    @TableField("scene_universities")
+    private String sceneUniversities;
+
     /**
      * 软删除标志：0-未删除, 1-已删除
      */
@@ -201,4 +214,14 @@ public class MeetingPO {
     
     public Integer getIsDeleted() { return isDeleted; }
     public void setIsDeleted(Integer isDeleted) { this.isDeleted = isDeleted; }
+
+    // V18场景扩展字段
+    public String getSceneIndustry() { return sceneIndustry; }
+    public void setSceneIndustry(String sceneIndustry) { this.sceneIndustry = sceneIndustry; }
+    public String getSceneProduct() { return sceneProduct; }
+    public void setSceneProduct(String sceneProduct) { this.sceneProduct = sceneProduct; }
+    public String getSceneMarketingRegions() { return sceneMarketingRegions; }
+    public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
+    public String getSceneUniversities() { return sceneUniversities; }
+    public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
 }

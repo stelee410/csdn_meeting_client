@@ -25,6 +25,12 @@ public class UpdateMeetingCommand {
     private Boolean isPremium;
     private List<ScheduleDayDTO> scheduleDays;
 
+    // V18 场景扩展字段
+    private String sceneIndustry;
+    private String sceneProduct;
+    private String sceneMarketingRegions;
+    private String sceneUniversities;
+
     public String getTitle() {
         return title;
     }
@@ -152,4 +158,13 @@ public class UpdateMeetingCommand {
     public void setScheduleDays(List<ScheduleDayDTO> scheduleDays) {
         this.scheduleDays = scheduleDays;
     }
+
+    public String getSceneIndustry() { return sceneIndustry; }
+    public void setSceneIndustry(String sceneIndustry) { this.sceneIndustry = sceneIndustry; }
+    public String getSceneProduct() { return sceneProduct; }
+    public void setSceneProduct(String sceneProduct) { this.sceneProduct = sceneProduct; }
+    public String getSceneMarketingRegions() { return sceneMarketingRegions; }
+    public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
+    public String getSceneUniversities() { return sceneUniversities; }
+    public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
 }

@@ -34,6 +34,22 @@ public class DictionaryDTO {
     @Schema(description = "主办方 / 公司（支持模糊匹配的候选列表）")
     private List<Option> organizers;
 
+    @Schema(description = "所属产业（场景=产业会议）")
+    private List<Option> sceneIndustries;
+
+    @Schema(description = "涉及区域（场景=区域营销会议）")
+    private List<Option> sceneMarketingRegions;
+
+    @Schema(description = "涉及高校（场景=高校会议）")
+    private List<Option> sceneUniversities;
+
+    public List<Option> getSceneIndustries() { return sceneIndustries; }
+    public void setSceneIndustries(List<Option> sceneIndustries) { this.sceneIndustries = sceneIndustries; }
+    public List<Option> getSceneMarketingRegions() { return sceneMarketingRegions; }
+    public void setSceneMarketingRegions(List<Option> sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
+    public List<Option> getSceneUniversities() { return sceneUniversities; }
+    public void setSceneUniversities(List<Option> sceneUniversities) { this.sceneUniversities = sceneUniversities; }
+
     @Data
     @Schema(description = "选项项")
     public static class Option {

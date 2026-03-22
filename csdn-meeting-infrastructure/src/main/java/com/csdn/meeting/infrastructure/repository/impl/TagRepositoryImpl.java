@@ -147,4 +147,28 @@ public class TagRepositoryImpl implements TagRepository {
     public void deleteById(Long id) {
         tagMapper.deleteById(id);
     }
+
+    @Override
+    public List<Tag> findOrCreateByNames(List<String> tagNames, Tag.TagCategory defaultCategory) {
+        if (tagNames == null || tagNames.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<String> distinctNames = tagNames.stream()
+                .filter(n -> n != null && !n.trim().isEmpty())
+                .map(String::trim)
+                .distinct()
+                .collect(Collectors.toList());
+        if (distinctNames.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // 构造 Tag 对象（INSERT IGNORE 保证已有的不重复插入）
+        List<Tag> toSave = distinctNames.stream().map(name -> {
+            Tag tag = new Tag();
+            tag.setTagName(name);
+            tag.setTagCategory(defaultCategory != null ? defaultCategory : Tag.TagCategory.TOPIC);
+            return tag;
+        }).collect(Collectors.toList());
+        // saveAll = batchInsertOrIgnore + findByTagNamesIn，返回携带 ID 的完整列表
+        return saveAll(toSave);
+    }
 }

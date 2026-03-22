@@ -14,15 +14,14 @@
 
     <!-- 批量插入或更新标签（忽略重复） -->
     <insert id="batchInsertOrIgnore">
-        INSERT INTO t_tag (tag_name, tag_category, create_time, create_by, update_time, update_by, is_deleted)
+        INSERT INTO t_tag (tag_name, tag_category, created_at, updated_at, is_deleted)
         VALUES
         <foreach collection="tags" item="tag" separator=",">
-            (#{tag.tagName}, #{tag.tagCategory}, #{tag.createTime}, #{tag.createBy}, #{tag.updateTime}, #{tag.updateBy}, #{tag.isDeleted})
+            (#{tag.tagName}, #{tag.tagCategory}, NOW(), NOW(), 0)
         </foreach>
         ON DUPLICATE KEY UPDATE
         tag_category = VALUES(tag_category),
-        update_time = VALUES(update_time),
-        update_by = VALUES(update_by)
+        updated_at = NOW()
     </insert>
 
     <!-- 热门标签：按使用该标签的已发布会议数降序，MySQL 5.7 兼容 -->

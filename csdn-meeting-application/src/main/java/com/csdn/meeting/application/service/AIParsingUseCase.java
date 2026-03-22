@@ -23,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * AI 解析用例：编排 文件上传 → 病毒扫描 → 文本提取 → LLM 解析 → 敏感词过滤。
@@ -141,6 +142,8 @@ public class AIParsingUseCase {
         dto.setVenue(r.getVenue());
         dto.setRegions(r.getRegions());
         dto.setCoverImage(r.getCoverImage());
+        // ai-parse 接口仅用于预填表单，直接返回标签名（不转 ID）
+        // 标签名 → ID 的转换在用户提交表单、实际存库时处理
         if (r.getTags() != null && !r.getTags().isEmpty()) {
             dto.setTags(String.join(",", r.getTags()));
         }

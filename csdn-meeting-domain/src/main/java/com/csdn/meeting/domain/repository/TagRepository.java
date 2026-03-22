@@ -67,4 +67,11 @@ public interface TagRepository {
      * 删除标签
      */
     void deleteById(Long id);
+
+    /**
+     * 按名称批量查找或新建标签，返回含 ID 的完整标签列表。
+     * 已存在的标签直接返回，不存在的以 defaultCategory 新建后返回。
+     * AI 解析/生成场景使用，确保标签名可安全转换为 ID 存入 t_meeting.tags。
+     */
+    List<Tag> findOrCreateByNames(List<String> tagNames, Tag.TagCategory defaultCategory);
 }

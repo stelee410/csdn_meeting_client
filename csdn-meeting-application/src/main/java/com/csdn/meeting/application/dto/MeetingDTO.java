@@ -40,6 +40,12 @@ public class MeetingDTO {
     private String takedownReason;
     private String rejectReason;
 
+    // V18 场景扩展字段
+    private String sceneIndustry;
+    private String sceneProduct;
+    private String sceneMarketingRegions;
+    private String sceneUniversities;
+
     // 四级日程结构
     private List<ScheduleDayDTO> scheduleDays;
 
@@ -285,6 +291,15 @@ public class MeetingDTO {
     public void setMobileOperations(MobileOperationDTO mobileOperations) {
         this.mobileOperations = mobileOperations;
     }
+
+    public String getSceneIndustry() { return sceneIndustry; }
+    public void setSceneIndustry(String sceneIndustry) { this.sceneIndustry = sceneIndustry; }
+    public String getSceneProduct() { return sceneProduct; }
+    public void setSceneProduct(String sceneProduct) { this.sceneProduct = sceneProduct; }
+    public String getSceneMarketingRegions() { return sceneMarketingRegions; }
+    public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
+    public String getSceneUniversities() { return sceneUniversities; }
+    public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
 
     /**
      * 移动端可操作标记

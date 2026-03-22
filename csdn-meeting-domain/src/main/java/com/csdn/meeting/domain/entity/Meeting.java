@@ -120,6 +120,12 @@ public class Meeting extends BaseEntity {
      */
     private LocalDateTime publishTime;
 
+    // V18新增字段 - 场景扩展
+    private String sceneIndustry;         // 所属产业（场景=产业会议）
+    private String sceneProduct;          // 涉及产品（场景=产品发布会议）
+    private String sceneMarketingRegions; // 涉及区域，逗号分隔（场景=区域营销会议）
+    private String sceneUniversities;     // 涉及高校，逗号分隔（场景=高校会议）
+
     // V1.2新增字段 - 报名签到功能
     /**
      * 报名截止时间
@@ -557,4 +563,13 @@ public class Meeting extends BaseEntity {
     public void setRequireCheckin(Boolean requireCheckin) {
         this.requireCheckin = requireCheckin;
     }
+
+    public String getSceneIndustry() { return sceneIndustry; }
+    public void setSceneIndustry(String sceneIndustry) { this.sceneIndustry = sceneIndustry; }
+    public String getSceneProduct() { return sceneProduct; }
+    public void setSceneProduct(String sceneProduct) { this.sceneProduct = sceneProduct; }
+    public String getSceneMarketingRegions() { return sceneMarketingRegions; }
+    public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
+    public String getSceneUniversities() { return sceneUniversities; }
+    public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
 }

@@ -274,7 +274,33 @@ public class MeetingApplicationService {
         Meeting meeting = meetingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在"));
         String meetingId = meeting.getMeetingId();
-        return toMeetingDTOWithParticipants(meeting, meetingId);
+        MeetingDTO dto = toMeetingDTOWithParticipants(meeting, meetingId);
+        // 将 tags 字段中的 tagId 解析为 tagName，便于前端编辑表单显示
+        dto.setTags(resolveTagIdsToNames(dto.getTags()));
+        return dto;
+    }
+
+    /**
+     * 将逗号分隔的 tagId 字符串转为逗号分隔的 tagName 字符串。
+     * 若值均为非数字（已是名称），直接原样返回。
+     */
+    private String resolveTagIdsToNames(String tagsStr) {
+        if (tagsStr == null || tagsStr.trim().isEmpty()) return tagsStr;
+        String[] parts = tagsStr.split(",");
+        List<Long> ids = new java.util.ArrayList<>();
+        for (String part : parts) {
+            try {
+                ids.add(Long.parseLong(part.trim()));
+            } catch (NumberFormatException e) {
+                // 已经是名称，无需解析，直接返回原值
+                return tagsStr;
+            }
+        }
+        if (ids.isEmpty()) return tagsStr;
+        List<com.csdn.meeting.domain.entity.Tag> tags = tagRepository.findByIds(ids);
+        return tags.stream()
+                .map(com.csdn.meeting.domain.entity.Tag::getTagName)
+                .collect(java.util.stream.Collectors.joining(","));
     }
 
     private MeetingDTO toMeetingDTOWithParticipants(Meeting meeting, String meetingId) {
@@ -316,6 +342,10 @@ public class MeetingApplicationService {
         meeting.setTags(cmd.getTags());
         meeting.setTargetAudience(cmd.getTargetAudience());
         meeting.setIsPremium(cmd.getIsPremium());
+        meeting.setSceneIndustry(cmd.getSceneIndustry());
+        meeting.setSceneProduct(cmd.getSceneProduct());
+        meeting.setSceneMarketingRegions(cmd.getSceneMarketingRegions());
+        meeting.setSceneUniversities(cmd.getSceneUniversities());
         meeting.setScheduleDays(toScheduleDays(cmd.getScheduleDays()));
     }
 
@@ -335,6 +365,10 @@ public class MeetingApplicationService {
         if (cmd.getTags() != null) meeting.setTags(cmd.getTags());
         if (cmd.getTargetAudience() != null) meeting.setTargetAudience(cmd.getTargetAudience());
         if (cmd.getIsPremium() != null) meeting.setIsPremium(cmd.getIsPremium());
+        if (cmd.getSceneIndustry() != null) meeting.setSceneIndustry(cmd.getSceneIndustry());
+        if (cmd.getSceneProduct() != null) meeting.setSceneProduct(cmd.getSceneProduct());
+        if (cmd.getSceneMarketingRegions() != null) meeting.setSceneMarketingRegions(cmd.getSceneMarketingRegions());
+        if (cmd.getSceneUniversities() != null) meeting.setSceneUniversities(cmd.getSceneUniversities());
         if (cmd.getScheduleDays() != null) meeting.setScheduleDays(toScheduleDays(cmd.getScheduleDays()));
     }
 
@@ -448,6 +482,10 @@ public class MeetingApplicationService {
         dto.setIsPremium(meeting.getIsPremium());
         dto.setTakedownReason(meeting.getTakedownReason());
         dto.setRejectReason(meeting.getRejectReason());
+        dto.setSceneIndustry(meeting.getSceneIndustry());
+        dto.setSceneProduct(meeting.getSceneProduct());
+        dto.setSceneMarketingRegions(meeting.getSceneMarketingRegions());
+        dto.setSceneUniversities(meeting.getSceneUniversities());
         dto.setScheduleDays(toScheduleDayDTOs(meeting.getScheduleDays()));
         return dto;
     }
