@@ -5,6 +5,7 @@ import com.csdn.meeting.application.dto.PromotionEstimateCommand;
 import com.csdn.meeting.application.dto.PromotionEstimateDTO;
 import com.csdn.meeting.application.dto.PromotionOrderResultDTO;
 import com.csdn.meeting.application.service.PromotionUseCase;
+import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -27,26 +28,26 @@ public class PromotionController {
 
     @Operation(summary = "推广实时估算", description = "根据圈选条件实时计算预计覆盖、曝光、点击及费用。")
     @PostMapping("/{id}/promotion/estimate")
-    public ResponseEntity<PromotionEstimateDTO> estimate(
+    public ResponseEntity<ApiResponse<PromotionEstimateDTO>> estimate(
             @PathVariable Long id,
             @RequestBody(required = false) PromotionEstimateCommand command) {
         PromotionEstimateDTO dto = promotionUseCase.estimate(id, command);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponse.success(dto));
     }
 
     @Operation(summary = "生成推广订单", description = "创建待支付推广订单，30 分钟内支付享 85 折；通知管理后台留档。")
     @PostMapping("/{id}/promotion/order")
-    public ResponseEntity<PromotionOrderResultDTO> createOrder(
+    public ResponseEntity<ApiResponse<PromotionOrderResultDTO>> createOrder(
             @PathVariable Long id,
             @RequestBody(required = false) PromotionEstimateCommand command) {
         PromotionOrderResultDTO dto = promotionUseCase.createOrder(id, command);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(dto));
     }
 
     @Operation(summary = "查询推广配置", description = "获取会议当前推广配置与订单状态。")
     @GetMapping("/{id}/promotion")
-    public ResponseEntity<PromotionConfigDTO> getPromotion(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<PromotionConfigDTO>> getPromotion(@PathVariable Long id) {
         PromotionConfigDTO dto = promotionUseCase.getPromotion(id);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponse.success(dto));
     }
 }

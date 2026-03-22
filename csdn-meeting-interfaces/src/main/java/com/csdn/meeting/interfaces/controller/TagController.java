@@ -2,6 +2,7 @@ package com.csdn.meeting.interfaces.controller;
 
 import com.csdn.meeting.application.dto.TagDTO;
 import com.csdn.meeting.application.service.HotTagsUseCase;
+import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +29,8 @@ public class TagController {
 
     @Operation(summary = "热门标签", description = "按使用该标签的已发布会议数量降序，返回热门标签列表")
     @GetMapping("/hot")
-    public ResponseEntity<List<TagDTO>> getHotTags(
+    public ResponseEntity<ApiResponse<List<TagDTO>>> getHotTags(
             @RequestParam(defaultValue = "20") int limit) {
-        return ResponseEntity.ok(hotTagsUseCase.getHotTags(limit));
+        return ResponseEntity.ok(ApiResponse.success(hotTagsUseCase.getHotTags(limit)));
     }
 }

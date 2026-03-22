@@ -1,6 +1,7 @@
 package com.csdn.meeting.application.service;
 
 import com.csdn.meeting.application.dto.MeetingDTO;
+import com.csdn.meeting.application.dto.PageResult;
 import com.csdn.meeting.application.dto.RegistrationDTO;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.MeetingFavorite;
@@ -11,7 +12,6 @@ import com.csdn.meeting.domain.entity.SubVenue;
 import com.csdn.meeting.domain.entity.Topic;
 import com.csdn.meeting.domain.repository.MeetingFavoriteRepository;
 import com.csdn.meeting.domain.repository.MeetingRepository;
-import com.csdn.meeting.domain.repository.PageResult;
 import com.csdn.meeting.domain.repository.RegistrationRepository;
 import org.springframework.stereotype.Service;
 
@@ -54,14 +54,14 @@ public class MyMeetingsUseCase {
         if (includeEnded) {
             statuses.add(Meeting.MeetingStatus.ENDED);
         }
-        PageResult<Registration> regPage = registrationRepository.findByUserIdAndMeetingStatusIn(userId, statuses, page, size);
+        com.csdn.meeting.domain.repository.PageResult<Registration> regPage = registrationRepository.findByUserIdAndMeetingStatusIn(userId, statuses, page, size);
         List<MeetingDTO> dtos = regPage.getContent().stream()
                 .map(reg -> meetingRepository.findById(reg.getMeetingId()))
                 .filter(opt -> opt.isPresent())
                 .map(opt -> opt.get())
                 .map(this::toMeetingDTO)
                 .collect(Collectors.toList());
-        return new PageResult<>(dtos, regPage.getTotalElements(), page, size);
+        return PageResult.of(regPage.getTotalElements(), page, size, dtos);
     }
 
     /**
@@ -69,7 +69,7 @@ public class MyMeetingsUseCase {
      * 按收藏时间倒序；过滤掉已删除、草稿、待审、已拒绝的会议
      */
     public PageResult<MeetingDTO> getMyFavorites(Long userId, int page, int size) {
-        PageResult<MeetingFavorite> favPage = favoriteRepository.findByUserIdOrderByCreatedAtDesc(userId, page, size);
+        com.csdn.meeting.domain.repository.PageResult<MeetingFavorite> favPage = favoriteRepository.findByUserIdOrderByCreatedAtDesc(userId, page, size);
         List<MeetingDTO> dtos = favPage.getContent().stream()
                 .map(fav -> meetingRepository.findById(fav.getMeetingId()))
                 .filter(opt -> opt.isPresent())
@@ -80,7 +80,7 @@ public class MyMeetingsUseCase {
                         && m.getStatus() != Meeting.MeetingStatus.REJECTED)
                 .map(this::toMeetingDTO)
                 .collect(Collectors.toList());
-        return new PageResult<>(dtos, favPage.getTotalElements(), page, size);
+        return PageResult.of(favPage.getTotalElements(), page, size, dtos);
     }
 
     /**
@@ -92,7 +92,7 @@ public class MyMeetingsUseCase {
                                                int page, int size) {
         LocalDateTime startFrom = startDate != null ? startDate.atStartOfDay() : null;
         LocalDateTime endTo = endDate != null ? endDate.atTime(LocalTime.MAX) : null;
-        PageResult<Meeting> meetingPage = meetingRepository.findPageByCreatorId(userId, statuses, startFrom, endTo, page, size);
+        com.csdn.meeting.domain.repository.PageResult<Meeting> meetingPage = meetingRepository.findPageByCreatorId(userId, statuses, startFrom, endTo, page, size);
         List<MeetingDTO> dtos = meetingPage.getContent().stream().map(meeting -> {
             MeetingDTO dto = toMeetingDTO(meeting);
             long totalRegistrations = registrationRepository
@@ -101,7 +101,7 @@ public class MyMeetingsUseCase {
             dto.setCurrentParticipants((int) totalRegistrations);
             return dto;
         }).collect(Collectors.toList());
-        return new PageResult<>(dtos, meetingPage.getTotalElements(), page, size);
+        return PageResult.of(meetingPage.getTotalElements(), page, size, dtos);
     }
 
     /**
@@ -110,9 +110,9 @@ public class MyMeetingsUseCase {
     public PageResult<RegistrationDTO> getMeetingRegistrations(Long meetingId,
                                                                Registration.RegistrationStatus status,
                                                                int page, int size) {
-        PageResult<Registration> regPage = registrationRepository.findByMeetingIdAndStatus(meetingId, status, page, size);
+        com.csdn.meeting.domain.repository.PageResult<Registration> regPage = registrationRepository.findByMeetingIdAndStatus(meetingId, status, page, size);
         List<RegistrationDTO> dtos = regPage.getContent().stream().map(this::toRegistrationDTO).collect(Collectors.toList());
-        return new PageResult<>(dtos, regPage.getTotalElements(), page, size);
+        return PageResult.of(regPage.getTotalElements(), page, size, dtos);
     }
 
     private RegistrationDTO toRegistrationDTO(Registration reg) {

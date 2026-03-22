@@ -5,6 +5,7 @@ import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.MeetingFavorite;
 import com.csdn.meeting.domain.repository.MeetingFavoriteRepository;
 import com.csdn.meeting.domain.repository.MeetingRepository;
+import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,12 +53,12 @@ public class FavoriteController {
             description = "切换会议收藏状态。如果已收藏则取消收藏，如果未收藏则添加收藏。返回当前收藏状态。"
     )
     @PostMapping
-    public ResponseEntity<FavoriteResultDTO> toggleFavorite(
+    public ResponseEntity<ApiResponse<FavoriteResultDTO>> toggleFavorite(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
             @Parameter(description = "用户ID", example = "12345")
             @RequestParam Long userId) {
-        
+
         // 查找会议
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
@@ -69,13 +70,13 @@ public class FavoriteController {
             // 取消收藏
             favoriteRepository.deleteByUserIdAndMeetingId(userId, meeting.getId());
             logger.info("用户 {} 取消收藏会议 {}", userId, meetingId);
-            
+
             FavoriteResultDTO result = new FavoriteResultDTO();
             result.setMeetingId(meetingId);
             result.setUserId(userId);
             result.setFavorited(false);
             result.setMessage("已取消收藏");
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(ApiResponse.success(result));
         } else {
             // 添加收藏
             MeetingFavorite favorite = new MeetingFavorite();
@@ -90,7 +91,7 @@ public class FavoriteController {
             result.setUserId(userId);
             result.setFavorited(true);
             result.setMessage("收藏成功");
-            return ResponseEntity.ok(result);
+            return ResponseEntity.ok(ApiResponse.success(result));
         }
     }
 
@@ -102,19 +103,19 @@ public class FavoriteController {
             description = "查询当前用户是否收藏了指定会议。"
     )
     @GetMapping
-    public ResponseEntity<Boolean> isFavorite(
+    public ResponseEntity<ApiResponse<Boolean>> isFavorite(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
             @Parameter(description = "用户ID", example = "12345")
             @RequestParam Long userId) {
-        
+
         Meeting meeting = meetingRepository.findByMeetingId(meetingId).orElse(null);
         if (meeting == null) {
-            return ResponseEntity.ok(false);
+            return ResponseEntity.ok(ApiResponse.success(false));
         }
 
         boolean isFavorited = favoriteRepository.existsByUserIdAndMeetingId(userId, meeting.getId());
-        return ResponseEntity.ok(isFavorited);
+        return ResponseEntity.ok(ApiResponse.success(isFavorited));
     }
 
     /**
@@ -125,12 +126,12 @@ public class FavoriteController {
             description = "添加会议收藏。如果已收藏则返回错误。"
     )
     @PutMapping
-    public ResponseEntity<FavoriteResultDTO> addFavorite(
+    public ResponseEntity<ApiResponse<FavoriteResultDTO>> addFavorite(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
             @Parameter(description = "用户ID", example = "12345")
             @RequestParam Long userId) {
-        
+
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
@@ -153,7 +154,7 @@ public class FavoriteController {
         result.setUserId(userId);
         result.setFavorited(true);
         result.setMessage("收藏成功");
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     /**
@@ -164,12 +165,12 @@ public class FavoriteController {
             description = "取消会议收藏。如果未收藏则返回错误。"
     )
     @DeleteMapping
-    public ResponseEntity<FavoriteResultDTO> removeFavorite(
+    public ResponseEntity<ApiResponse<FavoriteResultDTO>> removeFavorite(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
             @Parameter(description = "用户ID", example = "12345")
             @RequestParam Long userId) {
-        
+
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
@@ -188,7 +189,7 @@ public class FavoriteController {
         result.setUserId(userId);
         result.setFavorited(false);
         result.setMessage("已取消收藏");
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.csdn.meeting.interfaces.controller;
 
 import com.csdn.meeting.application.service.RightsPriceConfigService;
+import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -27,20 +28,20 @@ public class ConfigController {
 
     @Operation(summary = "获取权益价格", description = "获取会议数据高阶权益包价格（管理员）。")
     @GetMapping("/rights-price")
-    public ResponseEntity<Map<String, BigDecimal>> getRightsPrice() {
+    public ResponseEntity<ApiResponse<Map<String, BigDecimal>>> getRightsPrice() {
         ensureAdmin();
-        return ResponseEntity.ok(Collections.singletonMap("price", rightsPriceConfig.getPrice()));
+        return ResponseEntity.ok(ApiResponse.success(Collections.singletonMap("price", rightsPriceConfig.getPrice())));
     }
 
     @Operation(summary = "设置权益价格", description = "设置会议数据高阶权益包价格（管理员）。")
     @PostMapping("/rights-price")
-    public ResponseEntity<Void> setRightsPrice(@RequestBody Map<String, BigDecimal> body) {
+    public ResponseEntity<ApiResponse<Void>> setRightsPrice(@RequestBody Map<String, BigDecimal> body) {
         ensureAdmin();
         BigDecimal price = body != null ? body.get("price") : null;
         if (price != null && price.compareTo(BigDecimal.ZERO) >= 0) {
             rightsPriceConfig.setPrice(price);
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     private void ensureAdmin() {

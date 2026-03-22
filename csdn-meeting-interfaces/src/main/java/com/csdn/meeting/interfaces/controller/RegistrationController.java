@@ -7,6 +7,7 @@ import com.csdn.meeting.application.dto.RegistrationDTO;
 import com.csdn.meeting.application.service.MeetingRegistrationUseCase;
 import com.csdn.meeting.application.service.RegistrationAuditUseCase;
 import com.csdn.meeting.application.service.RegistrationConfigUseCase;
+import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,11 +52,11 @@ public class RegistrationController {
             description = "获取指定会议的报名表单字段配置，用于前端渲染报名表单。"
     )
     @GetMapping("/config/{meetingId}")
-    public ResponseEntity<List<FormFieldConfigDTO>> getFormConfig(
+    public ResponseEntity<ApiResponse<List<FormFieldConfigDTO>>> getFormConfig(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId) {
         List<FormFieldConfigDTO> config = registrationConfigUseCase.getConfig(meetingId);
-        return ResponseEntity.ok(config);
+        return ResponseEntity.ok(ApiResponse.success(config));
     }
 
     @Operation(
@@ -63,13 +64,13 @@ public class RegistrationController {
             description = "获取报名表单的预填数据，从用户画像中自动填充姓名、手机号、邮箱等字段。"
     )
     @GetMapping("/pre-fill")
-    public ResponseEntity<Map<String, String>> getPreFillData(
+    public ResponseEntity<ApiResponse<Map<String, String>>> getPreFillData(
             @Parameter(description = "会议ID", example = "M123456789")
             @RequestParam String meetingId,
             @Parameter(description = "用户ID", example = "12345")
             @RequestParam Long userId) {
         Map<String, String> preFilledData = meetingRegistrationUseCase.getPreFilledForm(meetingId, userId);
-        return ResponseEntity.ok(preFilledData);
+        return ResponseEntity.ok(ApiResponse.success(preFilledData));
     }
 
     @Operation(
@@ -77,10 +78,10 @@ public class RegistrationController {
             description = "用户提交会议报名申请。校验名额、重复报名等，创建待审核报名记录。"
     )
     @PostMapping
-    public ResponseEntity<RegistrationDTO> submitRegistration(
+    public ResponseEntity<ApiResponse<RegistrationDTO>> submitRegistration(
             @RequestBody RegistrationCommand command) {
         RegistrationDTO dto = meetingRegistrationUseCase.register(command);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponse.success(dto));
     }
 
     @Operation(
@@ -88,14 +89,14 @@ public class RegistrationController {
             description = "查询当前用户在指定会议的报名状态。未报名返回404。"
     )
     @GetMapping("/my/{meetingId}")
-    public ResponseEntity<RegistrationDTO> getMyRegistration(
+    public ResponseEntity<ApiResponse<RegistrationDTO>> getMyRegistration(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
             @Parameter(description = "用户ID", example = "12345")
             @RequestParam Long userId) {
         RegistrationDTO dto = meetingRegistrationUseCase.getMyRegistration(meetingId, userId);
         // 未报名返回 200 + null body，而非 404（未报名是正常业务状态，不是资源不存在）
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponse.success(dto));
     }
 
     @Operation(
@@ -103,13 +104,13 @@ public class RegistrationController {
             description = "用户取消会议报名。只有待审核或已报名状态可取消，已签到后不可取消。"
     )
     @PostMapping("/{regId}/cancel")
-    public ResponseEntity<Void> cancelRegistration(
+    public ResponseEntity<ApiResponse<Void>> cancelRegistration(
             @Parameter(description = "报名记录ID", example = "12345")
             @PathVariable Long regId,
             @Parameter(description = "用户ID", example = "12345")
             @RequestParam Long userId) {
         meetingRegistrationUseCase.cancelRegistration(regId, userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     // ==================== 主办方审核接口（原有） ====================
@@ -119,11 +120,11 @@ public class RegistrationController {
             description = "将报名状态设为 APPROVED，触发多渠道通知（IM站内信、APP Push、邮件）。"
     )
     @PostMapping("/{regId}/approve")
-    public ResponseEntity<RegistrationDTO> approve(
+    public ResponseEntity<ApiResponse<RegistrationDTO>> approve(
             @Parameter(description = "报名记录ID", example = "12345")
             @PathVariable Long regId) {
         RegistrationDTO dto = registrationAuditUseCase.approve(regId);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponse.success(dto));
     }
 
     @Operation(
@@ -131,12 +132,12 @@ public class RegistrationController {
             description = "将报名状态设为 REJECTED，可传 auditRemark，触发多渠道通知。"
     )
     @PostMapping("/{regId}/reject")
-    public ResponseEntity<RegistrationDTO> reject(
+    public ResponseEntity<ApiResponse<RegistrationDTO>> reject(
             @Parameter(description = "报名记录ID", example = "12345")
             @PathVariable Long regId,
             @RequestBody(required = false) RegistrationAuditCommand command) {
         String auditRemark = command != null ? command.getAuditRemark() : null;
         RegistrationDTO dto = registrationAuditUseCase.reject(regId, auditRemark);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(ApiResponse.success(dto));
     }
 }

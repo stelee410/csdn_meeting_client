@@ -2,6 +2,7 @@ package com.csdn.meeting.interfaces.controller;
 
 import com.csdn.meeting.application.dto.DictionaryDTO;
 import com.csdn.meeting.application.service.DictionaryUseCase;
+import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class DictionaryController {
 
     @Operation(summary = "创建会议/模板用字典", description = "返回会议时长、会议规模、举办频率、地域、目标人群、开发者类型等下拉选项")
     @GetMapping
-    public ResponseEntity<DictionaryDTO> getCreateMeetingDictionaries() {
-        return ResponseEntity.ok(dictionaryUseCase.getCreateMeetingDictionaries());
+    public ResponseEntity<ApiResponse<DictionaryDTO>> getCreateMeetingDictionaries() {
+        return ResponseEntity.ok(ApiResponse.success(dictionaryUseCase.getCreateMeetingDictionaries()));
     }
 }

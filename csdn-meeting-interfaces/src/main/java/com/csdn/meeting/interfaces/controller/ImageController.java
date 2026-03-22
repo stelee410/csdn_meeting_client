@@ -2,12 +2,11 @@ package com.csdn.meeting.interfaces.controller;
 
 import com.csdn.meeting.application.dto.ImageUploadResultDTO;
 import com.csdn.meeting.application.service.ImageUploadUseCase;
+import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -36,17 +35,17 @@ public class ImageController {
                     "**返回值**：图片的可访问 URL，可直接赋值给创建/更新会议接口中的 `coverImage` 或 `posterUrl` 字段。\n\n" +
                     "**存储规则**：按 年/月/日 分目录存储，文件名使用 UUID 保证唯一性。"
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "上传成功",
+    @io.swagger.v3.oas.annotations.responses.ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "上传成功",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ImageUploadResultDTO.class))),
-            @ApiResponse(responseCode = "400", description = "参数错误（文件为空、格式不支持、超过大小限制）",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "参数错误（文件为空、格式不支持、超过大小限制）",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-            @ApiResponse(responseCode = "500", description = "服务器内部错误（磁盘写入失败等）",
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "服务器内部错误（磁盘写入失败等）",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ImageUploadResultDTO> upload(
+    public ResponseEntity<ApiResponse<ImageUploadResultDTO>> upload(
             @Parameter(description = "图片文件，支持 JPG/PNG/GIF/WEBP，大小不超过 10MB",
                     required = true,
                     content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
@@ -62,6 +61,6 @@ public class ImageController {
                 ? file.getOriginalFilename() : "image.jpg";
 
         ImageUploadResultDTO result = imageUploadUseCase.upload(bytes, originalFileName);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(ApiResponse.success(result));
     }
 }
