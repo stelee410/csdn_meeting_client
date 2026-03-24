@@ -20,6 +20,7 @@ public class MeetingDTO {
     private String status;
     private Integer maxParticipants;
     private Integer currentParticipants;
+    private String scale;  // 会议规模中文描述：50人以下/50-200人/200-500人/500人以上
     private List<ParticipantDTO> participants;
 
     // agent.prd §1.1 新增字段
@@ -135,6 +136,14 @@ public class MeetingDTO {
 
     public void setCurrentParticipants(Integer currentParticipants) {
         this.currentParticipants = currentParticipants;
+    }
+
+    public String getScale() {
+        return scale;
+    }
+
+    public void setScale(String scale) {
+        this.scale = scale;
     }
 
     public List<ParticipantDTO> getParticipants() {

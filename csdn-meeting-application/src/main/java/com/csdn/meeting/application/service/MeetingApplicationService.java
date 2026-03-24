@@ -504,7 +504,27 @@ public class MeetingApplicationService {
         dto.setSceneMarketingRegions(meeting.getSceneMarketingRegions());
         dto.setSceneUniversities(meeting.getSceneUniversities());
         dto.setScheduleDays(toScheduleDayDTOs(meeting.getScheduleDays()));
+        dto.setScale(convertScale(meeting.getMaxParticipants()));
         return dto;
+    }
+
+    /**
+     * 转换会议规模为中文描述
+     * 50人以下（maxParticipants=50）、50-200人（maxParticipants=200）、200-500人（maxParticipants=500）、500人以上（maxParticipants=1000）
+     */
+    private String convertScale(Integer maxParticipants) {
+        if (maxParticipants == null) {
+            return null;
+        }
+        if (maxParticipants <= 50) {
+            return "50人以下";
+        } else if (maxParticipants <= 200) {
+            return "50-200人";
+        } else if (maxParticipants <= 500) {
+            return "200-500人";
+        } else {
+            return "500人以上";
+        }
     }
 
     /**

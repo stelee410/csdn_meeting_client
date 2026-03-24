@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.csdn.meeting.infrastructure.repository.mapper.MeetingSearchMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="MeetingResultMap" type="com.csdn.meeting.infrastructure.po.MeetingPO">
+        <id column="id" property="id"/>
+        <result column="meeting_id" property="meetingId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="poster_url" property="posterUrl"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="status" property="status"/>
+        <result column="format" property="format"/>
+        <result column="meeting_type" property="meetingType"/>
+        <result column="scene" property="scene"/>
+        <result column="city_code" property="cityCode"/>
+        <result column="city_name" property="cityName"/>
+        <result column="venue" property="venue"/>
+        <result column="hot_score" property="hotScore"/>
+        <result column="current_participants" property="currentParticipants"/>
+        <result column="max_participants" property="maxParticipants"/>
+        <result column="organizer_id" property="organizerId"/>
+        <result column="organizer_name" property="organizerName"/>
+        <result column="organizer_avatar" property="organizerAvatar"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="tags" property="tags"/>
+        <result column="publish_time" property="publishTime"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <!-- 分页查询会议列表（支持多维度筛选，兼容数字ID和枚举字符串） -->
+    <select id="selectMeetingList" resultMap="MeetingResultMap">
+        SELECT
+            m.*
+        FROM t_meeting m
+        <where>
+            <!-- 只展示已发布(2)、进行中(3)、已结束(4)，对应 MeetingStatus 的 code -->
+            m.status IN (2, 3, 4)
+            AND m.is_deleted = 0
+
+            <!-- 会议形式筛选：兼容数字ID（如'1'）和枚举字符串（如'ONLINE'） -->
+            <if test="format != null">
+                AND (
+                    m.format = CAST(#{format} AS CHAR)
+                    <choose>
+                        <when test="format == 1">OR m.format = 'ONLINE'</when>
+                        <when test="format == 2">OR m.format = 'OFFLINE'</when>
+                        <when test="format == 3">OR m.format = 'HYBRID'</when>
+                    </choose>
+                )
+            </if>
+
+            <!-- 会议类型筛选：兼容数字ID（如'1'）和枚举字符串（如'SUMMIT'） -->
+            <if test="meetingType != null">
+                AND (
+                    m.meeting_type = CAST(#{meetingType} AS CHAR)
+                    <choose>
+                        <when test="meetingType == 1">OR m.meeting_type = 'SUMMIT'</when>
+                        <when test="meetingType == 2">OR m.meeting_type = 'SALON'</when>
+                        <when test="meetingType == 3">OR m.meeting_type = 'WORKSHOP'</when>
+                    </choose>
+                )
+            </if>
+
+            <!-- 会议场景筛选：兼容数字ID（如'1'）和枚举字符串（如'DEVELOPER'） -->
+            <if test="scene != null">
+                AND (
+                    m.scene = CAST(#{scene} AS CHAR)
+                    <choose>
+                        <when test="scene == 1">OR m.scene = 'DEVELOPER'</when>
+                        <when test="scene == 2">OR m.scene = 'INDUSTRY'</when>
+                        <when test="scene == 3">OR m.scene = 'PRODUCT'</when>
+                        <when test="scene == 4">OR m.scene = 'REGIONAL'</when>
+                        <when test="scene == 5">OR m.scene = 'UNIVERSITY'</when>
+                    </choose>
+                )
+            </if>
+
+            <!-- 召开时间范围筛选 -->
+            <if test="startTimeFrom != null and startTimeFrom != ''">
+                AND m.start_time &gt;= #{startTimeFrom}
+            </if>
+            <if test="startTimeTo != null and startTimeTo != ''">
+                AND m.start_time &lt;= #{startTimeTo}
+            </if>
+
+            <!-- 关键词搜索（标题、标签名、主办方、描述）；tags 可能存 tagId 或 tagName -->
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    m.title LIKE CONCAT('%', #{keyword}, '%')
+                    <!-- 直接匹配 tags 字段（当存储的是标签名时） -->
+                    OR m.tags LIKE CONCAT('%', #{keyword}, '%')
+                    <!-- 通过 t_tag 表关联匹配（当存储的是 tagId 时） -->
+                    OR EXISTS (
+                        SELECT 1 FROM t_tag t
+                        WHERE (t.is_deleted = 0 OR t.is_deleted IS NULL)
+                          AND t.tag_name LIKE CONCAT('%', #{keyword}, '%')
+                          AND CONCAT(',', IFNULL(m.tags,''), ',') LIKE CONCAT('%,', t.id, ',%')
+                    )
+                    OR m.organizer_name LIKE CONCAT('%', #{keyword}, '%')
+                    OR m.description LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        <!-- 排序：按发布时间倒序（最新的在前） -->
+        ORDER BY
+            m.publish_time DESC
+    </select>
+
+    <!-- 根据会议ID查询详情 -->
+    <select id="selectByMeetingId" resultMap="MeetingResultMap">
+        SELECT * FROM t_meeting
+        WHERE meeting_id = #{meetingId}
+          AND is_deleted = 0
+        LIMIT 1
+    </select>
+
+    <!-- 增加热度分数 -->
+    <update id="incrementHotScore">
+        UPDATE t_meeting
+        SET hot_score = hot_score + #{score},
+            update_time = NOW()
+        WHERE meeting_id = #{meetingId}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 更新当前报名人数 -->
+    <update id="updateCurrentParticipants">
+        UPDATE t_meeting
+        SET current_participants = current_participants + #{delta},
+            update_time = NOW()
+        WHERE meeting_id = #{meetingId}
+          AND is_deleted = 0
+    </update>
+
+    <!-- 按标签分组统计指定时间之后新增的会议数量（t_meeting.tags 为逗号分隔的 tagId） -->
+    <select id="countNewMeetingsByTagIdsSince" resultType="com.csdn.meeting.infrastructure.po.TagNewMeetingCountPO">
+        SELECT
+            t.id AS tagId,
+            COUNT(DISTINCT m.id) AS newMeetingCount
+        FROM t_tag t
+        INNER JOIN t_meeting m ON m.is_deleted = 0
+            AND m.created_at &gt;= #{since}
+            AND (CONCAT(',', IFNULL(m.tags,''), ',') LIKE CONCAT('%,', t.id, ',%'))
+        WHERE t.id IN
+        <foreach collection="tagIds" item="tagId" open="(" separator="," close=")">
+            #{tagId}
+        </foreach>
+        AND (t.is_deleted = 0 OR t.is_deleted IS NULL)
+        GROUP BY t.id
+    </select>
+
+</mapper>

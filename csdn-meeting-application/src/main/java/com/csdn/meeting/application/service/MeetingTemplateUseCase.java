@@ -191,6 +191,7 @@ public class MeetingTemplateUseCase {
         dto.setDefaultForm(e.getDefaultForm());
         dto.setDefaultScene(e.getDefaultScene());
         dto.setDefaultScale(e.getDefaultScale());
+        dto.setDefaultScaleDisplay(resolveScaleDisplay(e.getDefaultScale()));
         dto.setDefaultDuration(e.getDefaultDuration());
         dto.setDefaultRecurrence(e.getDefaultRecurrence());
         dto.setDefaultTitlePrefix(e.getDefaultTitlePrefix());
@@ -215,5 +216,27 @@ public class MeetingTemplateUseCase {
         dto.setDefaultUniversities(e.getDefaultUniversities());
         dto.setDefaultLocation(e.getDefaultLocation());
         return dto;
+    }
+
+    /**
+     * 将 scale code 转换为中文显示
+     * 50 -> 50人以下, 200 -> 50-200人, 500 -> 200-500人, 1000 -> 500人以上
+     */
+    private String resolveScaleDisplay(String scale) {
+        if (scale == null || scale.isEmpty()) {
+            return null;
+        }
+        switch (scale) {
+            case "50":
+                return "50人以下";
+            case "200":
+                return "50-200人";
+            case "500":
+                return "200-500人";
+            case "1000":
+                return "500人以上";
+            default:
+                return scale;
+        }
     }
 }

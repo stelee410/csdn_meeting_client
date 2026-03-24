@@ -17,6 +17,7 @@ public class MeetingTemplateDTO {
     private String defaultForm;
     private String defaultScene;
     private String defaultScale;
+    private String defaultScaleDisplay; // 规模中文显示：50人以下/50-200人/200-500人/500人以上
     private String defaultDuration;
     private String defaultRecurrence;
     private String defaultTitlePrefix;
@@ -63,6 +64,8 @@ public class MeetingTemplateDTO {
     public void setDefaultScene(String defaultScene) { this.defaultScene = defaultScene; }
     public String getDefaultScale() { return defaultScale; }
     public void setDefaultScale(String defaultScale) { this.defaultScale = defaultScale; }
+    public String getDefaultScaleDisplay() { return defaultScaleDisplay; }
+    public void setDefaultScaleDisplay(String defaultScaleDisplay) { this.defaultScaleDisplay = defaultScaleDisplay; }
     public String getDefaultDuration() { return defaultDuration; }
     public void setDefaultDuration(String defaultDuration) { this.defaultDuration = defaultDuration; }
     public String getDefaultRecurrence() { return defaultRecurrence; }
