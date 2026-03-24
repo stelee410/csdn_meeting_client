@@ -38,19 +38,22 @@ public class MeetingApplicationService {
     private final TagRepository tagRepository;
     private final ApplicationEventPublisher eventPublisher;
     private final MeetingRegistrationUseCase meetingRegistrationUseCase;
+    private final DictionaryUseCase dictionaryUseCase;
 
     public MeetingApplicationService(MeetingRepository meetingRepository,
                                      ParticipantRepository participantRepository,
                                      MeetingDomainService meetingDomainService,
                                      TagRepository tagRepository,
                                      ApplicationEventPublisher eventPublisher,
-                                     MeetingRegistrationUseCase meetingRegistrationUseCase) {
+                                     MeetingRegistrationUseCase meetingRegistrationUseCase,
+                                     DictionaryUseCase dictionaryUseCase) {
         this.meetingRepository = meetingRepository;
         this.participantRepository = participantRepository;
         this.meetingDomainService = meetingDomainService;
         this.tagRepository = tagRepository;
         this.eventPublisher = eventPublisher;
         this.meetingRegistrationUseCase = meetingRegistrationUseCase;
+        this.dictionaryUseCase = dictionaryUseCase;
     }
 
     /**
@@ -473,7 +476,9 @@ public class MeetingApplicationService {
         dto.setFormat(meeting.getFormat() != null ? meeting.getFormat().name() : null);
         dto.setMeetingType(meeting.getMeetingType() != null ? meeting.getMeetingType().name() : null);
         dto.setScene(meeting.getScene());
-        dto.setVenue(meeting.getVenue());
+        // 通过 cityCode 反查城市名称设置到 venue
+        String cityName = resolveCityName(meeting.getVenue());
+        dto.setVenue(cityName != null ? cityName : meeting.getVenue());
         dto.setRegions(meeting.getRegions());
         dto.setCoverImage(meeting.getCoverImage() != null ? meeting.getCoverImage() : meeting.getPosterUrl());
         dto.setPosterUrl(meeting.getPosterUrl() != null ? meeting.getPosterUrl() : meeting.getCoverImage());
@@ -488,6 +493,24 @@ public class MeetingApplicationService {
         dto.setSceneUniversities(meeting.getSceneUniversities());
         dto.setScheduleDays(toScheduleDayDTOs(meeting.getScheduleDays()));
         return dto;
+    }
+
+    /**
+     * 通过城市编码反查城市名称
+     */
+    private String resolveCityName(String cityCode) {
+        if (cityCode == null || cityCode.isEmpty()) {
+            return null;
+        }
+        List<DictionaryDTO.RegionOption> regions = dictionaryUseCase.getRegionOptions();
+        for (DictionaryDTO.RegionOption region : regions) {
+            for (DictionaryDTO.CityOption city : region.getCities()) {
+                if (cityCode.equals(city.getCityCode())) {
+                    return city.getCityName();
+                }
+            }
+        }
+        return null;
     }
 
     private ParticipantDTO toParticipantDTO(Participant participant) {

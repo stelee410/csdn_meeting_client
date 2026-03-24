@@ -2,6 +2,7 @@ package com.csdn.meeting.application.service;
 
 import com.csdn.meeting.application.dto.*;
 import com.csdn.meeting.application.utils.TimeRangeCalculator;
+import java.util.List;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.Tag;
 import com.csdn.meeting.domain.repository.MeetingRepository;
@@ -33,15 +34,18 @@ public class MeetingListUseCase {
     private final MeetingRepository meetingRepository;
     private final TagRepository tagRepository;
     private final TimeRangeCalculator timeRangeCalculator;
+    private final DictionaryUseCase dictionaryUseCase;
 
     public MeetingListUseCase(MeetingSearchRepository meetingSearchRepository,
                               MeetingRepository meetingRepository,
                               TagRepository tagRepository,
-                              TimeRangeCalculator timeRangeCalculator) {
+                              TimeRangeCalculator timeRangeCalculator,
+                              DictionaryUseCase dictionaryUseCase) {
         this.meetingSearchRepository = meetingSearchRepository;
         this.meetingRepository = meetingRepository;
         this.tagRepository = tagRepository;
         this.timeRangeCalculator = timeRangeCalculator;
+        this.dictionaryUseCase = dictionaryUseCase;
     }
 
     /**
@@ -266,9 +270,10 @@ public class MeetingListUseCase {
         dto.setMaxParticipants(meeting.getMaxParticipants());
         dto.setParticipantsDisplay(meeting.getParticipantsDisplay());
 
-        // 地点
-        dto.setCityName(meeting.getCityName());
-        dto.setVenue(meeting.getVenue());
+        // 地点：通过 cityCode 反查城市名称
+        String cityName = resolveCityName(meeting.getVenue());
+        dto.setCityName(cityName != null ? cityName : meeting.getCityName());
+        dto.setVenue(cityName != null ? cityName : meeting.getVenue());
 
         // 发布时间
         dto.setPublishTime(meeting.getPublishTime());
@@ -335,6 +340,24 @@ public class MeetingListUseCase {
         }
         MeetingScene ms = MeetingScene.of(scene);
         return ms != null ? ms.getCode() : null;
+    }
+
+    /**
+     * 通过城市编码反查城市名称
+     */
+    private String resolveCityName(String cityCode) {
+        if (cityCode == null || cityCode.isEmpty()) {
+            return null;
+        }
+        List<DictionaryDTO.RegionOption> regions = dictionaryUseCase.getRegionOptions();
+        for (DictionaryDTO.RegionOption region : regions) {
+            for (DictionaryDTO.CityOption city : region.getCities()) {
+                if (cityCode.equals(city.getCityCode())) {
+                    return city.getCityName();
+                }
+            }
+        }
+        return null;
     }
 
 }
