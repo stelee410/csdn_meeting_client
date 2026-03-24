@@ -146,56 +146,88 @@ public class MeetingListUseCase {
     }
 
     /**
-     * 从各会议的 t_meeting.tags 解析标签 ID 并批量查 t_tag，得到 meetingId -> List<Tag>
-     * tags 字段为逗号分隔的 tagId，如 "1,2,3"
+     * 从各会议的 t_meeting.tags 解析标签，得到 meetingId -> List<Tag>
+     * tags 字段可能为 tagId 列表（如 "1,2,3"）或 tagName 列表（如 "前端,后端"）
      */
     private Map<String, List<Tag>> buildTagsByMeeting(List<Meeting> meetings) {
-        List<Long> allTagIds = meetings.stream()
-                .map(Meeting::getTags)
-                .filter(t -> t != null && !t.trim().isEmpty())
-                .flatMap(s -> parseTagIdsFromTagsString(s).stream())
-                .distinct()
-                .collect(Collectors.toList());
-        if (allTagIds.isEmpty()) {
-            Map<String, List<Tag>> empty = new LinkedHashMap<>();
-            meetings.forEach(m -> empty.put(m.getMeetingId(), Collections.emptyList()));
-            return empty;
+        // 收集所有数字ID（用于查询t_tag表）和所有非数字名称
+        Set<Long> allTagIds = new HashSet<>();
+        Set<String> allTagNames = new HashSet<>();
+        Map<String, List<Object>> rawTagsByMeeting = new LinkedHashMap<>();
+
+        for (Meeting m : meetings) {
+            String tagsStr = m.getTags();
+            if (tagsStr == null || tagsStr.trim().isEmpty()) {
+                rawTagsByMeeting.put(m.getMeetingId(), Collections.emptyList());
+                continue;
+            }
+
+            List<Object> rawTags = new ArrayList<>();
+            for (String s : tagsStr.split(",")) {
+                String trimmed = s.trim();
+                if (trimmed.isEmpty()) {
+                    continue;
+                }
+                try {
+                    Long id = Long.parseLong(trimmed);
+                    allTagIds.add(id);
+                    rawTags.add(id);
+                } catch (NumberFormatException e) {
+                    // 是标签名而非ID
+                    allTagNames.add(trimmed);
+                    rawTags.add(trimmed);
+                }
+            }
+            rawTagsByMeeting.put(m.getMeetingId(), rawTags);
         }
-        List<Tag> allTags = tagRepository.findByIds(allTagIds);
-        Map<Long, Tag> tagById = allTags.stream().collect(Collectors.toMap(Tag::getId, t -> t, (a, b) -> a));
+
+        // 批量查询ID对应的Tag
+        Map<Long, Tag> tagById = new HashMap<>();
+        if (!allTagIds.isEmpty()) {
+            List<Tag> foundTags = tagRepository.findByIds(new ArrayList<>(allTagIds));
+            tagById = foundTags.stream().collect(Collectors.toMap(Tag::getId, t -> t, (a, b) -> a));
+        }
+
+        // 查询名称对应的Tag（构造虚拟Tag对象）
+        Map<String, Tag> tagByName = new HashMap<>();
+        if (!allTagNames.isEmpty()) {
+            // 尝试从数据库查询这些名称对应的tag
+            List<Tag> foundByName = tagRepository.findByTagNamesIn(new ArrayList<>(allTagNames));
+            for (Tag tag : foundByName) {
+                tagByName.put(tag.getTagName(), tag);
+            }
+            // 对于数据库中不存在的标签名，构造虚拟Tag
+            for (String name : allTagNames) {
+                if (!tagByName.containsKey(name)) {
+                    Tag virtualTag = new Tag();
+                    virtualTag.setId(null);
+                    virtualTag.setTagName(name);
+                    tagByName.put(name, virtualTag);
+                }
+            }
+        }
+
+        // 组装结果
         Map<String, List<Tag>> tagsByMeetingId = new LinkedHashMap<>();
         for (Meeting m : meetings) {
-            List<Long> ids = parseTagIdsFromTagsString(m.getTags());
-            List<Tag> tags = ids.stream()
-                    .map(tagById::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+            List<Object> rawTags = rawTagsByMeeting.getOrDefault(m.getMeetingId(), Collections.emptyList());
+            List<Tag> tags = new ArrayList<>();
+            for (Object raw : rawTags) {
+                if (raw instanceof Long) {
+                    Tag tag = tagById.get((Long) raw);
+                    if (tag != null) {
+                        tags.add(tag);
+                    }
+                } else if (raw instanceof String) {
+                    Tag tag = tagByName.get((String) raw);
+                    if (tag != null) {
+                        tags.add(tag);
+                    }
+                }
+            }
             tagsByMeetingId.put(m.getMeetingId(), tags);
         }
         return tagsByMeetingId;
-    }
-
-    /**
-     * 从 t_meeting.tags 解析出 tagId 列表（逗号分隔）
-     */
-    private static List<Long> parseTagIdsFromTagsString(String tagsStr) {
-        if (tagsStr == null || tagsStr.trim().isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<Long> ids = new ArrayList<>();
-        for (String s : tagsStr.split(",")) {
-            String trimmed = s.trim();
-            if (trimmed.isEmpty()) {
-                continue;
-            }
-            try {
-                ids.add(Long.parseLong(trimmed));
-            } catch (NumberFormatException ignored) {
-                // tags 字段存了名称（非 ID），跳过即可
-                logger.debug("tags 字段包含非 ID 值，已跳过: {}", s);
-            }
-        }
-        return ids.stream().distinct().collect(Collectors.toList());
     }
 
     /**
