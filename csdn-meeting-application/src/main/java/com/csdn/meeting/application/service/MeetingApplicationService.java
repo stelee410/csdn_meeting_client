@@ -339,12 +339,12 @@ public class MeetingApplicationService {
         meeting.setFormat(parseFormat(cmd.getFormat()));
         meeting.setMeetingType(parseMeetingType(cmd.getMeetingType()));
         meeting.setScene(cmd.getScene());
-        // 通过 venue（cityCode）反查 cityName，同时设置 cityCode 和 cityName
-        String cityCode = cmd.getVenue();
-        String cityName = resolveCityName(cityCode);
-        meeting.setVenue(cityCode);
-        meeting.setCityCode(cityCode);
-        meeting.setCityName(cityName != null ? cityName : cityCode);
+        // 通过 venue（cityCode，可能多个，逗号分隔）反查 cityName
+        String cityCodes = cmd.getVenue();
+        String cityNames = resolveCityNames(cityCodes);
+        meeting.setVenue(cityCodes);
+        meeting.setCityCode(cityCodes);
+        meeting.setCityName(cityNames != null ? cityNames : cityCodes);
         meeting.setRegions(cmd.getRegions());
         meeting.setCoverImage(UrlNormalizer.normalizeImageUrl(cmd.getCoverImage()));
         meeting.setTags(cmd.getTags());
@@ -368,12 +368,12 @@ public class MeetingApplicationService {
         if (cmd.getMeetingType() != null) meeting.setMeetingType(parseMeetingType(cmd.getMeetingType()));
         if (cmd.getScene() != null) meeting.setScene(cmd.getScene());
         if (cmd.getVenue() != null) {
-            // 通过 venue（cityCode）反查 cityName，同时设置 cityCode 和 cityName
-            String cityCode = cmd.getVenue();
-            String cityName = resolveCityName(cityCode);
-            meeting.setVenue(cityCode);
-            meeting.setCityCode(cityCode);
-            meeting.setCityName(cityName != null ? cityName : cityCode);
+            // 通过 venue（cityCode，可能多个，逗号分隔）反查 cityName
+            String cityCodes = cmd.getVenue();
+            String cityNames = resolveCityNames(cityCodes);
+            meeting.setVenue(cityCodes);
+            meeting.setCityCode(cityCodes);
+            meeting.setCityName(cityNames != null ? cityNames : cityCodes);
         }
         if (cmd.getRegions() != null) meeting.setRegions(cmd.getRegions());
         if (cmd.getCoverImage() != null) meeting.setCoverImage(UrlNormalizer.normalizeImageUrl(cmd.getCoverImage()));
@@ -508,7 +508,7 @@ public class MeetingApplicationService {
     }
 
     /**
-     * 通过城市编码反查城市名称
+     * 通过城市编码反查城市名称（支持单个）
      */
     private String resolveCityName(String cityCode) {
         if (cityCode == null || cityCode.isEmpty()) {
@@ -523,6 +523,29 @@ public class MeetingApplicationService {
             }
         }
         return null;
+    }
+
+    /**
+     * 通过城市编码反查城市名称（支持多个，逗号分隔）
+     */
+    private String resolveCityNames(String cityCodes) {
+        if (cityCodes == null || cityCodes.isEmpty()) {
+            return null;
+        }
+        String[] codes = cityCodes.split(",");
+        List<String> names = new ArrayList<>();
+        for (String code : codes) {
+            String trimmedCode = code.trim();
+            if (!trimmedCode.isEmpty()) {
+                String name = resolveCityName(trimmedCode);
+                if (name != null) {
+                    names.add(name);
+                } else {
+                    names.add(trimmedCode);
+                }
+            }
+        }
+        return String.join(",", names);
     }
 
     private ParticipantDTO toParticipantDTO(Participant participant) {

@@ -270,7 +270,7 @@ public class MeetingListUseCase {
         dto.setMaxParticipants(meeting.getMaxParticipants());
         dto.setParticipantsDisplay(meeting.getParticipantsDisplay());
 
-        // 地点：通过 cityCode 反查城市名称
+        // 地点：直接使用已存储的 cityName
         String cityName = meeting.getCityName();
         dto.setCityName(cityName);
         dto.setVenue(cityName != null ? cityName : meeting.getVenue());
