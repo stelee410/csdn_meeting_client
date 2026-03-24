@@ -56,7 +56,8 @@ public class Tag extends BaseEntity {
         SCENE("场景"),
         TOPIC("主题"),
         BRAND("品牌"),
-        TYPE("类型");
+        TYPE("类型"),
+        CUSTOM("自定义");
 
         private final String displayName;
 

@@ -7,6 +7,7 @@ import com.csdn.meeting.domain.entity.Participant;
 import com.csdn.meeting.domain.entity.ScheduleDay;
 import com.csdn.meeting.domain.entity.Session;
 import com.csdn.meeting.domain.entity.SubVenue;
+import com.csdn.meeting.domain.entity.Tag;
 import com.csdn.meeting.domain.entity.Topic;
 import com.csdn.meeting.domain.valueobject.MeetingFormat;
 import com.csdn.meeting.domain.valueobject.MeetingType;
@@ -347,7 +348,7 @@ public class MeetingApplicationService {
         meeting.setCityName(cityNames != null ? cityNames : cityCodes);
         meeting.setRegions(cmd.getRegions());
         meeting.setCoverImage(UrlNormalizer.normalizeImageUrl(cmd.getCoverImage()));
-        meeting.setTags(cmd.getTags());
+        meeting.setTags(processTags(cmd.getTags()));
         meeting.setTargetAudience(cmd.getTargetAudience());
         meeting.setIsPremium(cmd.getIsPremium());
         meeting.setSceneIndustry(cmd.getSceneIndustry());
@@ -377,7 +378,7 @@ public class MeetingApplicationService {
         }
         if (cmd.getRegions() != null) meeting.setRegions(cmd.getRegions());
         if (cmd.getCoverImage() != null) meeting.setCoverImage(UrlNormalizer.normalizeImageUrl(cmd.getCoverImage()));
-        if (cmd.getTags() != null) meeting.setTags(cmd.getTags());
+        if (cmd.getTags() != null) meeting.setTags(processTags(cmd.getTags()));
         if (cmd.getTargetAudience() != null) meeting.setTargetAudience(cmd.getTargetAudience());
         if (cmd.getIsPremium() != null) meeting.setIsPremium(cmd.getIsPremium());
         if (cmd.getSceneIndustry() != null) meeting.setSceneIndustry(cmd.getSceneIndustry());
@@ -525,6 +526,50 @@ public class MeetingApplicationService {
         } else {
             return "500人以上";
         }
+    }
+
+    /**
+     * 处理标签：查找或创建，转换为ID列表
+     * 支持传入标签ID列表（如"1,2,3"）或标签名列表（如"前端,后端"）
+     * 返回ID列表格式（如"1,2,3"）
+     */
+    private String processTags(String tagsInput) {
+        if (tagsInput == null || tagsInput.trim().isEmpty()) {
+            return null;
+        }
+
+        String[] parts = tagsInput.split(",");
+        List<String> tagNames = new ArrayList<>();
+
+        for (String part : parts) {
+            String trimmed = part.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+
+            // 尝试解析为数字ID
+            try {
+                Long tagId = Long.parseLong(trimmed);
+                // 是数字ID，查询对应的标签名
+                Optional<Tag> tagOpt = tagRepository.findById(tagId);
+                tagOpt.ifPresent(tag -> tagNames.add(tag.getTagName()));
+            } catch (NumberFormatException e) {
+                // 不是数字，当作标签名处理
+                tagNames.add(trimmed);
+            }
+        }
+
+        if (tagNames.isEmpty()) {
+            return null;
+        }
+
+        // 查找或创建标签
+        List<Tag> tags = tagRepository.findOrCreateByNames(tagNames, Tag.TagCategory.CUSTOM);
+
+        // 转换为ID列表字符串
+        return tags.stream()
+                .map(t -> t.getId().toString())
+                .collect(Collectors.joining(","));
     }
 
     /**
