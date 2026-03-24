@@ -271,8 +271,8 @@ public class MeetingListUseCase {
         dto.setParticipantsDisplay(meeting.getParticipantsDisplay());
 
         // 地点：通过 cityCode 反查城市名称
-        String cityName = resolveCityName(meeting.getVenue());
-        dto.setCityName(cityName != null ? cityName : meeting.getCityName());
+        String cityName = meeting.getCityName();
+        dto.setCityName(cityName);
         dto.setVenue(cityName != null ? cityName : meeting.getVenue());
 
         // 发布时间

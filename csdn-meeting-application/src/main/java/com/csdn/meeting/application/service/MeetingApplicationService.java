@@ -339,7 +339,12 @@ public class MeetingApplicationService {
         meeting.setFormat(parseFormat(cmd.getFormat()));
         meeting.setMeetingType(parseMeetingType(cmd.getMeetingType()));
         meeting.setScene(cmd.getScene());
-        meeting.setVenue(cmd.getVenue());
+        // 通过 venue（cityCode）反查 cityName，同时设置 cityCode 和 cityName
+        String cityCode = cmd.getVenue();
+        String cityName = resolveCityName(cityCode);
+        meeting.setVenue(cityCode);
+        meeting.setCityCode(cityCode);
+        meeting.setCityName(cityName != null ? cityName : cityCode);
         meeting.setRegions(cmd.getRegions());
         meeting.setCoverImage(UrlNormalizer.normalizeImageUrl(cmd.getCoverImage()));
         meeting.setTags(cmd.getTags());
@@ -362,7 +367,14 @@ public class MeetingApplicationService {
         if (cmd.getFormat() != null) meeting.setFormat(parseFormat(cmd.getFormat()));
         if (cmd.getMeetingType() != null) meeting.setMeetingType(parseMeetingType(cmd.getMeetingType()));
         if (cmd.getScene() != null) meeting.setScene(cmd.getScene());
-        if (cmd.getVenue() != null) meeting.setVenue(cmd.getVenue());
+        if (cmd.getVenue() != null) {
+            // 通过 venue（cityCode）反查 cityName，同时设置 cityCode 和 cityName
+            String cityCode = cmd.getVenue();
+            String cityName = resolveCityName(cityCode);
+            meeting.setVenue(cityCode);
+            meeting.setCityCode(cityCode);
+            meeting.setCityName(cityName != null ? cityName : cityCode);
+        }
         if (cmd.getRegions() != null) meeting.setRegions(cmd.getRegions());
         if (cmd.getCoverImage() != null) meeting.setCoverImage(UrlNormalizer.normalizeImageUrl(cmd.getCoverImage()));
         if (cmd.getTags() != null) meeting.setTags(cmd.getTags());
@@ -477,7 +489,7 @@ public class MeetingApplicationService {
         dto.setMeetingType(meeting.getMeetingType() != null ? meeting.getMeetingType().name() : null);
         dto.setScene(meeting.getScene());
         // 通过 cityCode 反查城市名称设置到 venue
-        String cityName = resolveCityName(meeting.getVenue());
+        String cityName = meeting.getCityName();
         dto.setVenue(cityName != null ? cityName : meeting.getVenue());
         dto.setRegions(meeting.getRegions());
         dto.setCoverImage(meeting.getCoverImage() != null ? meeting.getCoverImage() : meeting.getPosterUrl());
