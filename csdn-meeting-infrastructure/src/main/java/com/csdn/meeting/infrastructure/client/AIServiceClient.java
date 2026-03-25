@@ -37,19 +37,22 @@ public class AIServiceClient implements AIParsePort {
             "请从以下文件内容中提取与会议/活动相关的结构化信息，严格以 JSON 格式返回，不要任何解释或 markdown 标记，只返回 JSON。\n" +
             "文件可能是会议通知、申报书、方案书、邀请函或其他文档，请尽量推断提取，无法确认的字段留空字符串或空数组。\n" +
             "重要：title 字段必须填写，若找不到明确会议标题，可从文档主题或文件名推断。\n" +
+            "下列枚举字段必须与取值范围完全一致（英文大写代码），无法判断则留空字符串，不要自造代码：\n" +
+            "- format 只能是：ONLINE（线上）| OFFLINE（线下）| HYBRID（线上+线下）\n" +
+            "- scene 只能是：DEVELOPER（开发者会议）| INDUSTRY（产业会议）| PRODUCT（产品发布会议）| REGIONAL（区域营销会议）| UNIVERSITY（高校会议）\n" +
             "JSON 字段：\n" +
             "{\n" +
             "  \"title\": \"会议/活动标题（必填，若无明确标题则从文档主题推断）\",\n" +
             "  \"description\": \"会议简介（100-300字，若为申报书等可摘要文档核心内容）\",\n" +
             "  \"organizer\": \"主办方或申报单位\",\n" +
-            "  \"format\": \"会议形式，只能是：线上 或 线下 或 线上+线下\",\n" +
-            "  \"scene\": \"会议场景，如：开发者会议、产业会议、产品发布会议\",\n" +
+            "  \"format\": \"ONLINE 或 OFFLINE 或 HYBRID，无法判断留空\",\n" +
+            "  \"scene\": \"DEVELOPER / INDUSTRY / PRODUCT / REGIONAL / UNIVERSITY，无法判断留空\",\n" +
             "  \"venue\": \"会议地点\",\n" +
-            "  \"regions\": \"所在地区，多个用逗号分隔\",\n" +
+            "  \"regions\": \"所在地区城市名称或行政区划，多个用中文逗号分隔；须与系统字典一致时可写标准市名（如 北京市、上海市）\",\n" +
             "  \"startTime\": \"开始时间，ISO 8601 格式，如 2026-06-01T09:00:00\",\n" +
             "  \"endTime\": \"结束时间，ISO 8601 格式\",\n" +
             "  \"tags\": [\"标签1\", \"标签2\"],\n" +
-            "  \"targetAudience\": \"目标受众，如：开发者、产品经理\"\n" +
+            "  \"targetAudience\": \"目标受众，多个用逗号分隔；尽量使用标准角色名（如 开发者、架构师、产品经理），须与系统选项一致时可写选项文案\"\n" +
             "}\n";
     private static final String OCR_PROMPT =
             "请识别这张图片中的全部可见文字，按阅读顺序输出为纯文本。\n" +
