@@ -98,6 +98,33 @@
             <artifactId>poi-scratchpad</artifactId>
             <version>4.1.2</version>
         </dependency>
+
+        <!-- 会议简报：Markdown → HTML（commonmark）→ PDF（openhtmltopdf）；中文字体来自 helger 打包的 Noto Sans SC -->
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>0.21.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-pdfbox</artifactId>
+            <version>1.0.10</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.pdfbox</groupId>
+                    <artifactId>pdfbox</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.pdfbox</groupId>
+                    <artifactId>fontbox</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.helger.font</groupId>
+            <artifactId>ph-fonts-noto-sans-sc</artifactId>
+            <version>5.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
