@@ -61,8 +61,10 @@ upload:
   image:
     # 图片保存的本地磁盘目录（支持绝对路径，如 /data/uploads/images）
     base-path: ./uploads/images
-    # 图片对外访问的 URL 前缀（需与 server.port 和部署域名保持一致）
-    access-url-prefix: http://118.145.66.85:8080/uploads/images/
+    # 图片对外访问 URL 前缀：
+    # - 完整：http://host:8080/uploads/images/
+    # - 仅端口+路径（推荐本地）：":8080/uploads/images/" — host/scheme 随当前请求，端口与路径用配置（YAML 需加引号）
+    access-url-prefix: ":8080/uploads/images/"
 
 # CSDN消息推送配置
 # TODO【需与CSDN协调】：

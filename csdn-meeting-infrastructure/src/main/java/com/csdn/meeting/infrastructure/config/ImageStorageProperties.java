@@ -16,8 +16,12 @@ public class ImageStorageProperties {
     private String basePath = "./uploads/images";
 
     /**
-     * 对外暴露的 URL 前缀，例如 http://localhost:8080/uploads/images
-     * 拼接文件名后即为完整访问 URL
+     * 对外暴露的 URL 前缀，拼接相对路径后为完整访问 URL。
+     * <ul>
+     *   <li>完整 URL：{@code http://host:8080/uploads/images}</li>
+     *   <li>仅端口+路径（host/scheme 随当前 HTTP 请求）：{@code :8080/uploads/images/}，
+     *       无请求上下文时回退为 {@code http://localhost:8080} + 该路径</li>
+     * </ul>
      */
     private String accessUrlPrefix = "http://localhost:8080/uploads/images";
 }

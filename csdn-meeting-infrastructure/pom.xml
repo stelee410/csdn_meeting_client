@@ -18,6 +18,16 @@
             <groupId>com.csdn</groupId>
             <artifactId>csdn-meeting-domain</artifactId>
         </dependency>
+        <!-- RequestContextHolder：按当前请求 host 解析 :port/path 形式的 access-url-prefix -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>

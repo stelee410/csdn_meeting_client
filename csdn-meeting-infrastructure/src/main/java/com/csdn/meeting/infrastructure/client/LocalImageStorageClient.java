@@ -6,7 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
 import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,6 +19,8 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 图片存储的本地磁盘实现。
@@ -25,6 +32,9 @@ import java.util.UUID;
 public class LocalImageStorageClient implements ImageStoragePort {
 
     private static final DateTimeFormatter DATE_PATH_FORMAT = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+
+    /** 形如 {@code :8080/uploads/images/}：域名与协议取自当前请求，端口与路径取自配置 */
+    private static final Pattern ACCESS_PREFIX_PORT_PATH = Pattern.compile("^:(\\d+)(/.*)?$");
 
     private final ImageStorageProperties properties;
 
@@ -58,9 +68,41 @@ public class LocalImageStorageClient implements ImageStoragePort {
 
         // 拼接可访问 URL：前缀 + /年/月/日/文件名
         // 修复 issue001：防止 URL 重复拼接 http、端口号及双斜杠
-        String accessUrlPrefix = normalizeAccessUrlPrefix(properties.getAccessUrlPrefix());
+        String accessUrlPrefix = resolveAccessUrlPrefix(properties.getAccessUrlPrefix());
         String path = datePath + "/" + uniqueFileName;
         return appendPathWithoutDoubleSlash(accessUrlPrefix, path);
+    }
+
+    /**
+     * 解析配置的前缀：支持完整 URL，或 {@code :port/path}（host、scheme 来自当前请求）。
+     */
+    private String resolveAccessUrlPrefix(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return normalizeAccessUrlPrefix(null);
+        }
+        String s = raw.trim();
+        Matcher m = ACCESS_PREFIX_PORT_PATH.matcher(s);
+        if (!m.matches()) {
+            return normalizeAccessUrlPrefix(s);
+        }
+        String port = m.group(1);
+        String pathPart = m.group(2);
+        if (pathPart == null || pathPart.isEmpty() || "/".equals(pathPart)) {
+            pathPart = "/uploads/images";
+        }
+        while (pathPart.length() > 1 && pathPart.endsWith("/")) {
+            pathPart = pathPart.substring(0, pathPart.length() - 1);
+        }
+        String scheme = "http";
+        String host = "localhost";
+        RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
+        if (attrs instanceof ServletRequestAttributes) {
+            HttpServletRequest req = ((ServletRequestAttributes) attrs).getRequest();
+            scheme = req.getScheme();
+            host = req.getServerName();
+        }
+        String combined = scheme + "://" + host + ":" + port + pathPart;
+        return normalizeAccessUrlPrefix(combined);
     }
 
     /**
