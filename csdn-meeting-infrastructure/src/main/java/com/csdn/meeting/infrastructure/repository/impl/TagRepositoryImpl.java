@@ -85,7 +85,9 @@ public class TagRepositoryImpl implements TagRepository {
 
     @Override
     public List<Tag> findHotTags(int limit) {
-        if (limit <= 0) return Collections.emptyList();
+        if (limit <= 0) {
+            return Collections.emptyList();
+        }
         List<TagPO> poList = tagMapper.selectHotTags(limit);
         return poList == null || poList.isEmpty()
                 ? Collections.emptyList()
@@ -111,7 +113,9 @@ public class TagRepositoryImpl implements TagRepository {
         List<Long> ids = new java.util.ArrayList<>();
         for (String s : tagsStr.split(",")) {
             String trimmed = s.trim();
-            if (trimmed.isEmpty()) continue;
+            if (trimmed.isEmpty()) {
+                continue;
+            }
             try {
                 ids.add(Long.parseLong(trimmed));
             } catch (NumberFormatException ignored) {

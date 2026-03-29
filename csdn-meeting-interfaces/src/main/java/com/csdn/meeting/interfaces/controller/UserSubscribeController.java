@@ -32,19 +32,12 @@ public class UserSubscribeController {
     }
 
     /**
-     * 获取当前用户ID（从请求头或Session中获取）
-     *
-     * TODO【需要和CSDN对接统一认证服务】：
-     * 1. 当前实现为临时方案，从请求头X-User-Id读取用户ID
-     * 2. 需对接CSDN统一认证服务，从JWT Token或Session中获取真实登录用户ID
-     * 3. 对接后删除X-User-Id方案，改为从Spring Security上下文获取用户身份
-     * 4. 涉及所有需要用户身份的接口：订阅/取消订阅/查询订阅/检查订阅状态
+     * 获取当前用户ID（从请求属性中获取，由LoginInterceptor设置）
      */
     private String getCurrentUserId(HttpServletRequest request) {
-        // TODO【CSDN对接-用户认证】：替换为从JWT Token或Session获取真实用户ID
-        String userIdStr = request.getHeader("X-User-Id");
-        if (userIdStr != null && !userIdStr.isEmpty()) {
-            return userIdStr;
+        String userId = (String) request.getAttribute("currentUserId");
+        if (userId != null && !userId.isEmpty()) {
+            return userId;
         }
         throw new RuntimeException("用户未登录");
     }
