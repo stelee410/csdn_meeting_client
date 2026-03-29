@@ -10,7 +10,7 @@ import com.csdn.meeting.domain.valueobject.UserStatus;
 import com.csdn.meeting.domain.valueobject.UserType;
 import com.csdn.meeting.infrastructure.mapper.UserMapper;
 import com.csdn.meeting.infrastructure.po.UserPO;
-import com.csdn.meeting.infrastructure.repository.UserBaseMapper;
+import com.csdn.meeting.infrastructure.repository.mapper.UserBaseMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

@@ -3,7 +3,6 @@ package com.csdn.meeting.interfaces.controller;
 import com.csdn.meeting.application.dto.UserProfileDTO;
 import com.csdn.meeting.application.dto.UserProfileUpdateCommand;
 import com.csdn.meeting.application.service.UserProfileAppService;
-import com.csdn.meeting.infrastructure.security.JwtTokenProvider;
 import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,12 +24,9 @@ import javax.validation.Valid;
 public class UserProfileController {
 
     private final UserProfileAppService userProfileAppService;
-    private final JwtTokenProvider jwtTokenProvider;
 
-    public UserProfileController(UserProfileAppService userProfileAppService,
-                                 JwtTokenProvider jwtTokenProvider) {
+    public UserProfileController(UserProfileAppService userProfileAppService) {
         this.userProfileAppService = userProfileAppService;
-        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Operation(summary = "获取当前用户信息", description = "获取当前登录用户的详细资料")
@@ -52,16 +48,13 @@ public class UserProfileController {
     }
 
     /**
-     * 从请求中获取当前用户ID
+     * 从请求中获取当前用户ID（由LoginInterceptor设置）
      */
     private String getCurrentUserId(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            if (jwtTokenProvider.validateToken(token)) {
-                return jwtTokenProvider.getUserIdFromToken(token);
-            }
+        String userId = (String) request.getAttribute("currentUserId");
+        if (userId != null && !userId.isEmpty()) {
+            return userId;
         }
-        throw new RuntimeException("用户未登录或登录已过期");
+        throw new RuntimeException("用户未登录");
     }
 }

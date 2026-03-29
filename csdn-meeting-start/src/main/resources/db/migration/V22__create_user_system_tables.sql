@@ -26,7 +26,7 @@ CREATE TABLE `t_user` (
     `agreement_accepted`  BOOLEAN DEFAULT FALSE COMMENT '是否同意用户协议',
     `privacy_accepted`    BOOLEAN DEFAULT FALSE COMMENT '是否同意隐私政策',
     `created_at`          TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
-    `last_login_at`       TIMESTAMP COMMENT '最后登录时间',
+    `last_login_at`       TIMESTAMP NULL COMMENT '最后登录时间',
 
     -- 审计字段（编码规范要求）
     `is_delete`           TINYINT DEFAULT 0 COMMENT '软删除标志：0-未删除, 1-已删除',

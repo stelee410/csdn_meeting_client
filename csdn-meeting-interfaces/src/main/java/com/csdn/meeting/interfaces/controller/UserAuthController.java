@@ -71,7 +71,13 @@ public class UserAuthController {
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
-    @Operation(summary = "CSDN扫码回调", description = "CSDN App扫码授权后的回调处理，未注册则自动创建账号")
+    /**
+     * TODO【需与CSDN对接】CSDN扫码回调
+     * 用户通过CSDN App扫码授权后，CSDN会回调此接口
+     * 未注册用户自动创建账号，已绑定用户直接登录
+     */
+    @Operation(summary = "TODO【需与CSDN对接】CSDN扫码回调", 
+               description = "CSDN App扫码授权后的回调处理，未注册则自动创建账号。需与CSDN开放平台确认实际流程。")
     @PostMapping("/csdn/callback")
     public ResponseEntity<ApiResponse<LoginResultDTO>> csdnAuthCallback(@Valid @RequestBody CsdnAuthCallbackCommand command) {
         LoginResultDTO result = userAuthAppService.handleCsdnAuthCallback(command);

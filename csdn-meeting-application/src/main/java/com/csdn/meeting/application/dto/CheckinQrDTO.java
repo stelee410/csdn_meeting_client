@@ -19,13 +19,9 @@ public class CheckinQrDTO {
     @Schema(description = "签到码Token", example = "a1b2c3d4e5f6g7h8")
     private String checkinToken;
 
-    @Schema(description = "APP二维码内容（扫码跳转URL或Scheme）", 
-            example = "app://csdn.meeting/checkin?m=M123456789&t=a1b2c3d4e5f6g7h8")
+    @Schema(description = "二维码内容（扫码签到URL）", 
+            example = "https://meeting.csdn.net/checkin?m=M123456789&t=a1b2c3d4e5f6g7h8")
     private String qrContent;
-
-    @Schema(description = "微信小程序二维码内容（扫码跳转页面路径）", 
-            example = "/pages/meeting/checkin?m=M123456789&t=a1b2c3d4e5f6g7h8")
-    private String miniappQrContent;
 
     @Schema(description = "二维码图片URL（如服务器生成）")
     private String qrImageUrl;

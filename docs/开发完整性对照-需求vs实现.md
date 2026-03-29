@@ -88,7 +88,7 @@
 | **MeetingStatisticsUseCase** | 数据统计依赖 `t_meeting_stats` 未建表，使用模拟值 |
 | **MeetingBriefUseCase** | 热门议题（基于议题点击/评分）为占位 |
 | **MeetingRightsPurchaseUseCase** | 支付回调为 stub，直接模拟成功 |
-| **MeetingPublishPushService** | 会议发布后推送（站内信、App Push）未对接 CSDN 消息/推送服务 |
+| **MeetingPublishPushService** | 会议发布后站内信推送，已改造为内部存储 |
 | **MeetingAnalyticsService** | 埋点上报（视图切换、筛选、标签订阅、会议点击等）未对接 CSDN 数据分析平台 |
 
 ### 4.3 权限与认证 TODO

@@ -14,19 +14,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
 /**
  * 报名相关 REST API
  * 包含用户报名、取消报名、查询报名状态、表单配置等功能
- * 
- * TODO【需与CSDN协调】：
- * 1. 用户身份获取：当前从RequestParam获取userId，需改为从JWT Token或Session获取
- * 2. 确认手机号加密传输方案（当前脱敏显示，需确认是否加密存储）
- * 3. 确认报名通知模板编码（IM站内信、APP Push、邮件）
- * 4. 确认报名成功后是否生成电子票/二维码
- * 5. 确认是否需要接入CSDN统一支付（如报名收费）
+ *
+ * 【已改造】用户身份从JWT Token中获取（通过LoginInterceptor设置到request attribute）
  */
 @Tag(name = "报名接口", description = "会议报名相关接口")
 @RestController
@@ -67,9 +63,9 @@ public class RegistrationController {
     public ResponseEntity<ApiResponse<Map<String, String>>> getPreFillData(
             @Parameter(description = "会议ID", example = "M123456789")
             @RequestParam String meetingId,
-            @Parameter(description = "用户ID", example = "12345")
-            @RequestParam Long userId) {
-        Map<String, String> preFilledData = meetingRegistrationUseCase.getPreFilledForm(meetingId, userId);
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        Map<String, String> preFilledData = meetingRegistrationUseCase.getPreFilledForm(meetingId, Long.valueOf(userId));
         return ResponseEntity.ok(ApiResponse.success(preFilledData));
     }
 
@@ -79,7 +75,11 @@ public class RegistrationController {
     )
     @PostMapping
     public ResponseEntity<ApiResponse<RegistrationDTO>> submitRegistration(
-            @RequestBody RegistrationCommand command) {
+            @RequestBody RegistrationCommand command,
+            HttpServletRequest request) {
+        // 从JWT获取用户ID并设置到command中
+        String userId = getCurrentUserId(request);
+        command.setUserId(Long.valueOf(userId));
         RegistrationDTO dto = meetingRegistrationUseCase.register(command);
         return ResponseEntity.ok(ApiResponse.success(dto));
     }
@@ -92,9 +92,9 @@ public class RegistrationController {
     public ResponseEntity<ApiResponse<RegistrationDTO>> getMyRegistration(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
-            @Parameter(description = "用户ID", example = "12345")
-            @RequestParam Long userId) {
-        RegistrationDTO dto = meetingRegistrationUseCase.getMyRegistration(meetingId, userId);
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        RegistrationDTO dto = meetingRegistrationUseCase.getMyRegistration(meetingId, Long.valueOf(userId));
         // 未报名返回 200 + null body，而非 404（未报名是正常业务状态，不是资源不存在）
         return ResponseEntity.ok(ApiResponse.success(dto));
     }
@@ -107,9 +107,9 @@ public class RegistrationController {
     public ResponseEntity<ApiResponse<Void>> cancelRegistration(
             @Parameter(description = "报名记录ID", example = "12345")
             @PathVariable Long regId,
-            @Parameter(description = "用户ID", example = "12345")
-            @RequestParam Long userId) {
-        meetingRegistrationUseCase.cancelRegistration(regId, userId);
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        meetingRegistrationUseCase.cancelRegistration(regId, Long.valueOf(userId));
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -117,7 +117,7 @@ public class RegistrationController {
 
     @Operation(
             summary = "审核通过（主办方）",
-            description = "将报名状态设为 APPROVED，触发多渠道通知（IM站内信、APP Push、邮件）。"
+            description = "将报名状态设为 APPROVED，触发站内信通知。"
     )
     @PostMapping("/{regId}/approve")
     public ResponseEntity<ApiResponse<RegistrationDTO>> approve(
@@ -129,7 +129,7 @@ public class RegistrationController {
 
     @Operation(
             summary = "审核拒绝（主办方）",
-            description = "将报名状态设为 REJECTED，可传 auditRemark，触发多渠道通知。"
+            description = "将报名状态设为 REJECTED，可传 auditRemark，触发站内信通知。"
     )
     @PostMapping("/{regId}/reject")
     public ResponseEntity<ApiResponse<RegistrationDTO>> reject(
@@ -139,5 +139,16 @@ public class RegistrationController {
         String auditRemark = command != null ? command.getAuditRemark() : null;
         RegistrationDTO dto = registrationAuditUseCase.reject(regId, auditRemark);
         return ResponseEntity.ok(ApiResponse.success(dto));
+    }
+
+    /**
+     * 从请求中获取当前用户ID（由LoginInterceptor设置）
+     */
+    private String getCurrentUserId(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("currentUserId");
+        if (userId != null && !userId.isEmpty()) {
+            return userId;
+        }
+        throw new RuntimeException("用户未登录");
     }
 }

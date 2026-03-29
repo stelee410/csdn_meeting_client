@@ -14,16 +14,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 
 /**
  * 收藏控制器
  * 提供会议收藏/取消收藏、查询收藏状态等API
- * 
- * TODO【需与CSDN协调】：
- * 1. 用户身份获取：当前从RequestParam获取userId，需改为从JWT Token或Session获取
- * 2. 确认收藏功能是否与CSDN个人中心的收藏打通
- * 3. 确认收藏的会议在「我的会议」-「我收藏的会议」中的展示规则
+ *
+ * 【已改造】用户身份从JWT Token中获取（通过LoginInterceptor设置到request attribute）
  */
 @Tag(name = "收藏接口", description = "会议收藏相关接口")
 @RestController
@@ -56,31 +54,32 @@ public class FavoriteController {
     public ResponseEntity<ApiResponse<FavoriteResultDTO>> toggleFavorite(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
-            @Parameter(description = "用户ID", example = "12345")
-            @RequestParam Long userId) {
+            HttpServletRequest request) {
+
+        String userId = getCurrentUserId(request);
 
         // 查找会议
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
         // 检查当前收藏状态
-        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(userId, meeting.getId());
+        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
 
         if (currentlyFavorited) {
             // 取消收藏
-            favoriteRepository.deleteByUserIdAndMeetingId(userId, meeting.getId());
+            favoriteRepository.deleteByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
             logger.info("用户 {} 取消收藏会议 {}", userId, meetingId);
 
             FavoriteResultDTO result = new FavoriteResultDTO();
             result.setMeetingId(meetingId);
-            result.setUserId(userId);
+            result.setUserId(Long.valueOf(userId));
             result.setFavorited(false);
             result.setMessage("已取消收藏");
             return ResponseEntity.ok(ApiResponse.success(result));
         } else {
             // 添加收藏
             MeetingFavorite favorite = new MeetingFavorite();
-            favorite.setUserId(userId);
+            favorite.setUserId(Long.valueOf(userId));
             favorite.setMeetingId(meeting.getId());
             favorite.setCreatedAt(LocalDateTime.now());
             favoriteRepository.save(favorite);
@@ -88,7 +87,7 @@ public class FavoriteController {
 
             FavoriteResultDTO result = new FavoriteResultDTO();
             result.setMeetingId(meetingId);
-            result.setUserId(userId);
+            result.setUserId(Long.valueOf(userId));
             result.setFavorited(true);
             result.setMessage("收藏成功");
             return ResponseEntity.ok(ApiResponse.success(result));
@@ -106,15 +105,16 @@ public class FavoriteController {
     public ResponseEntity<ApiResponse<Boolean>> isFavorite(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
-            @Parameter(description = "用户ID", example = "12345")
-            @RequestParam Long userId) {
+            HttpServletRequest request) {
+
+        String userId = getCurrentUserId(request);
 
         Meeting meeting = meetingRepository.findByMeetingId(meetingId).orElse(null);
         if (meeting == null) {
             return ResponseEntity.ok(ApiResponse.success(false));
         }
 
-        boolean isFavorited = favoriteRepository.existsByUserIdAndMeetingId(userId, meeting.getId());
+        boolean isFavorited = favoriteRepository.existsByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
         return ResponseEntity.ok(ApiResponse.success(isFavorited));
     }
 
@@ -129,21 +129,22 @@ public class FavoriteController {
     public ResponseEntity<ApiResponse<FavoriteResultDTO>> addFavorite(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
-            @Parameter(description = "用户ID", example = "12345")
-            @RequestParam Long userId) {
+            HttpServletRequest request) {
+
+        String userId = getCurrentUserId(request);
 
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
         // 检查是否已收藏
-        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(userId, meeting.getId());
+        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
         if (currentlyFavorited) {
             throw new IllegalStateException("您已收藏该会议，请勿重复收藏");
         }
 
         // 添加收藏
         MeetingFavorite favorite = new MeetingFavorite();
-        favorite.setUserId(userId);
+        favorite.setUserId(Long.valueOf(userId));
         favorite.setMeetingId(meeting.getId());
         favorite.setCreatedAt(LocalDateTime.now());
         favoriteRepository.save(favorite);
@@ -151,7 +152,7 @@ public class FavoriteController {
 
         FavoriteResultDTO result = new FavoriteResultDTO();
         result.setMeetingId(meetingId);
-        result.setUserId(userId);
+        result.setUserId(Long.valueOf(userId));
         result.setFavorited(true);
         result.setMessage("收藏成功");
         return ResponseEntity.ok(ApiResponse.success(result));
@@ -168,28 +169,40 @@ public class FavoriteController {
     public ResponseEntity<ApiResponse<FavoriteResultDTO>> removeFavorite(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
-            @Parameter(description = "用户ID", example = "12345")
-            @RequestParam Long userId) {
+            HttpServletRequest request) {
+
+        String userId = getCurrentUserId(request);
 
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
         // 检查是否已收藏
-        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(userId, meeting.getId());
+        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
         if (!currentlyFavorited) {
             throw new IllegalStateException("您未收藏该会议");
         }
 
         // 取消收藏
-        favoriteRepository.deleteByUserIdAndMeetingId(userId, meeting.getId());
+        favoriteRepository.deleteByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
         logger.info("用户 {} 取消收藏会议 {}", userId, meetingId);
 
         FavoriteResultDTO result = new FavoriteResultDTO();
         result.setMeetingId(meetingId);
-        result.setUserId(userId);
+        result.setUserId(Long.valueOf(userId));
         result.setFavorited(false);
         result.setMessage("已取消收藏");
         return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
+    /**
+     * 从请求中获取当前用户ID（由LoginInterceptor设置）
+     */
+    private String getCurrentUserId(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("currentUserId");
+        if (userId != null && !userId.isEmpty()) {
+            return userId;
+        }
+        throw new RuntimeException("用户未登录");
     }
 
     /**

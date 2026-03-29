@@ -6,7 +6,7 @@ import com.csdn.meeting.domain.valueobject.VerificationCodeScene;
 import com.csdn.meeting.domain.valueobject.VerificationCodeType;
 import com.csdn.meeting.infrastructure.mapper.VerificationCodeMapper;
 import com.csdn.meeting.infrastructure.po.VerificationCodePO;
-import com.csdn.meeting.infrastructure.repository.VerificationCodeBaseMapper;
+import com.csdn.meeting.infrastructure.repository.mapper.VerificationCodeBaseMapper;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;

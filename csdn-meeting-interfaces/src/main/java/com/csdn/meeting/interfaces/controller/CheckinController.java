@@ -16,13 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * 签到控制器
  * 提供签到码生成、二维码获取、扫码签到等API
- * 
- * TODO【需与CSDN协调】：
- * 1. 确认CSDN App扫码跳转Scheme协议（当前使用 app://csdn.meeting/checkin）
- * 2. 确认是否需要支持微信扫码跳转H5页面签到
- * 3. 确认签到成功后的页面展示内容（座位号、入场指引等）
- * 4. 确认主办方后台是否需要实时展示签到数据大屏
- * 5. 确认弱网环境下的签到容错机制
  */
 @Tag(name = "签到接口", description = "会议现场扫码签到相关接口")
 @RestController

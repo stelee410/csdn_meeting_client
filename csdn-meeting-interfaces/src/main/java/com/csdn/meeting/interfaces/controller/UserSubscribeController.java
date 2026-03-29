@@ -44,7 +44,7 @@ public class UserSubscribeController {
 
     @Operation(
             summary = "订阅标签",
-            description = "用户订阅指定标签，订阅成功后将接收该标签下新会议的推送通知（站内信+App Push）。" +
+            description = "用户订阅指定标签，订阅成功后将接收该标签下新会议的站内信通知。" +
                     "如果用户已订阅该标签，则返回已订阅提示"
     )
     @io.swagger.v3.oas.annotations.parameters.RequestBody(

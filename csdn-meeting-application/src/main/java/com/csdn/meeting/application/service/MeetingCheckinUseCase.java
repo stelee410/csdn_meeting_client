@@ -31,13 +31,6 @@ import java.util.UUID;
  * 1. 签到码使用HMAC-SHA256签名，防止伪造
  * 2. 二维码内容包含会议ID和加密Token
  * 3. 支持重复签到检测
- * 
- * TODO【需与CSDN协调】：
- * 1. 确认CSDN App扫码跳转Scheme（当前使用 app://csdn.meeting/checkin）
- * 2. 确认是否需要支持微信扫码跳转H5页面
- * 3. 确认签到二维码参数格式（meetingId、token等）
- * 4. 确认二维码过期策略（当前长期有效）
- * 5. 确认高安全级别会议是否需要动态刷新二维码（每5秒刷新）
  */
 @Service
 public class MeetingCheckinUseCase {
@@ -47,16 +40,6 @@ public class MeetingCheckinUseCase {
     // 签到码签名密钥（应从配置文件读取）
     @Value("${checkin.signing-key:csdn-meeting-checkin-secret-key}")
     private String signingKey;
-
-    // 二维码Scheme前缀
-    // TODO【需与CSDN协调】：与CSDN App团队确认Scheme协议
-    @Value("${checkin.scheme:app://csdn.meeting/checkin}")
-    private String checkinScheme;
-
-    // 微信小程序Scheme（小程序扫码后跳转的页面路径）
-    // TODO【需CSDN小程序对接】：与微信小程序团队确认页面路径
-    @Value("${checkin.miniapp-scheme:/pages/meeting/checkin}")
-    private String miniappScheme;
 
     private final MeetingRepository meetingRepository;
     private final RegistrationRepository registrationRepository;
@@ -99,7 +82,6 @@ public class MeetingCheckinUseCase {
         qrDTO.setMeetingTitle(meeting.getTitle());
         qrDTO.setCheckinToken(checkinToken);
         qrDTO.setQrContent(buildQrContent(meetingId, checkinToken));
-        qrDTO.setMiniappQrContent(buildMiniappQrContent(meetingId, checkinToken));
         qrDTO.setCheckinEnabled(true);
 
         return qrDTO;
@@ -128,7 +110,6 @@ public class MeetingCheckinUseCase {
         qrDTO.setMeetingTitle(meeting.getTitle());
         qrDTO.setCheckinToken(meeting.getCheckinCode());
         qrDTO.setQrContent(buildQrContent(meetingId, meeting.getCheckinCode()));
-        qrDTO.setMiniappQrContent(buildMiniappQrContent(meetingId, meeting.getCheckinCode()));
         qrDTO.setCheckinEnabled(true);
 
         return qrDTO;
@@ -287,17 +268,11 @@ public class MeetingCheckinUseCase {
     }
 
     /**
-     * 构建二维码内容
+     * 构建二维码内容（Web端签到URL）
      */
     private String buildQrContent(String meetingId, String checkinToken) {
-        return String.format("%s?m=%s&t=%s", checkinScheme, meetingId, checkinToken);
-    }
-
-    /**
-     * 构建小程序二维码内容
-     */
-    private String buildMiniappQrContent(String meetingId, String checkinToken) {
-        return String.format("%s?m=%s&t=%s", miniappScheme, meetingId, checkinToken);
+        // Web端签到URL，用户扫码后跳转到H5签到页面
+        return String.format("https://meeting.csdn.net/checkin?m=%s&t=%s", meetingId, checkinToken);
     }
 
     /**

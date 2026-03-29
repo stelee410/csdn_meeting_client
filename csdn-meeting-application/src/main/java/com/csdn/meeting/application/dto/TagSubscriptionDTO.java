@@ -24,9 +24,6 @@ public class TagSubscriptionDTO {
     @Schema(description = "是否接收站内信通知", example = "true")
     private Boolean notifySite;
 
-    @Schema(description = "是否接收App Push通知", example = "true")
-    private Boolean notifyPush;
-
     @Schema(description = "订阅时间", example = "2024-03-01T10:00:00")
     private LocalDateTime subscribedAt;
 
@@ -71,14 +68,6 @@ public class TagSubscriptionDTO {
 
     public void setNotifySite(Boolean notifySite) {
         this.notifySite = notifySite;
-    }
-
-    public Boolean getNotifyPush() {
-        return notifyPush;
-    }
-
-    public void setNotifyPush(Boolean notifyPush) {
-        this.notifyPush = notifyPush;
     }
 
     public LocalDateTime getSubscribedAt() {

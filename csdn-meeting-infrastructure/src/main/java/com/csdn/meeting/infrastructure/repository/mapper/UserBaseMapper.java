@@ -1,4 +1,4 @@
-package com.csdn.meeting.infrastructure.repository;
+package com.csdn.meeting.infrastructure.repository.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.csdn.meeting.infrastructure.po.UserPO;
