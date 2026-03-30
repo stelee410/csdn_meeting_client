@@ -3,20 +3,24 @@ package com.csdn.meeting.infrastructure.client;
 import com.csdn.meeting.domain.entity.UserMessage;
 import com.csdn.meeting.domain.port.MessagePushPort;
 import com.csdn.meeting.domain.repository.UserMessageRepository;
+import com.csdn.meeting.infrastructure.websocket.WebSocketSessionManager;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 /**
  * 内部消息推送客户端
- * 实现MessagePushPort端口，将消息存储到数据库供前端拉取
+ * 实现MessagePushPort端口，将消息存储到数据库并推送给在线用户
  * 替代原CsdnMessagePushClient，不再调用CSDN消息中心
+ * 支持WebSocket实时推送
  */
 @Component
 public class InternalMessagePushClient implements MessagePushPort {
@@ -26,9 +30,14 @@ public class InternalMessagePushClient implements MessagePushPort {
     private static final int MAX_BATCH_SIZE = 500;
 
     private final UserMessageRepository messageRepository;
+    private final WebSocketSessionManager webSocketSessionManager;
+    private final ObjectMapper objectMapper;
 
-    public InternalMessagePushClient(UserMessageRepository messageRepository) {
+    public InternalMessagePushClient(UserMessageRepository messageRepository,
+                                      WebSocketSessionManager webSocketSessionManager) {
         this.messageRepository = messageRepository;
+        this.webSocketSessionManager = webSocketSessionManager;
+        this.objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -79,6 +88,52 @@ public class InternalMessagePushClient implements MessagePushPort {
 
         logger.info("[站内信推送] 发送完成: bizId={}, type={}, totalUsers={}, successCount={}",
                 bizId, type, totalCount, successCount);
+
+        // WebSocket实时推送：尝试推送给在线用户
+        tryWebSocketPush(userIds, type, title, bizId);
+    }
+
+    /**
+     * 尝试通过WebSocket推送给在线用户
+     */
+    private void tryWebSocketPush(List<String> userIds, MessageType type, String title, String bizId) {
+        int onlineCount = 0;
+        int pushCount = 0;
+
+        for (String userId : userIds) {
+            // 检查用户是否在线
+            if (webSocketSessionManager.isUserOnline(userId)) {
+                onlineCount++;
+
+                try {
+                    // 查询用户未读消息数
+                    long unreadCount = messageRepository.countUnreadByUserId(userId);
+
+                    // 构建推送消息（JDK 1.8兼容）
+                    Map<String, Object> pushMessage = new HashMap<>();
+                    pushMessage.put("type", "NEW_MESSAGE");
+                    pushMessage.put("messageType", type.name());
+                    pushMessage.put("title", title);
+                    pushMessage.put("bizId", bizId);
+                    pushMessage.put("unreadCount", unreadCount);
+                    pushMessage.put("timestamp", System.currentTimeMillis());
+
+                    String jsonMessage = objectMapper.writeValueAsString(pushMessage);
+                    boolean sent = webSocketSessionManager.sendMessageToUser(userId, jsonMessage);
+
+                    if (sent) {
+                        pushCount++;
+                    }
+
+                } catch (Exception e) {
+                    logger.error("[站内信推送] WebSocket推送失败: userId={}", userId, e);
+                }
+            }
+        }
+
+        if (onlineCount > 0) {
+            logger.info("[站内信推送] WebSocket推送: 在线用户={}, 推送成功={}", onlineCount, pushCount);
+        }
     }
 
     /**

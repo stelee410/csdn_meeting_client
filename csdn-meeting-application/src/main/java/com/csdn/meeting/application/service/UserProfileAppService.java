@@ -1,7 +1,7 @@
 package com.csdn.meeting.application.service;
 
+import com.csdn.meeting.application.dto.UpdateUserProfileCommand;
 import com.csdn.meeting.application.dto.UserProfileDTO;
-import com.csdn.meeting.application.dto.UserProfileUpdateCommand;
 import com.csdn.meeting.domain.entity.User;
 import com.csdn.meeting.domain.service.UserDomainService;
 import com.csdn.meeting.domain.service.VerificationCodeService;
@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 用户资料应用服务
- * 处理用户信息查询和更新
+ * 处理用户资料查询、更新等业务
  */
 @Slf4j
 @Service
@@ -23,37 +23,46 @@ public class UserProfileAppService {
     private final VerificationCodeService verificationCodeService;
 
     public UserProfileAppService(UserDomainService userDomainService,
-                                 VerificationCodeService verificationCodeService) {
+                                   VerificationCodeService verificationCodeService) {
         this.userDomainService = userDomainService;
         this.verificationCodeService = verificationCodeService;
     }
 
     /**
-     * 获取当前用户信息
+     * 获取用户完整资料
+     *
+     * @param userId 用户ID
+     * @return 用户资料DTO
      */
-    public UserProfileDTO getCurrentUserProfile(String userId) {
+    public UserProfileDTO getUserProfile(String userId) {
         User user = userDomainService.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+
         return convertToProfileDTO(user);
     }
 
     /**
      * 更新用户资料
+     *
+     * @param userId  用户ID
+     * @param command 更新命令
+     * @return 更新后的用户资料
      */
     @Transactional
-    public UserProfileDTO updateProfile(String userId, UserProfileUpdateCommand command) {
+    public UserProfileDTO updateUserProfile(String userId, UpdateUserProfileCommand command) {
         User user = userDomainService.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
 
-        // 如果需要更新邮箱，验证邮箱验证码
+        // 验证并更新邮箱（如果填写了邮箱）
         if (command.getEmail() != null && !command.getEmail().isEmpty()) {
             if (!command.getEmail().equals(user.getEmail())) {
+                // 邮箱变更，需要验证
                 if (command.getEmailCode() == null || command.getEmailCode().isEmpty()) {
-                    throw new IllegalArgumentException("请填写邮箱验证码");
+                    throw new IllegalArgumentException("修改邮箱需要填写验证码");
                 }
                 boolean verified = verificationCodeService.verifyCode(
                         command.getEmail(), command.getEmailCode(),
-                        VerificationCodeType.EMAIL, VerificationCodeScene.REGISTER);
+                        VerificationCodeType.EMAIL, VerificationCodeScene.PROFILE_UPDATE);
                 if (!verified) {
                     throw new IllegalArgumentException("邮箱验证码错误或已过期");
                 }
@@ -61,18 +70,27 @@ public class UserProfileAppService {
             }
         }
 
-        // 更新其他资料
-        userDomainService.updateProfile(user, command.getNickname(), command.getAvatarUrl(),
-                command.getRealName(), command.getCompany(), command.getJobTitle(),
-                command.getIndustry());
+        // 更新用户资料
+        userDomainService.updateProfile(
+                user,
+                command.getNickname(),
+                command.getAvatarUrl(),
+                command.getRealName(),
+                command.getCompany(),
+                command.getJobTitle(),
+                command.getIndustry()
+        );
 
-        // 重新查询获取更新后的信息
-        user = userDomainService.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("用户更新失败"));
+        // 保存用户
+        // User对象已被更新，由事务管理保存
 
-        log.info("用户[{}]资料更新成功", userId);
+        log.info("用户[{}]更新资料成功", userId);
 
-        return convertToProfileDTO(user);
+        // 返回更新后的资料
+        if (Boolean.TRUE.equals(command.getReturnFullProfile())) {
+            return convertToProfileDTO(user);
+        }
+        return null;
     }
 
     /**

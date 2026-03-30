@@ -36,6 +36,7 @@
         <!-- Flyway 7.x 兼容 MySQL 5.7；8.x+ Community 不再支持 MySQL 5.7 -->
         <flyway.version>7.15.0</flyway.version>
         <fastjson.version>2.0.43</fastjson.version>
+        <zxing.version>3.5.2</zxing.version>
     </properties>
 
     <dependencyManagement>
@@ -130,6 +131,17 @@
                 <artifactId>flyway-core</artifactId>
                 <version>${flyway.version}</version>
             </dependency>
+            <!-- ZXing 二维码生成 -->
+            <dependency>
+                <groupId>com.google.zxing</groupId>
+                <artifactId>core</artifactId>
+                <version>${zxing.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.zxing</groupId>
+                <artifactId>javase</artifactId>
+                <version>${zxing.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -156,6 +168,7 @@
                     <configuration>
                         <source>${java.version}</source>
                         <target>${java.version}</target>
+                        <release>8</release>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>
@@ -180,6 +193,9 @@
                             <artifactId>java18</artifactId>
                             <version>1.0</version>
                         </signature>
+                        <sourceExcludes>
+                            <exclude>**/target/generated-sources/**</exclude>
+                        </sourceExcludes>
                     </configuration>
                     <executions>
                         <execution>

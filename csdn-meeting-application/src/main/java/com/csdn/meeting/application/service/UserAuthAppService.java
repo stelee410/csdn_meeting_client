@@ -26,17 +26,20 @@ public class UserAuthAppService {
     private final PasswordService passwordService;
     private final JwtTokenProvider jwtTokenProvider;
     private final CsdnAuthClient csdnAuthClient;
+    private final CsdnQrCodeUseCase csdnQrCodeUseCase;
 
     public UserAuthAppService(UserDomainService userDomainService,
                               VerificationCodeService verificationCodeService,
                               PasswordService passwordService,
                               JwtTokenProvider jwtTokenProvider,
-                              CsdnAuthClient csdnAuthClient) {
+                              CsdnAuthClient csdnAuthClient,
+                              CsdnQrCodeUseCase csdnQrCodeUseCase) {
         this.userDomainService = userDomainService;
         this.verificationCodeService = verificationCodeService;
         this.passwordService = passwordService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.csdnAuthClient = csdnAuthClient;
+        this.csdnQrCodeUseCase = csdnQrCodeUseCase;
     }
 
     /**
@@ -160,7 +163,7 @@ public class UserAuthAppService {
     }
 
     /**
-     * TODO【需与CSDN对接】CSDN扫码回调处理
+     * CSDN扫码回调处理
      * 用户通过CSDN App扫码授权后调用此接口
      * 已绑定用户直接登录，未绑定用户自动创建账号
      *
@@ -169,11 +172,14 @@ public class UserAuthAppService {
      */
     @Transactional
     public LoginResultDTO handleCsdnAuthCallback(CsdnAuthCallbackCommand command) {
-        // TODO【需与CSDN对接】1. 调用CSDN服务验证授权码
+        // 1. 调用CSDN服务验证授权码
         CsdnAuthClient.CsdnUserInfo csdnInfo = csdnAuthClient.verifyAuthCode(command.getAuthCode());
         if (!csdnInfo.isSuccess()) {
-            throw new IllegalArgumentException("CSDN授权验证失败");
+            throw new IllegalArgumentException("CSDN授权验证失败: " + csdnInfo.getErrorMessage());
         }
+
+        log.info("CSDN授权验证成功: csdnUserId={}, mobile={}, nickname={}",
+                csdnInfo.getCsdnUserId(), csdnInfo.getMobile(), csdnInfo.getNickname());
 
         // 2. 检查是否已存在绑定用户
         User existingUser = userDomainService.findByCsdnBindId(csdnInfo.getCsdnUserId()).orElse(null);
@@ -185,8 +191,14 @@ public class UserAuthAppService {
             }
             userDomainService.onLoginSuccess(existingUser);
             String token = jwtTokenProvider.generateToken(existingUser.getUserId());
-            log.info("TODO【需与CSDN对接】用户[{}]通过CSDN扫码登录成功", existingUser.getUserId());
-            return buildLoginResult(existingUser, token);
+            log.info("用户[{}]通过CSDN扫码登录成功", existingUser.getUserId());
+
+            LoginResultDTO result = buildLoginResult(existingUser, token);
+            // 更新二维码状态（如果是扫码登录流程）
+            if (command.getQrId() != null && !command.getQrId().isEmpty()) {
+                csdnQrCodeUseCase.updateQrCodeLoggedIn(command.getQrId(), result);
+            }
+            return result;
         }
 
         // 3. 检查手机号是否已注册
@@ -196,8 +208,14 @@ public class UserAuthAppService {
             mobileUser.setCsdnBindId(csdnInfo.getCsdnUserId());
             userDomainService.onLoginSuccess(mobileUser);
             String token = jwtTokenProvider.generateToken(mobileUser.getUserId());
-            log.info("TODO【需与CSDN对接】用户[{}]通过CSDN扫码绑定并登录成功", mobileUser.getUserId());
-            return buildLoginResult(mobileUser, token);
+            log.info("用户[{}]通过CSDN扫码绑定并登录成功", mobileUser.getUserId());
+
+            LoginResultDTO result = buildLoginResult(mobileUser, token);
+            // 更新二维码状态（如果是扫码登录流程）
+            if (command.getQrId() != null && !command.getQrId().isEmpty()) {
+                csdnQrCodeUseCase.updateQrCodeLoggedIn(command.getQrId(), result);
+            }
+            return result;
         }
 
         // 4. 未注册用户，需补充资料
@@ -214,7 +232,7 @@ public class UserAuthAppService {
             throw new IllegalArgumentException("请阅读并同意《用户协议》和《隐私政策》");
         }
 
-        // 【需与CSDN对接】5. 创建新用户
+        // 5. 创建新用户
         User newUser = userDomainService.createCsdnUser(
                 csdnInfo.getMobile(), csdnInfo.getNickname(), csdnInfo.getCsdnUserId());
 
@@ -228,9 +246,14 @@ public class UserAuthAppService {
 
         String token = jwtTokenProvider.generateToken(newUser.getUserId());
 
-        log.info("TODO【需与CSDN对接】用户[{}]通过CSDN扫码注册并登录成功", newUser.getUserId());
+        log.info("用户[{}]通过CSDN扫码注册并登录成功", newUser.getUserId());
 
-        return buildLoginResult(newUser, token);
+        LoginResultDTO result = buildLoginResult(newUser, token);
+        // 更新二维码状态（如果是扫码登录流程）
+        if (command.getQrId() != null && !command.getQrId().isEmpty()) {
+            csdnQrCodeUseCase.updateQrCodeLoggedIn(command.getQrId(), result);
+        }
+        return result;
     }
 
     /**

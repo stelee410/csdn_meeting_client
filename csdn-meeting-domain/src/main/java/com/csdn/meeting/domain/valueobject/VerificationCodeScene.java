@@ -22,7 +22,12 @@ public enum VerificationCodeScene {
     /**
      * 重置密码场景
      */
-    RESET(2, "重置密码", "reset");
+    RESET(2, "重置密码", "reset"),
+
+    /**
+     * 资料更新场景（邮箱变更验证）
+     */
+    PROFILE_UPDATE(3, "资料更新", "profile_update");
 
     private final int code;
     private final String displayName;

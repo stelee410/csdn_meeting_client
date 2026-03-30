@@ -90,4 +90,22 @@ public interface UserMessageRepository {
      * @param userId     用户ID（校验权限）
      */
     void deleteByIds(List<String> messageIds, String userId);
+
+    /**
+     * 清理过期消息（物理删除）
+     * 删除指定日期之前已读的消息
+     *
+     * @param beforeDate 截止日期
+     * @return 删除的消息数量
+     */
+    int cleanupExpiredMessages(java.time.LocalDateTime beforeDate);
+
+    /**
+     * 查询过期消息ID列表（用于批量删除）
+     *
+     * @param beforeDate 截止日期
+     * @param batchSize  批次大小
+     * @return 消息ID列表
+     */
+    List<String> findExpiredMessageIds(java.time.LocalDateTime beforeDate, int batchSize);
 }

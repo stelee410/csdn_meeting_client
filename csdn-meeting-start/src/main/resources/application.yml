@@ -66,6 +66,24 @@ upload:
     # - 仅端口+路径（推荐本地）：":8080/uploads/images/" — host/scheme 随当前请求，端口与路径用配置（YAML 需加引号）
     access-url-prefix: ":8080/uploads/images/"
 
+# CSDN OAuth配置（App扫码登录）
+# TODO【需与CSDN对接】: 完成以下配置后才能使用真实CSDN扫码功能
+# 1. 在CSDN开放平台(https://open.csdn.net)申请应用
+# 2. 获取client-id和client-secret并配置到环境变量
+# 3. 将redirect-uri配置到CSDN应用回调地址白名单
+# 4. 确认CSDN OAuth服务地址（生产环境可能不同）
+# 若不配置client-id/client-secret，则使用模拟模式（仅供开发测试）
+csdn:
+  oauth:
+    # TODO【需与CSDN对接】: 确认CSDN OAuth服务实际地址
+    server: ${CSDN_OAUTH_SERVER:https://passport.csdn.net}
+    # TODO【需与CSDN对接】: 必填 - 从CSDN开放平台获取Client ID
+    client-id: ${CSDN_OAUTH_CLIENT_ID:}
+    # TODO【需与CSDN对接】: 必填 - 从CSDN开放平台获取Client Secret
+    client-secret: ${CSDN_OAUTH_CLIENT_SECRET:}
+    # TODO【需与CSDN对接】: 确认回调地址已与CSDN应用配置一致
+    redirect-uri: ${CSDN_OAUTH_REDIRECT_URI:https://meeting.csdn.net/auth/csdn/callback}
+
 # CSDN消息推送配置（已废弃，改为内部存储推送）
 # 原配置保留供参考，实际不再使用
 # csdn:

@@ -148,6 +148,32 @@ public class UserMessageRepositoryImpl implements UserMessageRepository {
         }
     }
 
+    @Override
+    public int cleanupExpiredMessages(LocalDateTime beforeDate) {
+        // 删除指定日期之前已读的消息（物理删除）
+        LambdaQueryWrapper<UserMessagePO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserMessagePO::getIsRead, true)
+                .lt(UserMessagePO::getCreatedAt, beforeDate);
+
+        int deleted = userMessageBaseMapper.delete(wrapper);
+        logger.info("清理过期消息: beforeDate={}, deleted={}", beforeDate, deleted);
+        return deleted;
+    }
+
+    @Override
+    public List<String> findExpiredMessageIds(LocalDateTime beforeDate, int batchSize) {
+        LambdaQueryWrapper<UserMessagePO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserMessagePO::getIsRead, true)
+                .lt(UserMessagePO::getCreatedAt, beforeDate)
+                .select(UserMessagePO::getMessageId)
+                .last("LIMIT " + batchSize);
+
+        List<UserMessagePO> list = userMessageBaseMapper.selectList(wrapper);
+        return list.stream()
+                .map(UserMessagePO::getMessageId)
+                .collect(Collectors.toList());
+    }
+
     /**
      * 生成消息业务ID（格式：MSG + 时间戳 + 随机后缀）
      */
