@@ -159,6 +159,10 @@ doubao:
   # HTTP socket 超时必须大于 ai.parse-timeout-seconds，否则底层 socket 会先断开
   timeout-ms: ${DOUBAO_TIMEOUT_MS:90000}
 
+jwt:
+  secret: csdn_meeting_jwt_secret_key_2026
+  expiration: 259200  # 3天 = 3 * 24 * 60 * 60
+
 ai:
   # AI 解析流程总超时（秒）。文档类通常比图片耗时更长。
   parse-timeout-seconds: ${AI_PARSE_TIMEOUT_SECONDS:60}

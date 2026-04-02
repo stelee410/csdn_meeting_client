@@ -40,20 +40,22 @@ public class UserAuthController {
 
     @Operation(summary = "发送短信验证码", description = "发送短信验证码，用于注册或登录")
     @PostMapping("/verification-code/sms")
-    public ResponseEntity<ApiResponse<Void>> sendSmsCode(@Valid @RequestBody VerificationCodeSendCommand command) {
+    public ResponseEntity<ApiResponse<Object>> sendSmsCode(@Valid @RequestBody VerificationCodeSendCommand command) {
         // 强制设置类型为SMS
         command.setType("SMS");
-        verificationCodeAppService.sendVerificationCode(command);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        // todo 修改不返回验证码
+        String verificationCode = verificationCodeAppService.sendVerificationCode(command);
+        return ResponseEntity.ok(ApiResponse.success(verificationCode));
     }
 
     @Operation(summary = "发送邮箱验证码", description = "发送邮箱验证码，用于注册时邮箱验证")
     @PostMapping("/verification-code/email")
-    public ResponseEntity<ApiResponse<Void>> sendEmailCode(@Valid @RequestBody VerificationCodeSendCommand command) {
+    public ResponseEntity<ApiResponse<Object>> sendEmailCode(@Valid @RequestBody VerificationCodeSendCommand command) {
         // 强制设置类型为EMAIL
         command.setType("EMAIL");
-        verificationCodeAppService.sendVerificationCode(command);
-        return ResponseEntity.ok(ApiResponse.success(null));
+        // todo 修改不返回验证码
+        String verificationCode = verificationCodeAppService.sendVerificationCode(command);
+        return ResponseEntity.ok(ApiResponse.success(verificationCode));
     }
 
     @Operation(summary = "用户注册", description = "表单注册，需手机号+验证码+密码+协议同意")

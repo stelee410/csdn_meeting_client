@@ -31,9 +31,9 @@ public class VerificationCodeAppService {
     }
 
     /**
-     * 发送验证码
+     * 发送验证码 todo  修改不返回验证码
      */
-    public void sendVerificationCode(VerificationCodeSendCommand command) {
+    public String sendVerificationCode(VerificationCodeSendCommand command) {
         VerificationCodeType type = VerificationCodeType.of(command.getType());
         VerificationCodeScene scene = VerificationCodeScene.of(command.getScene());
 
@@ -60,5 +60,7 @@ public class VerificationCodeAppService {
         }
 
         log.info("向[{}]发送{}验证码成功，场景: {}", command.getTarget(), type.getDisplayName(), scene.getDisplayName());
+
+        return code.getCode();
     }
 }
