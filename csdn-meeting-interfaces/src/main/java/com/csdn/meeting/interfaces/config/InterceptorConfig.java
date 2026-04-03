@@ -23,11 +23,12 @@ public class InterceptorConfig implements WebMvcConfigurer {
         registry.addInterceptor(loginInterceptor)
                 // 需要登录的路径
                 .addPathPatterns(
-                        "/api/user/profile",           // 用户资料
-                        "/api/user/profile/**",        // 资料相关
+                        "/api/users/profile",           // 用户资料
+                        "/api/users/profile/**",        // 资料相关
                         "/api/registrations/**",       // 报名
                         "/api/favorites/**",           // 收藏
                         "/api/subscriptions/**",      // 订阅
+                        "/api/v1/messages/**",        // 消息中心
                         "/api/meetings/*/favorite",   // 会议收藏（Toggle接口）
                         "/api/meetings/*/favorite/**" // 收藏相关操作
                 )
