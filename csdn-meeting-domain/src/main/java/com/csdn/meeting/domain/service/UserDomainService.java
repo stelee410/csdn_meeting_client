@@ -48,7 +48,7 @@ public class UserDomainService {
         user.setAgreementAccepted(false);
         user.setPrivacyAccepted(false);
         user.setCreatedAt(LocalDateTime.now());
-        return user;
+        return userRepository.save(user);
     }
 
     /**
@@ -66,7 +66,7 @@ public class UserDomainService {
         user.setAgreementAccepted(false);
         user.setPrivacyAccepted(false);
         user.setCreatedAt(LocalDateTime.now());
-        return user;
+        return userRepository.save(user);
     }
 
     /**
