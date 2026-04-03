@@ -32,6 +32,18 @@ public class MeetingDetailDTO {
     @Schema(description = "主办方名称", example = "华为开发者联盟")
     private String organizerName;
 
+    @Schema(description = "联系人姓名")
+    private String contactName;
+
+    @Schema(description = "联系人电话")
+    private String contactPhone;
+
+    @Schema(description = "联系人部门")
+    private String contactDepartment;
+
+    @Schema(description = "联系人职位")
+    private String contactPosition;
+
     @Schema(description = "主办方头像", example = "https://.../avatar.jpg")
     private String organizerAvatar;
 
@@ -94,6 +106,12 @@ public class MeetingDetailDTO {
 
     @Schema(description = "关联标签列表（包含订阅状态）")
     private List<MeetingTagDTO> tags;
+
+    @Schema(description = "逗号分隔的标签 ID（与 tags 展示名称对照，用于订阅等）")
+    private String tagIds;
+
+    @Schema(description = "四级日程（日程日→环节→分会场→议题），议题含嘉宾 guests 等扩展字段")
+    private List<ScheduleDayDTO> scheduleDays;
 
     @Schema(description = "创建时间", example = "2026-02-01 10:00:00")
     private LocalDateTime createTime;

@@ -31,6 +31,12 @@ public class UpdateMeetingCommand {
     private String sceneMarketingRegions;
     private String sceneUniversities;
 
+    private String creatorName;
+    private String contactName;
+    private String contactPhone;
+    private String department;
+    private String position;
+
     public String getTitle() {
         return title;
     }
@@ -167,4 +173,44 @@ public class UpdateMeetingCommand {
     public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
     public String getSceneUniversities() { return sceneUniversities; }
     public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
+
+    public String getCreatorName() {
+        return creatorName;
+    }
+
+    public void setCreatorName(String creatorName) {
+        this.creatorName = creatorName;
+    }
+
+    public String getContactName() {
+        return contactName;
+    }
+
+    public void setContactName(String contactName) {
+        this.contactName = contactName;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
 }

@@ -140,9 +140,12 @@ public class MyMeetingsUseCase {
         dto.setDescription(meeting.getDescription());
         dto.setCreatorId(meeting.getCreatorId());
         dto.setCreatorName(meeting.getCreatorName());
+        dto.setContactPhone(meeting.getContactPhone());
+        dto.setContactDepartment(meeting.getContactDepartment());
+        dto.setContactPosition(meeting.getContactPosition());
         dto.setStartTime(meeting.getStartTime());
         dto.setEndTime(meeting.getEndTime());
-        dto.setStatus(meeting.getStatus().name());
+        dto.setStatus(meeting.getStatus() != null ? meeting.getStatus().name() : null);
         dto.setMaxParticipants(meeting.getMaxParticipants());
         dto.setCurrentParticipants(meeting.getCurrentParticipants());
         dto.setOrganizer(meeting.getOrganizer());
@@ -152,6 +155,7 @@ public class MyMeetingsUseCase {
         dto.setRegions(meeting.getRegions());
         dto.setCoverImage(meeting.getCoverImage());
         dto.setTags(meeting.getTags());
+        dto.setTagIds(meeting.getTags());
         dto.setTargetAudience(meeting.getTargetAudience());
         dto.setIsPremium(meeting.getIsPremium());
         dto.setTakedownReason(meeting.getTakedownReason());

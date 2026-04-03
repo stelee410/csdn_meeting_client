@@ -38,6 +38,12 @@ public class CreateMeetingCommand {
     // 四级日程结构
     private List<ScheduleDayDTO> scheduleDays;
 
+    /** 联系人姓名（与 creatorName 二选一，优先 contactName） */
+    private String contactName;
+    private String contactPhone;
+    private String department;
+    private String position;
+
     public String getTitle() {
         return title;
     }
@@ -190,4 +196,36 @@ public class CreateMeetingCommand {
     public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
     public String getSceneUniversities() { return sceneUniversities; }
     public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
+
+    public String getContactName() {
+        return contactName;
+    }
+
+    public void setContactName(String contactName) {
+        this.contactName = contactName;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public String getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(String department) {
+        this.department = department;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
 }

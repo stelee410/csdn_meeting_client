@@ -13,6 +13,9 @@ public class MeetingDTO {
     private String description;
     private String creatorId;
     private String creatorName;
+    private String contactPhone;
+    private String contactDepartment;
+    private String contactPosition;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Shanghai")
     private LocalDateTime startTime;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Shanghai")
@@ -35,7 +38,9 @@ public class MeetingDTO {
     private String regions;          // JSON
     private String coverImage;       // 封面图（列表/详情均返回）
     private String posterUrl;        // 海报图（详情页，API 文档要求）
-    private String tags;             // 逗号分隔的 tagId，如 1,2,3
+    private String tags;             // 逗号分隔：列表/存储为 tagId；详情接口可能为 tagName 便于展示
+    /** 逗号分隔的 tagId（与 tags 同时返回，tags 为名称时用于订阅等需 ID 的场景） */
+    private String tagIds;
     private String targetAudience;   // JSON
     private Boolean isPremium;
     private String takedownReason;
@@ -96,6 +101,30 @@ public class MeetingDTO {
 
     public void setCreatorName(String creatorName) {
         this.creatorName = creatorName;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public String getContactDepartment() {
+        return contactDepartment;
+    }
+
+    public void setContactDepartment(String contactDepartment) {
+        this.contactDepartment = contactDepartment;
+    }
+
+    public String getContactPosition() {
+        return contactPosition;
+    }
+
+    public void setContactPosition(String contactPosition) {
+        this.contactPosition = contactPosition;
     }
 
     public LocalDateTime getStartTime() {
@@ -240,6 +269,14 @@ public class MeetingDTO {
 
     public void setTags(String tags) {
         this.tags = tags;
+    }
+
+    public String getTagIds() {
+        return tagIds;
+    }
+
+    public void setTagIds(String tagIds) {
+        this.tagIds = tagIds;
     }
 
     public String getTargetAudience() {

@@ -279,12 +279,24 @@ public class MeetingDetailPageUseCase {
         detailDTO.setMeetingId(meetingDTO.getMeetingId());
         detailDTO.setTitle(meetingDTO.getTitle());
         detailDTO.setDescription(meetingDTO.getDescription());
+        detailDTO.setPosterUrl(meetingDTO.getPosterUrl());
         detailDTO.setStartTime(meetingDTO.getStartTime());
         detailDTO.setEndTime(meetingDTO.getEndTime());
         detailDTO.setVenue(meetingDTO.getVenue());
+        String organizerLabel = meetingDTO.getOrganizerName();
+        if (organizerLabel == null || organizerLabel.trim().isEmpty()) {
+            organizerLabel = meetingDTO.getOrganizer();
+        }
+        detailDTO.setOrganizerName(organizerLabel);
+        detailDTO.setContactName(meetingDTO.getCreatorName());
+        detailDTO.setContactPhone(meetingDTO.getContactPhone());
+        detailDTO.setContactDepartment(meetingDTO.getContactDepartment());
+        detailDTO.setContactPosition(meetingDTO.getContactPosition());
+        detailDTO.setTagIds(meetingDTO.getTagIds());
         detailDTO.setStatus(1); // 默认值
         detailDTO.setStatusName(meetingDTO.getStatus());
         detailDTO.setMaxParticipants(meetingDTO.getMaxParticipants());
+        detailDTO.setScheduleDays(meetingDTO.getScheduleDays());
 
         // 设置报名人数信息（从Meeting实体获取更准确的数据）
         Integer currentParticipants = meeting.getCurrentParticipants() != null ? meeting.getCurrentParticipants() : 0;

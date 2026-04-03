@@ -279,8 +279,8 @@ public class MeetingApplicationService {
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在"));
         String meetingId = meeting.getMeetingId();
         MeetingDTO dto = toMeetingDTOWithParticipants(meeting, meetingId);
-        // 将 tags 字段中的 tagId 解析为 tagName，便于前端编辑表单显示
-        dto.setTags(resolveTagIdsToNames(dto.getTags()));
+        // tagIds 在 toMeetingDTO 已设为原始 ID 串；tags 改为名称供展示，订阅等使用 tagIds
+        dto.setTags(resolveTagIdsToNames(dto.getTagIds()));
         return dto;
     }
 
@@ -332,7 +332,14 @@ public class MeetingApplicationService {
         meeting.setTitle(cmd.getTitle());
         meeting.setDescription(cmd.getDescription());
         meeting.setCreatorId(cmd.getCreatorId());
-        meeting.setCreatorName(cmd.getCreatorName());
+        String displayName = cmd.getContactName();
+        if (displayName == null || displayName.trim().isEmpty()) {
+            displayName = cmd.getCreatorName();
+        }
+        meeting.setCreatorName(trimToNull(displayName));
+        meeting.setContactPhone(trimToNull(cmd.getContactPhone()));
+        meeting.setContactDepartment(trimToNull(cmd.getDepartment()));
+        meeting.setContactPosition(trimToNull(cmd.getPosition()));
         meeting.setStartTime(cmd.getStartTime());
         meeting.setEndTime(cmd.getEndTime());
         meeting.setMaxParticipants(cmd.getMaxParticipants());
@@ -386,6 +393,20 @@ public class MeetingApplicationService {
         if (cmd.getSceneMarketingRegions() != null) meeting.setSceneMarketingRegions(cmd.getSceneMarketingRegions());
         if (cmd.getSceneUniversities() != null) meeting.setSceneUniversities(cmd.getSceneUniversities());
         if (cmd.getScheduleDays() != null) meeting.setScheduleDays(toScheduleDays(cmd.getScheduleDays()));
+        if (cmd.getContactName() != null && !cmd.getContactName().trim().isEmpty()) {
+            meeting.setCreatorName(cmd.getContactName().trim());
+        } else if (cmd.getCreatorName() != null && !cmd.getCreatorName().trim().isEmpty()) {
+            meeting.setCreatorName(cmd.getCreatorName().trim());
+        }
+        if (cmd.getContactPhone() != null) meeting.setContactPhone(trimToNull(cmd.getContactPhone()));
+        if (cmd.getDepartment() != null) meeting.setContactDepartment(trimToNull(cmd.getDepartment()));
+        if (cmd.getPosition() != null) meeting.setContactPosition(trimToNull(cmd.getPosition()));
+    }
+
+    private static String trimToNull(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
     }
 
     private MeetingFormat parseFormat(String format) {
@@ -480,9 +501,12 @@ public class MeetingApplicationService {
         dto.setDescription(meeting.getDescription());
         dto.setCreatorId(meeting.getCreatorId());
         dto.setCreatorName(meeting.getCreatorName());
+        dto.setContactPhone(meeting.getContactPhone());
+        dto.setContactDepartment(meeting.getContactDepartment());
+        dto.setContactPosition(meeting.getContactPosition());
         dto.setStartTime(meeting.getStartTime());
         dto.setEndTime(meeting.getEndTime());
-        dto.setStatus(meeting.getStatus().name());
+        dto.setStatus(meeting.getStatus() != null ? meeting.getStatus().name() : null);
         dto.setMaxParticipants(meeting.getMaxParticipants());
         dto.setCurrentParticipants(meeting.getCurrentParticipants());
         dto.setOrganizer(meeting.getOrganizer());
@@ -496,6 +520,7 @@ public class MeetingApplicationService {
         dto.setCoverImage(meeting.getCoverImage() != null ? meeting.getCoverImage() : meeting.getPosterUrl());
         dto.setPosterUrl(meeting.getPosterUrl() != null ? meeting.getPosterUrl() : meeting.getCoverImage());
         dto.setTags(meeting.getTags());
+        dto.setTagIds(meeting.getTags());
         dto.setTargetAudience(meeting.getTargetAudience());
         dto.setIsPremium(meeting.getIsPremium());
         dto.setTakedownReason(meeting.getTakedownReason());

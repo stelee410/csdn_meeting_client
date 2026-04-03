@@ -22,6 +22,18 @@ public class MeetingPO {
     @TableField("creator_id")
     private String creatorId;
 
+    @TableField("creator_name")
+    private String creatorName;
+
+    @TableField("contact_phone")
+    private String contactPhone;
+
+    @TableField("contact_department")
+    private String contactDepartment;
+
+    @TableField("contact_position")
+    private String contactPosition;
+
     @TableField("format")
     private String format;
 
@@ -145,6 +157,14 @@ public class MeetingPO {
     public void setOrganizer(String organizer) { this.organizer = organizer; }
     public String getCreatorId() { return creatorId; }
     public void setCreatorId(String creatorId) { this.creatorId = creatorId; }
+    public String getCreatorName() { return creatorName; }
+    public void setCreatorName(String creatorName) { this.creatorName = creatorName; }
+    public String getContactPhone() { return contactPhone; }
+    public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
+    public String getContactDepartment() { return contactDepartment; }
+    public void setContactDepartment(String contactDepartment) { this.contactDepartment = contactDepartment; }
+    public String getContactPosition() { return contactPosition; }
+    public void setContactPosition(String contactPosition) { this.contactPosition = contactPosition; }
     public String getFormat() { return format; }
     public void setFormat(String format) { this.format = format; }
     public String getScene() { return scene; }

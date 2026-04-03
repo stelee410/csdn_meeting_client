@@ -92,7 +92,7 @@ public class UserAuthAppService {
             userDomainService.updateEmail(user, command.getEmail());
         }
 
-        user = userDomainService.findByMobile(command.getMobile()).orElseThrow(() -> new RuntimeException("用户创建失败"));
+        user = userDomainService.persistUser(user);
 
         // 8. 生成JWT
         String token = jwtTokenProvider.generateToken(user.getUserId());

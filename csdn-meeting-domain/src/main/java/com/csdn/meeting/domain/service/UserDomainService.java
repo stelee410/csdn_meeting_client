@@ -90,6 +90,13 @@ public class UserDomainService {
     }
 
     /**
+     * 持久化用户（注册等场景写入数据库）
+     */
+    public User persistUser(User user) {
+        return userRepository.save(user);
+    }
+
+    /**
      * 检查手机号是否已注册
      */
     public boolean isMobileRegistered(String mobile) {

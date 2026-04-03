@@ -48,6 +48,21 @@ public class Meeting extends BaseEntity {
     private String creatorName;
 
     /**
+     * 联系人电话
+     */
+    private String contactPhone;
+
+    /**
+     * 联系人部门
+     */
+    private String contactDepartment;
+
+    /**
+     * 联系人职位
+     */
+    private String contactPosition;
+
+    /**
      * 开始时间
      */
     private LocalDateTime startTime;

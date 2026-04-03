@@ -1,4 +1,17 @@
 # 开发环境配置 - 本地 MySQL (docker-compose 或本地安装)
+#
+# 启动时自动创建测试用户（需 spring.profiles.active=dev）：
+#   手机号 meeting.dev.test-user.mobile（默认 13800138000）
+#   密码   meeting.dev.test-user.password（默认 Test1234，须≥8位且含字母+数字）
+#   关闭   meeting.dev.seed-test-user=false
+meeting:
+  dev:
+    seed-test-user: true
+    test-user:
+      mobile: "13800138000"
+      password: "Test1234"
+      nickname: "本地测试用户"
+
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/csdn_meeting?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
