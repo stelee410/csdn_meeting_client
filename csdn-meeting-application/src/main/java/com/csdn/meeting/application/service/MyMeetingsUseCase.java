@@ -151,8 +151,14 @@ public class MyMeetingsUseCase {
         dto.setOrganizer(meeting.getOrganizer());
         dto.setFormat(meeting.getFormat() != null ? meeting.getFormat().name() : null);
         dto.setScene(meeting.getScene());
-        dto.setVenue(meeting.getVenue());
-        dto.setRegions(meeting.getRegions());
+        // 中文化
+        if (meeting.getCityName() != null) {
+            dto.setVenue(meeting.getCityName());
+            dto.setRegions(meeting.getCityName());
+        }else {
+            dto.setVenue(meeting.getVenue());
+            dto.setRegions(meeting.getRegions());
+        }
         dto.setCoverImage(meeting.getCoverImage());
         dto.setTags(meeting.getTags());
         dto.setTagIds(meeting.getTags());
