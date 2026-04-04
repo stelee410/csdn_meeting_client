@@ -1,6 +1,7 @@
 package com.csdn.meeting.interfaces.config;
 
 import com.csdn.meeting.infrastructure.security.JwtTokenProvider;
+import com.csdn.meeting.infrastructure.security.TokenRevocationStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -17,9 +18,12 @@ import javax.servlet.http.HttpServletResponse;
 public class LoginInterceptor implements HandlerInterceptor {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenRevocationStore tokenRevocationStore;
 
-    public LoginInterceptor(JwtTokenProvider jwtTokenProvider) {
+    public LoginInterceptor(JwtTokenProvider jwtTokenProvider,
+                            TokenRevocationStore tokenRevocationStore) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.tokenRevocationStore = tokenRevocationStore;
     }
 
     @Override
@@ -46,7 +50,15 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 5. 从token中提取用户ID并设置到request属性中
+        // 5. 检查token是否已被撤销（登出黑名单）
+        if (tokenRevocationStore.isRevoked(token)) {
+            log.warn("JWT令牌已被撤销（已登出）: {}", request.getRequestURI());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"code\":401,\"msg\":\"登录已过期，请重新登录\"}");
+            return false;
+        }
+
+        // 6. 从token中提取用户ID并设置到request属性中
         String userId = jwtTokenProvider.getUserIdFromToken(token);
         request.setAttribute("currentUserId", userId);
 

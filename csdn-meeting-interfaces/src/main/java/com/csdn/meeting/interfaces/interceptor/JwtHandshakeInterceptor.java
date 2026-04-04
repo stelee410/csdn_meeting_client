@@ -1,6 +1,7 @@
 package com.csdn.meeting.interfaces.interceptor;
 
 import com.csdn.meeting.infrastructure.security.JwtTokenProvider;
+import com.csdn.meeting.infrastructure.security.TokenRevocationStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -20,9 +21,12 @@ import java.util.Map;
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenRevocationStore tokenRevocationStore;
 
-    public JwtHandshakeInterceptor(JwtTokenProvider jwtTokenProvider) {
+    public JwtHandshakeInterceptor(JwtTokenProvider jwtTokenProvider,
+                                    TokenRevocationStore tokenRevocationStore) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.tokenRevocationStore = tokenRevocationStore;
     }
 
     @Override
@@ -39,6 +43,12 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
         // 验证Token
         if (!jwtTokenProvider.validateToken(token)) {
             log.warn("WebSocket握手失败: Token无效");
+            return false;
+        }
+
+        // 检查Token是否已被撤销（登出黑名单）
+        if (tokenRevocationStore.isRevoked(token)) {
+            log.warn("WebSocket握手失败: Token已被撤销（已登出）");
             return false;
         }
 

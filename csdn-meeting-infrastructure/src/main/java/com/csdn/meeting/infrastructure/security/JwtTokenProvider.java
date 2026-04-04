@@ -83,4 +83,40 @@ public class JwtTokenProvider {
     public long getExpirationSeconds() {
         return jwtExpirationInSeconds;
     }
+
+    /**
+     * 从 JWT 令牌中提取过期时间（exp）
+     *
+     * @param token JWT令牌
+     * @return 过期时间（毫秒时间戳），解析失败返回 null
+     */
+    public Long getExpirationTime(String token) {
+        try {
+            JWT jwt = JWTUtil.parseToken(token);
+            Object expObj = jwt.getPayload("exp");
+            if (expObj instanceof Number) {
+                long expSeconds = ((Number) expObj).longValue();
+                return expSeconds * 1000;
+            }
+        } catch (Exception e) {
+            log.warn("无法从 Token 解析过期时间: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 计算 Token 剩余有效时间（秒）
+     * 用于黑名单 TTL 计算
+     *
+     * @param token JWT令牌
+     * @return 剩余秒数，若已过期或解析失败返回 0
+     */
+    public long getRemainingSeconds(String token) {
+        Long expTime = getExpirationTime(token);
+        if (expTime == null) {
+            return 0;
+        }
+        long remaining = (expTime - System.currentTimeMillis()) / 1000;
+        return Math.max(0, remaining);
+    }
 }

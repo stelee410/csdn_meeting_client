@@ -4,6 +4,8 @@ import com.csdn.meeting.application.dto.*;
 import com.csdn.meeting.application.service.CsdnQrCodeUseCase;
 import com.csdn.meeting.application.service.UserAuthAppService;
 import com.csdn.meeting.application.service.VerificationCodeAppService;
+import com.csdn.meeting.infrastructure.security.JwtTokenProvider;
+import com.csdn.meeting.infrastructure.security.TokenRevocationStore;
 import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,13 +31,19 @@ public class UserAuthController {
     private final UserAuthAppService userAuthAppService;
     private final VerificationCodeAppService verificationCodeAppService;
     private final CsdnQrCodeUseCase csdnQrCodeUseCase;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final TokenRevocationStore tokenRevocationStore;
 
     public UserAuthController(UserAuthAppService userAuthAppService,
                               VerificationCodeAppService verificationCodeAppService,
-                              CsdnQrCodeUseCase csdnQrCodeUseCase) {
+                              CsdnQrCodeUseCase csdnQrCodeUseCase,
+                              JwtTokenProvider jwtTokenProvider,
+                              TokenRevocationStore tokenRevocationStore) {
         this.userAuthAppService = userAuthAppService;
         this.verificationCodeAppService = verificationCodeAppService;
         this.csdnQrCodeUseCase = csdnQrCodeUseCase;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.tokenRevocationStore = tokenRevocationStore;
     }
 
     @Operation(summary = "发送短信验证码", description = "发送短信验证码，用于注册或登录")
@@ -164,11 +172,25 @@ public class UserAuthController {
         }
     }
 
-    @Operation(summary = "退出登录", description = "退出登录（前端清除token即可，服务端记录可选）")
+    @Operation(summary = "退出登录", description = "退出登录并将当前 Token 加入黑名单，使其立即失效")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
-        // 可选：将token加入黑名单（如果需要实现token失效机制）
-        log.info("用户退出登录");
+        // 从请求头中提取 Authorization
+        String authHeader = request.getHeader("Authorization");
+
+        // 如果携带了有效的 Bearer Token，将其加入黑名单
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            if (!token.isEmpty() && jwtTokenProvider.validateToken(token)) {
+                tokenRevocationStore.revokeToken(token);
+                log.info("用户退出登录，Token 已加入黑名单");
+            } else {
+                log.warn("退出登录请求携带无效 Token");
+            }
+        } else {
+            log.info("用户退出登录（未携带 Token，仅前端清理）");
+        }
+
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
