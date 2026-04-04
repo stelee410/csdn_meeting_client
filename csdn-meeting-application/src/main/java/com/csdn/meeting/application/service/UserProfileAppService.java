@@ -121,9 +121,10 @@ public class UserProfileAppService {
      * 手机号脱敏
      */
     private String maskMobile(String mobile) {
-        if (mobile == null || mobile.length() != 11) {
-            return mobile;
-        }
-        return mobile.substring(0, 3) + "****" + mobile.substring(7);
+//        if (mobile == null || mobile.length() != 11) {
+//            return mobile;
+//        }
+//        return mobile.substring(0, 3) + "****" + mobile.substring(7);
+        return mobile;
     }
 }
