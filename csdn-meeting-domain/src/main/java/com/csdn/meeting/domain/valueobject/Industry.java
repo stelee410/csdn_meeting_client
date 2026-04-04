@@ -77,7 +77,8 @@ public enum Industry {
             return of(code);
         } catch (NumberFormatException e) {
             for (Industry industry : values()) {
-                if (industry.name().equalsIgnoreCase(trimmed) || industry.value.equalsIgnoreCase(trimmed)) {
+                if (industry.name().equalsIgnoreCase(trimmed) || industry.value.equalsIgnoreCase(trimmed)
+                        || industry.displayName.equalsIgnoreCase(trimmed)) {
                     return industry;
                 }
             }

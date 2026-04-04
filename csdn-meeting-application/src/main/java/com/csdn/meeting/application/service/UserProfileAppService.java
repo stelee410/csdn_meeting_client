@@ -81,8 +81,8 @@ public class UserProfileAppService {
                 command.getIndustry()
         );
 
-        // 保存用户
-        // User对象已被更新，由事务管理保存
+        // 保存用户 - 显式调用保存确保更新生效
+        userDomainService.persistUser(user);
 
         log.info("用户[{}]更新资料成功", userId);
 
