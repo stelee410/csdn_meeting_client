@@ -49,6 +49,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -125,27 +126,20 @@ public class MeetingController {
     /**
      * 会议详情页API（V1.2新增）
      * 包含会议信息、用户报名状态、收藏状态、报名按钮状态等完整数据
-     * 
-     * TODO【需与CSDN协调】：
-     * 1. 用户身份获取方式：当前从RequestParam获取userId，需对接CSDN统一认证
-     *    - 方案A：从JWT Token解析用户ID（推荐）
-     *    - 方案B：从Session获取用户ID
-     *    - 方案C：从Header中获取用户ID
-     * 2. 确认CSDN统一认证接口文档
-     * 3. 确认Token校验方式和密钥
-     * 4. 确认未登录用户的处理方式（是否允许浏览，报名时跳转登录）
+     * 支持游客访问，已登录用户从JWT Token获取userId，未登录为null
      */
     @Operation(
             summary = "获取会议详情页",
-            description = "获取会议详情页完整数据，包含会议信息、当前用户报名状态、收藏状态、报名按钮状态、报名表单配置等。"
+            description = "获取会议详情页完整数据，包含会议信息、当前用户报名状态、收藏状态、报名按钮状态、报名表单配置等。支持游客访问。"
     )
     @GetMapping("/{meetingId}/detail-page")
     public ResponseEntity<ApiResponse<MeetingDetailPageDTO>> getMeetingDetailPage(
             @Parameter(description = "会议ID", example = "M123456789")
             @PathVariable String meetingId,
-            // TODO【需与CSDN协调】：改为从JWT Token或Session获取用户ID
-            @Parameter(description = "用户ID（可选，未登录不传）", example = "12345")
-            @RequestParam(required = false) Long userId) {
+            HttpServletRequest request) {
+        // 从Token获取用户ID（可选，游客为null）
+        String userIdStr = getCurrentUserIdOptional(request);
+        Long userId = userIdStr != null ? Long.valueOf(userIdStr) : null;
         MeetingDetailPageDTO detailPage = meetingDetailPageUseCase.getMeetingDetailPage(meetingId, userId);
         return ResponseEntity.ok(ApiResponse.success(detailPage));
     }
@@ -222,33 +216,36 @@ public class MeetingController {
     @Operation(summary = "我报名的会议", description = "按会议日期倒序，默认仅已发布/进行中；includeEnded=true 时包含已结束。")
     @GetMapping("/my-registered")
     public ResponseEntity<ApiResponse<PageResult<MeetingDTO>>> getMyRegistered(
-            @RequestParam Long userId,
             @RequestParam(defaultValue = "false") boolean includeEnded,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
         return ResponseEntity.ok(ApiResponse.success(
-                myMeetingsUseCase.getMyRegistered(userId, includeEnded, page, size)));
+                myMeetingsUseCase.getMyRegistered(Long.valueOf(userId), includeEnded, page, size)));
     }
 
     @Operation(summary = "我收藏的会议", description = "获取当前用户收藏的会议列表，按收藏时间倒序。")
     @GetMapping("/my-favorites")
     public ResponseEntity<ApiResponse<PageResult<MeetingDTO>>> getMyFavorites(
-            @RequestParam Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
         return ResponseEntity.ok(ApiResponse.success(
-                myMeetingsUseCase.getMyFavorites(userId, page, size)));
+                myMeetingsUseCase.getMyFavorites(Long.valueOf(userId), page, size)));
     }
 
     @Operation(summary = "我创建的会议", description = "办会方创建的所有会议，支持状态、时间范围筛选。")
     @GetMapping("/my-created")
     public ResponseEntity<ApiResponse<PageResult<MeetingDTO>>> getMyCreated(
-            @RequestParam String userId,
             @RequestParam(required = false) List<String> status,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
         List<Meeting.MeetingStatus> statuses = status == null || status.isEmpty()
                 ? null
                 : status.stream()
@@ -292,16 +289,22 @@ public class MeetingController {
 
     @Operation(summary = "报名/加入会议", description = "用户报名参加会议。")
     @PostMapping("/{id}/join")
-    public ResponseEntity<ApiResponse<MeetingDTO>> joinMeeting(@PathVariable Long id, @RequestBody JoinMeetingCommand command) {
+    public ResponseEntity<ApiResponse<MeetingDTO>> joinMeeting(
+            @PathVariable Long id,
+            @RequestBody JoinMeetingCommand command,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
         command.setMeetingId(String.valueOf(id));
+        command.setUserId(Long.valueOf(userId));
         MeetingDTO meeting = meetingApplicationService.joinMeeting(command);
         return ResponseEntity.ok(ApiResponse.success(meeting));
     }
 
     @Operation(summary = "取消报名/离开会议", description = "用户取消报名或离开会议。")
     @PostMapping("/{id}/leave")
-    public ResponseEntity<ApiResponse<Void>> leaveMeeting(@PathVariable Long id, @RequestParam Long userId) {
-        meetingApplicationService.leaveMeeting(String.valueOf(id), userId);
+    public ResponseEntity<ApiResponse<Void>> leaveMeeting(@PathVariable Long id, HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        meetingApplicationService.leaveMeeting(String.valueOf(id), Long.valueOf(userId));
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -394,8 +397,9 @@ public class MeetingController {
     @PostMapping("/{id}/rights/purchase")
     public ResponseEntity<ApiResponse<RightsPurchaseResultDTO>> purchaseRights(
             @PathVariable Long id,
-            @RequestParam Long userId) {
-        RightsPurchaseResultDTO dto = meetingRightsPurchaseUseCase.purchase(id, userId);
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        RightsPurchaseResultDTO dto = meetingRightsPurchaseUseCase.purchase(id, Long.valueOf(userId));
         return ResponseEntity.ok(ApiResponse.success(dto));
     }
 
@@ -426,17 +430,34 @@ public class MeetingController {
     }
 
     /**
+     * 从请求中获取当前用户ID（由LoginInterceptor设置）
+     */
+    private String getCurrentUserId(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("currentUserId");
+        if (userId != null && !userId.isEmpty()) {
+            return userId;
+        }
+        throw new RuntimeException("用户未登录");
+    }
+
+    /**
+     * 从请求中获取当前用户ID（可选，游客访问时返回null）
+     */
+    private String getCurrentUserIdOptional(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("currentUserId");
+        if (userId != null && !userId.isEmpty()) {
+            return userId;
+        }
+        return null;
+    }
+
+    /**
      * 会议列表查询（统一接口，支持筛选、搜索、分页、视图切换）
      * POST /api/meetings/list，请求体为 JSON，字段同 MeetingListQueryDTO
+     * 已登录用户从JWT Token获取userId，用于个性化推荐和埋点统计
      *
-     * @param query 查询条件（keyword、format、type、scene、timeRange、page、size、userId）
+     * @param query 查询条件（keyword、format、type、scene、timeRange、page、size）
      * @return 会议列表结果
-     *
-     * TODO【需要和CSDN对接登录人信息获取】：
-     * 1. 当前userId从请求体传入，用于个性化推荐和埋点统计
-     * 2. 需对接CSDN统一认证服务，从JWT Token或Session中自动获取当前登录用户ID
-     * 3. 对接后可从Spring Security上下文获取用户身份，无需前端显式传递userId
-     * 4. 需CSDN提供：统一认证接口文档、用户身份获取方式
      */
     @Operation(
             summary = "会议列表查询",
@@ -448,11 +469,17 @@ public class MeetingController {
     )
     @PostMapping("/list")
     public ResponseEntity<ApiResponse<MeetingListResultDTO<MeetingCardItemDTO>>> queryMeetingList(
-            @RequestBody MeetingListQueryDTO query) {
+            @RequestBody MeetingListQueryDTO query,
+            HttpServletRequest request) {
 
-        // TODO【CSDN对接-用户身份】：从认证上下文获取当前登录用户ID，替代从请求体传入
         if (query.getSize() == 0) {
             query.setSize(20);
+        }
+
+        // 从Token获取用户ID（可选），用于个性化推荐
+        String userIdStr = getCurrentUserIdOptional(request);
+        if (userIdStr != null) {
+            query.setUserId(Long.valueOf(userIdStr));
         }
 
         MeetingListResultDTO<MeetingCardItemDTO> result = meetingListUseCase.queryMeetingList(query);

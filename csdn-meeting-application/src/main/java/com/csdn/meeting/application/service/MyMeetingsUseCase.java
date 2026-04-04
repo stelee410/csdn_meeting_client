@@ -47,7 +47,7 @@ public class MyMeetingsUseCase {
      * 默认 status IN [PUBLISHED, IN_PROGRESS]；includeEnded=true 时增加 ENDED
      * 按会议日期倒序
      */
-    public PageResult<MeetingDTO> getMyRegistered(Long userId, boolean includeEnded, int page, int size) {
+    public PageResult<MeetingDTO>  getMyRegistered(Long userId, boolean includeEnded, int page, int size) {
         List<Meeting.MeetingStatus> statuses = new ArrayList<>();
         statuses.add(Meeting.MeetingStatus.PUBLISHED);
         statuses.add(Meeting.MeetingStatus.IN_PROGRESS);

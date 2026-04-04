@@ -30,17 +30,34 @@ public class InterceptorConfig implements WebMvcConfigurer {
                         "/api/subscriptions/**",      // 订阅
                         "/api/v1/messages/**",        // 消息中心
                         "/api/meetings/*/favorite",   // 会议收藏（Toggle接口）
-                        "/api/meetings/*/favorite/**" // 收藏相关操作
+                        "/api/meetings/*/favorite/**", // 收藏相关操作
+                        // 会议管理 - 需要登录的接口
+                        "/api/meetings/my-registered",      // 我报名的会议
+                        "/api/meetings/my-favorites",       // 我收藏的会议
+                        "/api/meetings/my-created",         // 我创建的会议
+                        "/api/meetings/*/join",             // 报名/加入会议
+                        "/api/meetings/*/leave",            // 取消报名/离开会议
+                        "/api/meetings/*/rights/purchase",  // 购买高阶权益
+                        // 签到相关 - 需要登录
+                        "/api/checkin/**"                    // 签到相关接口
                 )
                 // 放行的路径
                 .excludePathPatterns(
                         "/api/auth/**",                // 认证相关接口
-                        "/api/meetings",             // 会议列表（公开）
-                        "/api/meetings/{id}",        // 会议详情（公开）
-                        "/api/meetings/{id}/**",     // 其他会议公开接口
-                        "/api/tags/**",              // 标签浏览（公开）
-                        "/swagger-ui/**",            // Swagger UI
-                        "/v3/api-docs/**"            // OpenAPI文档
+                        "/api/meetings",             // 创建会议草稿（需要登录，但不走拦截器，由Controller内部校验）
+                        "/api/meetings/{id:[^/]+}",        // 会议详情（公开）- 限制单层路径
+                        "/api/meetings/{id:[^/]+}/detail-page",     // 会议详情页（公开，支持游客）
+                        "/api/meetings/{id:[^/]+}/registration-status", // 报名状态查询（公开）
+                        "/api/meetings/{id:[^/]+}/checkin-code",   // 生成签到码
+                        "/api/meetings/{id:[^/]+}/checkin-qr",      // 获取签到二维码
+                        "/api/meetings/list",          // 会议列表查询（公开）
+                        "/api/meetings/filter-options", // 筛选选项（公开）
+                        "/api/meetings/hot-tags",       // 热门标签（公开）
+                        "/api/meetings/actions/**",    // AI相关操作（公开）
+                        "/api/meetings/creator/**",    // 按创建者查询（公开）
+                        "/api/tags/**",                // 标签浏览（公开）
+                        "/swagger-ui/**",              // Swagger UI
+                        "/v3/api-docs/**"              // OpenAPI文档
                 );
     }
 }

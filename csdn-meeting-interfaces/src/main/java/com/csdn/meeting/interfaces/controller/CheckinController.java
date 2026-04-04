@@ -63,15 +63,20 @@ public class CheckinController {
     /**
      * 扫码签到
      * 参会者扫描二维码后调用此接口完成签到
+     * 用户ID从JWT Token获取，忽略请求体中的userId（防止伪造）
      */
     @Operation(
             summary = "扫码签到",
-            description = "参会者扫描二维码后调用此接口完成签到。"
+            description = "参会者扫描二维码后调用此接口完成签到。用户ID从登录态自动获取。"
     )
     @PostMapping("/checkin")
     public ResponseEntity<ApiResponse<CheckinResultDTO>> checkin(
             @RequestBody CheckinCommand command,
             HttpServletRequest request) {
+        // 从Token获取用户ID（强制）
+        String userId = getCurrentUserId(request);
+        command.setUserId(Long.valueOf(userId));
+
         // 自动填充设备信息和IP地址
         if (command.getDeviceInfo() == null || command.getDeviceInfo().isEmpty()) {
             command.setDeviceInfo(extractDeviceInfo(request));
@@ -90,19 +95,20 @@ public class CheckinController {
     /**
      * 查询签到状态
      * 查询当前用户在指定会议的签到状态
+     * 用户ID从JWT Token获取
      */
     @Operation(
             summary = "查询签到状态",
-            description = "查询当前用户在指定会议的签到状态。"
+            description = "查询当前用户在指定会议的签到状态。用户ID从登录态自动获取。"
     )
     @GetMapping("/checkin/status")
     public ResponseEntity<ApiResponse<CheckinStatusResponse>> getCheckinStatus(
             @Parameter(description = "会议ID", example = "M123456789")
             @RequestParam String meetingId,
-            @Parameter(description = "用户ID", example = "12345")
-            @RequestParam Long userId) {
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
         MeetingCheckinUseCase.CheckinStatusResult status =
-                meetingCheckinUseCase.getCheckinStatus(meetingId, userId);
+                meetingCheckinUseCase.getCheckinStatus(meetingId, Long.valueOf(userId));
 
         CheckinStatusResponse response = new CheckinStatusResponse();
         response.setMeetingId(status.getMeetingId());
@@ -141,6 +147,17 @@ public class CheckinController {
             return xForwardedFor.split(",")[0].trim();
         }
         return request.getRemoteAddr();
+    }
+
+    /**
+     * 从请求中获取当前用户ID（由LoginInterceptor设置）
+     */
+    private String getCurrentUserId(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("currentUserId");
+        if (userId != null && !userId.isEmpty()) {
+            return userId;
+        }
+        throw new RuntimeException("用户未登录");
     }
 
     /**
