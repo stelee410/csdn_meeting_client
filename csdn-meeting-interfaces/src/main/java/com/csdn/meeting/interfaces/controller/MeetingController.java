@@ -104,15 +104,20 @@ public class MeetingController {
 
     @Operation(summary = "创建草稿", description = "创建会议草稿，仅校验会议标题必填，日程可为空。状态为 DRAFT。")
     @PostMapping
-    public ResponseEntity<ApiResponse<MeetingDTO>> createDraft(@RequestBody CreateMeetingCommand command) {
+    public ResponseEntity<ApiResponse<MeetingDTO>> createDraft(@RequestBody CreateMeetingCommand command,
+                                                               HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        command.setCreatorId(userId);
         MeetingDTO meeting = meetingApplicationService.createDraft(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(meeting));
     }
 
     @Operation(summary = "更新会议", description = "更新会议信息，仅 DRAFT/REJECTED 状态可编辑。")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<MeetingDTO>> update(@PathVariable Long id, @RequestBody UpdateMeetingCommand command) {
-        MeetingDTO meeting = meetingApplicationService.update(String.valueOf(id), command);
+    public ResponseEntity<ApiResponse<MeetingDTO>> update(@PathVariable Long id, @RequestBody UpdateMeetingCommand command,
+                                                          HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        MeetingDTO meeting = meetingApplicationService.update(String.valueOf(id), command, userId);
         return ResponseEntity.ok(ApiResponse.success(meeting));
     }
 
@@ -200,8 +205,9 @@ public class MeetingController {
 
     @Operation(summary = "提交审核", description = "DRAFT/REJECTED → PENDING_REVIEW。校验四级日程完整性，不完整时返回 400/422。")
     @PostMapping("/{id}/submit")
-    public ResponseEntity<ApiResponse<MeetingDTO>> submit(@PathVariable Long id) {
-        MeetingDTO meeting = meetingApplicationService.submit(String.valueOf(id));
+    public ResponseEntity<ApiResponse<MeetingDTO>> submit(@PathVariable Long id, HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        MeetingDTO meeting = meetingApplicationService.submit(String.valueOf(id), userId);
         return ResponseEntity.ok(ApiResponse.success(meeting));
     }
 
@@ -309,29 +315,33 @@ public class MeetingController {
 
     @Operation(summary = "开始会议", description = "将会议状态置为进行中。")
     @PostMapping("/{id}/start")
-    public ResponseEntity<ApiResponse<Void>> startMeeting(@PathVariable Long id) {
-        meetingApplicationService.startMeeting(String.valueOf(id));
+    public ResponseEntity<ApiResponse<Void>> startMeeting(@PathVariable Long id, HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        meetingApplicationService.startMeeting(String.valueOf(id), userId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "结束会议", description = "将会议状态置为已结束。")
     @PostMapping("/{id}/end")
-    public ResponseEntity<ApiResponse<Void>> endMeeting(@PathVariable Long id) {
-        meetingApplicationService.endMeeting(String.valueOf(id));
+    public ResponseEntity<ApiResponse<Void>> endMeeting(@PathVariable Long id, HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        meetingApplicationService.endMeeting(String.valueOf(id), userId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "取消会议", description = "取消会议。")
     @PostMapping("/{id}/cancel")
-    public ResponseEntity<ApiResponse<Void>> cancelMeeting(@PathVariable Long id) {
-        meetingApplicationService.cancelMeeting(String.valueOf(id));
+    public ResponseEntity<ApiResponse<Void>> cancelMeeting(@PathVariable Long id, HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        meetingApplicationService.cancelMeeting(String.valueOf(id), userId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "撤回审核", description = "PENDING_REVIEW → DRAFT，仅办会方可操作。")
     @PostMapping("/{id}/withdraw")
-    public ResponseEntity<ApiResponse<MeetingDTO>> withdraw(@PathVariable Long id) {
-        MeetingDTO meeting = meetingApplicationService.withdraw(String.valueOf(id));
+    public ResponseEntity<ApiResponse<MeetingDTO>> withdraw(@PathVariable Long id, HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        MeetingDTO meeting = meetingApplicationService.withdraw(String.valueOf(id), userId);
         return ResponseEntity.ok(ApiResponse.success(meeting));
     }
 
@@ -357,19 +367,22 @@ public class MeetingController {
 
     @Operation(summary = "下架会议", description = "PUBLISHED/IN_PROGRESS → OFFLINE，需填写下架原因。")
     @PostMapping("/{id}/takedown")
-    public ResponseEntity<ApiResponse<MeetingDTO>> takedown(@PathVariable Long id, @RequestBody ReasonRequest request) {
-        String reason = request != null ? request.getReason() : null;
+    public ResponseEntity<ApiResponse<MeetingDTO>> takedown(@PathVariable Long id, @RequestBody ReasonRequest requestBody,
+                                                              HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        String reason = requestBody != null ? requestBody.getReason() : null;
         if (reason == null || reason.trim().isEmpty()) {
             throw new IllegalArgumentException("下架原因不能为空");
         }
-        MeetingDTO meeting = meetingApplicationService.takedown(String.valueOf(id), reason);
+        MeetingDTO meeting = meetingApplicationService.takedown(String.valueOf(id), reason, userId);
         return ResponseEntity.ok(ApiResponse.success(meeting));
     }
 
     @Operation(summary = "逻辑删除会议", description = "DRAFT/ENDED/OFFLINE/REJECTED → DELETED。")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteMeeting(@PathVariable Long id) {
-        meetingApplicationService.deleteMeeting(String.valueOf(id));
+    public ResponseEntity<ApiResponse<Void>> deleteMeeting(@PathVariable Long id, HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        meetingApplicationService.deleteMeeting(String.valueOf(id), userId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

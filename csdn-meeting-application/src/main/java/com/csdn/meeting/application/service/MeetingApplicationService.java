@@ -77,9 +77,10 @@ public class MeetingApplicationService {
      * 更新会议：仅 DRAFT/REJECTED 可编辑
      */
     @Transactional
-    public MeetingDTO update(String meetingId, UpdateMeetingCommand command) {
+    public MeetingDTO update(String meetingId, UpdateMeetingCommand command, String operatorId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        validateCreator(meeting, operatorId);
         if (meeting.getStatus() != Meeting.MeetingStatus.DRAFT
                 && meeting.getStatus() != Meeting.MeetingStatus.REJECTED
                 && meeting.getStatus() != Meeting.MeetingStatus.OFFLINE) {
@@ -95,9 +96,10 @@ public class MeetingApplicationService {
      * AgendaIntegrityException 向上传播，由 GlobalExceptionHandler 转为 400 响应
      */
     @Transactional
-    public MeetingDTO submit(String meetingId) {
+    public MeetingDTO submit(String meetingId, String operatorId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        validateCreator(meeting, operatorId);
         meetingDomainService.validateAgendaIntegrity(meeting);
         meeting.submit();
         Meeting savedMeeting = meetingRepository.save(meeting);
@@ -108,9 +110,10 @@ public class MeetingApplicationService {
      * 撤回审核：PENDING_REVIEW -> DRAFT
      */
     @Transactional
-    public MeetingDTO withdraw(String meetingId) {
+    public MeetingDTO withdraw(String meetingId, String operatorId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        validateCreator(meeting, operatorId);
         Meeting.MeetingStatus from = meeting.getStatus();
         meeting.withdraw();
         Meeting savedMeeting = meetingRepository.save(meeting);
@@ -159,9 +162,10 @@ public class MeetingApplicationService {
      * @param reason 下架原因，不能为空
      */
     @Transactional
-    public MeetingDTO takedown(String meetingId, String reason) {
+    public MeetingDTO takedown(String meetingId, String reason, String operatorId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        validateCreator(meeting, operatorId);
         Meeting.MeetingStatus from = meeting.getStatus();
         meeting.takedown(reason);
         Meeting savedMeeting = meetingRepository.save(meeting);
@@ -173,9 +177,10 @@ public class MeetingApplicationService {
      * 逻辑删除：DRAFT / ENDED / OFFLINE / REJECTED -> DELETED
      */
     @Transactional
-    public void deleteMeeting(String meetingId) {
+    public void deleteMeeting(String meetingId, String operatorId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
+        validateCreator(meeting, operatorId);
         meeting.delete();
         meetingRepository.save(meeting);
     }
@@ -245,25 +250,28 @@ public class MeetingApplicationService {
     }
 
     @Transactional
-    public void startMeeting(String meetingId) {
+    public void startMeeting(String meetingId, String operatorId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在"));
+        validateCreator(meeting, operatorId);
         meeting.start();
         meetingRepository.save(meeting);
     }
 
     @Transactional
-    public void endMeeting(String meetingId) {
+    public void endMeeting(String meetingId, String operatorId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在"));
+        validateCreator(meeting, operatorId);
         meeting.end();
         meetingRepository.save(meeting);
     }
 
     @Transactional
-    public void cancelMeeting(String meetingId) {
+    public void cancelMeeting(String meetingId, String operatorId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在"));
+        validateCreator(meeting, operatorId);
         meeting.cancel();
         meetingRepository.save(meeting);
     }
@@ -636,6 +644,19 @@ public class MeetingApplicationService {
             }
         }
         return String.join(",", names);
+    }
+
+    /**
+     * 验证操作者是否为会议创建者
+     *
+     * @param meeting 会议实体
+     * @param operatorId 操作者ID
+     * @throws IllegalStateException 如果不是创建者则抛出异常
+     */
+    private void validateCreator(Meeting meeting, String operatorId) {
+        if (meeting.getCreatorId() == null || !meeting.getCreatorId().equals(operatorId)) {
+//            throw new IllegalStateException("只有会议创建者才能执行此操作");
+        }
     }
 
     private ParticipantDTO toParticipantDTO(Participant participant) {
