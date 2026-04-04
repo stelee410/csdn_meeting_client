@@ -63,23 +63,23 @@ public class FavoriteController {
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
         // 检查当前收藏状态
-        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
+        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(userId, meeting.getId());
 
         if (currentlyFavorited) {
             // 取消收藏
-            favoriteRepository.deleteByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
+            favoriteRepository.deleteByUserIdAndMeetingId(userId, meeting.getId());
             logger.info("用户 {} 取消收藏会议 {}", userId, meetingId);
 
             FavoriteResultDTO result = new FavoriteResultDTO();
             result.setMeetingId(meetingId);
-            result.setUserId(Long.valueOf(userId));
+            result.setUserId(userId);
             result.setFavorited(false);
             result.setMessage("已取消收藏");
             return ResponseEntity.ok(ApiResponse.success(result));
         } else {
             // 添加收藏
             MeetingFavorite favorite = new MeetingFavorite();
-            favorite.setUserId(Long.valueOf(userId));
+            favorite.setUserId(userId);
             favorite.setMeetingId(meeting.getId());
             favorite.setCreatedAt(LocalDateTime.now());
             favoriteRepository.save(favorite);
@@ -87,7 +87,7 @@ public class FavoriteController {
 
             FavoriteResultDTO result = new FavoriteResultDTO();
             result.setMeetingId(meetingId);
-            result.setUserId(Long.valueOf(userId));
+            result.setUserId(userId);
             result.setFavorited(true);
             result.setMessage("收藏成功");
             return ResponseEntity.ok(ApiResponse.success(result));
@@ -114,7 +114,7 @@ public class FavoriteController {
             return ResponseEntity.ok(ApiResponse.success(false));
         }
 
-        boolean isFavorited = favoriteRepository.existsByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
+        boolean isFavorited = favoriteRepository.existsByUserIdAndMeetingId(userId, meeting.getId());
         return ResponseEntity.ok(ApiResponse.success(isFavorited));
     }
 
@@ -137,14 +137,14 @@ public class FavoriteController {
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
         // 检查是否已收藏
-        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
+        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(userId, meeting.getId());
         if (currentlyFavorited) {
             throw new IllegalStateException("您已收藏该会议，请勿重复收藏");
         }
 
         // 添加收藏
         MeetingFavorite favorite = new MeetingFavorite();
-        favorite.setUserId(Long.valueOf(userId));
+        favorite.setUserId(userId);
         favorite.setMeetingId(meeting.getId());
         favorite.setCreatedAt(LocalDateTime.now());
         favoriteRepository.save(favorite);
@@ -152,7 +152,7 @@ public class FavoriteController {
 
         FavoriteResultDTO result = new FavoriteResultDTO();
         result.setMeetingId(meetingId);
-        result.setUserId(Long.valueOf(userId));
+        result.setUserId(userId);
         result.setFavorited(true);
         result.setMessage("收藏成功");
         return ResponseEntity.ok(ApiResponse.success(result));
@@ -177,18 +177,18 @@ public class FavoriteController {
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));
 
         // 检查是否已收藏
-        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
+        boolean currentlyFavorited = favoriteRepository.existsByUserIdAndMeetingId(userId, meeting.getId());
         if (!currentlyFavorited) {
             throw new IllegalStateException("您未收藏该会议");
         }
 
         // 取消收藏
-        favoriteRepository.deleteByUserIdAndMeetingId(Long.valueOf(userId), meeting.getId());
+        favoriteRepository.deleteByUserIdAndMeetingId(userId, meeting.getId());
         logger.info("用户 {} 取消收藏会议 {}", userId, meetingId);
 
         FavoriteResultDTO result = new FavoriteResultDTO();
         result.setMeetingId(meetingId);
-        result.setUserId(Long.valueOf(userId));
+        result.setUserId(userId);
         result.setFavorited(false);
         result.setMessage("已取消收藏");
         return ResponseEntity.ok(ApiResponse.success(result));
@@ -210,15 +210,15 @@ public class FavoriteController {
      */
     public static class FavoriteResultDTO {
         private String meetingId;
-        private Long userId;
+        private String userId;
         private boolean favorited;
         private String message;
 
         // Getters and Setters
         public String getMeetingId() { return meetingId; }
         public void setMeetingId(String meetingId) { this.meetingId = meetingId; }
-        public Long getUserId() { return userId; }
-        public void setUserId(Long userId) { this.userId = userId; }
+        public String getUserId() { return userId; }
+        public void setUserId(String userId) { this.userId = userId; }
         public boolean isFavorited() { return favorited; }
         public void setFavorited(boolean favorited) { this.favorited = favorited; }
         public String getMessage() { return message; }

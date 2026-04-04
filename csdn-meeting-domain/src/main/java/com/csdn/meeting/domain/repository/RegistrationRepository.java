@@ -19,7 +19,7 @@ public interface RegistrationRepository {
                                                       Registration.RegistrationStatus status,
                                                       int page, int size);
 
-    Optional<Registration> findByUserIdAndMeetingId(Long userId, Long meetingId);
+    Optional<Registration> findByUserIdAndMeetingId(String userId, Long meetingId);
 
     /**
      * 按会议 ID + 手机号查询报名记录（用于同一手机号重复报名校验）
@@ -29,7 +29,7 @@ public interface RegistrationRepository {
     /**
      * 按 userId 查询报名，且关联的会议 status 在指定列表中，按会议 startTime 倒序分页
      */
-    PageResult<Registration> findByUserIdAndMeetingStatusIn(Long userId,
+    PageResult<Registration> findByUserIdAndMeetingStatusIn(String userId,
                                                             List<Meeting.MeetingStatus> meetingStatuses,
                                                             int page, int size);
 

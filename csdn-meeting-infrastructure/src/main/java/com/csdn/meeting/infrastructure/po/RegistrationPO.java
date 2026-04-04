@@ -14,7 +14,7 @@ public class RegistrationPO {
     private Long meetingId;
 
     @TableField("user_id")
-    private Long userId;
+    private String userId;
 
     @TableField("name")
     private String name;
@@ -61,8 +61,8 @@ public class RegistrationPO {
     public void setId(Long id) { this.id = id; }
     public Long getMeetingId() { return meetingId; }
     public void setMeetingId(Long meetingId) { this.meetingId = meetingId; }
-    public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public String getPhone() { return phone; }

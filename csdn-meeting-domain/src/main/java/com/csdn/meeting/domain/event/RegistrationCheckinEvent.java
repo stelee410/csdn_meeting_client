@@ -10,7 +10,7 @@ public class RegistrationCheckinEvent extends DomainEvent {
 
     private final Long registrationId;
     private final Long meetingId;
-    private final Long userId;
+    private final String userId;
     private final String meetingTitle;
     private final String userName;
     private final LocalDateTime checkinTime;
@@ -19,7 +19,7 @@ public class RegistrationCheckinEvent extends DomainEvent {
 
     public RegistrationCheckinEvent(Long registrationId,
                                     Long meetingId,
-                                    Long userId,
+                                    String userId,
                                     String meetingTitle,
                                     String userName,
                                     LocalDateTime checkinTime,
@@ -44,7 +44,7 @@ public class RegistrationCheckinEvent extends DomainEvent {
         return meetingId;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 

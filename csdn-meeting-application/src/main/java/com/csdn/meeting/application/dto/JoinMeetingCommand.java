@@ -3,7 +3,7 @@ package com.csdn.meeting.application.dto;
 public class JoinMeetingCommand {
 
     private String meetingId;
-    private Long userId;
+    private String userId;
     private String userName;
     /** 手机号，用于同一会议下按手机号防重复报名 */
     private String phone;
@@ -16,11 +16,11 @@ public class JoinMeetingCommand {
         this.meetingId = meetingId;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

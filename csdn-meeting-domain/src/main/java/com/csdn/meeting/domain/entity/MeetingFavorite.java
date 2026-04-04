@@ -8,17 +8,17 @@ import java.time.LocalDateTime;
  */
 public class MeetingFavorite extends BaseEntity {
 
-    private Long userId;
+    private String userId;
     private Long meetingId;
     private LocalDateTime createdAt;
 
     // ---- getters / setters ----
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

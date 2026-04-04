@@ -47,7 +47,7 @@ public class MyMeetingsUseCase {
      * 默认 status IN [PUBLISHED, IN_PROGRESS]；includeEnded=true 时增加 ENDED
      * 按会议日期倒序
      */
-    public PageResult<MeetingDTO>  getMyRegistered(Long userId, boolean includeEnded, int page, int size) {
+    public PageResult<MeetingDTO>  getMyRegistered(String userId, boolean includeEnded, int page, int size) {
         List<Meeting.MeetingStatus> statuses = new ArrayList<>();
         statuses.add(Meeting.MeetingStatus.PUBLISHED);
         statuses.add(Meeting.MeetingStatus.IN_PROGRESS);
@@ -68,7 +68,7 @@ public class MyMeetingsUseCase {
      * 我收藏的会议
      * 按收藏时间倒序；过滤掉已删除、草稿、待审、已拒绝的会议
      */
-    public PageResult<MeetingDTO> getMyFavorites(Long userId, int page, int size) {
+    public PageResult<MeetingDTO> getMyFavorites(String userId, int page, int size) {
         com.csdn.meeting.domain.repository.PageResult<MeetingFavorite> favPage = favoriteRepository.findByUserIdOrderByCreatedAtDesc(userId, page, size);
         List<MeetingDTO> dtos = favPage.getContent().stream()
                 .map(fav -> meetingRepository.findById(fav.getMeetingId()))

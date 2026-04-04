@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class Registration extends BaseEntity {
 
     private Long meetingId;
-    private Long userId;
+    private String userId;
     private String name;
     private String phone;
     private String email;
@@ -133,11 +133,11 @@ public class Registration extends BaseEntity {
         this.meetingId = meetingId;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

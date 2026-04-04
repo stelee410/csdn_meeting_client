@@ -65,7 +65,7 @@ public class RegistrationController {
             @RequestParam String meetingId,
             HttpServletRequest request) {
         String userId = getCurrentUserId(request);
-        Map<String, String> preFilledData = meetingRegistrationUseCase.getPreFilledForm(meetingId, Long.valueOf(userId));
+        Map<String, String> preFilledData = meetingRegistrationUseCase.getPreFilledForm(meetingId, userId);
         return ResponseEntity.ok(ApiResponse.success(preFilledData));
     }
 
@@ -79,7 +79,7 @@ public class RegistrationController {
             HttpServletRequest request) {
         // 从JWT获取用户ID并设置到command中
         String userId = getCurrentUserId(request);
-        command.setUserId(Long.valueOf(userId));
+        command.setUserId(userId);
         RegistrationDTO dto = meetingRegistrationUseCase.register(command);
         return ResponseEntity.ok(ApiResponse.success(dto));
     }
@@ -94,7 +94,7 @@ public class RegistrationController {
             @PathVariable String meetingId,
             HttpServletRequest request) {
         String userId = getCurrentUserId(request);
-        RegistrationDTO dto = meetingRegistrationUseCase.getMyRegistration(meetingId, Long.valueOf(userId));
+        RegistrationDTO dto = meetingRegistrationUseCase.getMyRegistration(meetingId, userId);
         // 未报名返回 200 + null body，而非 404（未报名是正常业务状态，不是资源不存在）
         return ResponseEntity.ok(ApiResponse.success(dto));
     }
@@ -109,7 +109,7 @@ public class RegistrationController {
             @PathVariable Long regId,
             HttpServletRequest request) {
         String userId = getCurrentUserId(request);
-        meetingRegistrationUseCase.cancelRegistration(regId, Long.valueOf(userId));
+        meetingRegistrationUseCase.cancelRegistration(regId, userId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

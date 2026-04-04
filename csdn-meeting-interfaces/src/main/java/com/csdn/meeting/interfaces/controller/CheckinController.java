@@ -75,7 +75,7 @@ public class CheckinController {
             HttpServletRequest request) {
         // 从Token获取用户ID（强制）
         String userId = getCurrentUserId(request);
-        command.setUserId(Long.valueOf(userId));
+        command.setUserId(userId);
 
         // 自动填充设备信息和IP地址
         if (command.getDeviceInfo() == null || command.getDeviceInfo().isEmpty()) {
@@ -108,7 +108,7 @@ public class CheckinController {
             HttpServletRequest request) {
         String userId = getCurrentUserId(request);
         MeetingCheckinUseCase.CheckinStatusResult status =
-                meetingCheckinUseCase.getCheckinStatus(meetingId, Long.valueOf(userId));
+                meetingCheckinUseCase.getCheckinStatus(meetingId, userId);
 
         CheckinStatusResponse response = new CheckinStatusResponse();
         response.setMeetingId(status.getMeetingId());

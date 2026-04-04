@@ -13,5 +13,5 @@ public interface ParticipantPOMapper extends BaseMapper<ParticipantPO> {
     List<ParticipantPO> selectByMeetingId(@Param("meetingId") String meetingId);
 
     ParticipantPO selectByMeetingIdAndUserId(@Param("meetingId") String meetingId,
-                                            @Param("userId") Long userId);
+                                            @Param("userId") String userId);
 }

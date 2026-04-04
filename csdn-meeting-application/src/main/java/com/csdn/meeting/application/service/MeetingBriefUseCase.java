@@ -86,7 +86,7 @@ public class MeetingBriefUseCase {
         sb.append("- （基于议题点击/评分，此处为占位）\n\n");
 
         if (meeting.isAdvancedDataAvailable()) {
-            List<Long> userIds = registrationRepository.findByMeetingIdAndStatus(meeting.getId(), null, 0, 10000)
+            List<String> userIds = registrationRepository.findByMeetingIdAndStatus(meeting.getId(), null, 0, 10000)
                     .getContent().stream()
                     .map(r -> r.getUserId())
                     .collect(Collectors.toList());

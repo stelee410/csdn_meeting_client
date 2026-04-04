@@ -65,7 +65,7 @@ public class MeetingRegistrationUseCase {
     @Transactional
     public RegistrationDTO register(RegistrationCommand command) {
         String meetingId = command.getMeetingId();
-        Long userId = command.getUserId();
+        String userId = command.getUserId();
         Map<String, String> formData = command.getFormData();
 
         if (userId == null) {
@@ -170,7 +170,7 @@ public class MeetingRegistrationUseCase {
      * @param userId 用户ID（用于权限校验）
      */
     @Transactional
-    public void cancelRegistration(Long registrationId, Long userId) {
+    public void cancelRegistration(Long registrationId, String userId) {
         Registration registration = registrationRepository.findById(registrationId)
                 .orElseThrow(() -> new IllegalArgumentException("报名记录不存在: " + registrationId));
 
@@ -199,7 +199,7 @@ public class MeetingRegistrationUseCase {
      * @param userId 用户ID
      * @return 报名DTO，未报名返回null
      */
-    public RegistrationDTO getMyRegistration(String meetingId, Long userId) {
+    public RegistrationDTO getMyRegistration(String meetingId, String userId) {
         // 先按字符串业务 ID 查，找不到时判断是否为纯数字并按数据库 ID 兜底查
         Meeting meeting = meetingRepository.findByMeetingId(meetingId).orElse(null);
         if (meeting == null && meetingId != null && meetingId.matches("\\d+")) {
@@ -222,7 +222,7 @@ public class MeetingRegistrationUseCase {
      * @param userId 用户ID
      * @return 预填字段Map
      */
-    public Map<String, String> getPreFilledForm(String meetingId, Long userId) {
+    public Map<String, String> getPreFilledForm(String meetingId, String userId) {
         List<String> preFillableFields = configUseCase.getPreFillableFields(meetingId);
         Map<String, String> preFilledData = new HashMap<>();
 
@@ -315,7 +315,7 @@ public class MeetingRegistrationUseCase {
      * 3. 确认接口鉴权方式（Token/AppKey）
      * 4. 确认是否需要用户授权才能获取画像数据
      */
-    private String getUserProfileField(Long userId, String field) {
+    private String getUserProfileField(String userId, String field) {
         // TODO: 接入CSDN用户服务获取真实数据
         // 这里返回模拟数据，实际项目中应从用户服务查询
         Map<String, String> mockProfile = new HashMap<>();

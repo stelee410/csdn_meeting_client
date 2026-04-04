@@ -13,7 +13,7 @@ public class RegistrationSubmittedEvent extends DomainEvent {
 
     private final Long registrationId;
     private final Long meetingId;
-    private final Long userId;
+    private final String userId;
     private final String meetingTitle;
     private final Registration.RegistrationStatus status;
     private final LocalDateTime submittedAt;
@@ -21,7 +21,7 @@ public class RegistrationSubmittedEvent extends DomainEvent {
 
     public RegistrationSubmittedEvent(Long registrationId,
                                       Long meetingId,
-                                      Long userId,
+                                      String userId,
                                       String meetingTitle,
                                       Registration.RegistrationStatus status,
                                       LocalDateTime submittedAt,
@@ -44,7 +44,7 @@ public class RegistrationSubmittedEvent extends DomainEvent {
         return meetingId;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 

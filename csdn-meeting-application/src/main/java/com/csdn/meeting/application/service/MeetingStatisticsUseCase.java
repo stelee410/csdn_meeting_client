@@ -44,7 +44,7 @@ public class MeetingStatisticsUseCase {
         dto.setPremiumRequired(!meeting.isAdvancedDataAvailable());
 
         if (meeting.isAdvancedDataAvailable()) {
-            List<Long> userIds = getRegistrationUserIds(meetingId);
+            List<String> userIds = getRegistrationUserIds(meetingId);
             String profile = userProfilePort.getAggregatedProfile(userIds);
             dto.setAdvanced(profile);
         } else {
@@ -69,7 +69,7 @@ public class MeetingStatisticsUseCase {
         return basic;
     }
 
-    private List<Long> getRegistrationUserIds(Long meetingId) {
+    private List<String> getRegistrationUserIds(Long meetingId) {
         return registrationRepository.findByMeetingIdAndStatus(meetingId, null, 0, 10000)
                 .getContent().stream()
                 .map(r -> r.getUserId())

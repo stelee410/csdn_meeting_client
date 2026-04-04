@@ -3,7 +3,7 @@ package com.csdn.meeting.application.dto;
 public class ParticipantDTO {
 
     private Long id;
-    private Long userId;
+    private String userId;
     private String userName;
     private String meetingId;
     private String role;
@@ -17,11 +17,11 @@ public class ParticipantDTO {
         this.id = id;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

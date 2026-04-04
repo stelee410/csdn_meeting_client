@@ -57,7 +57,7 @@ public class RegistrationRepositoryImpl implements RegistrationRepository {
     }
 
     @Override
-    public Optional<Registration> findByUserIdAndMeetingId(Long userId, Long meetingId) {
+    public Optional<Registration> findByUserIdAndMeetingId(String userId, Long meetingId) {
         RegistrationPO po = registrationPOMapper.selectByUserIdAndMeetingId(userId, meetingId);
         return po == null ? Optional.empty() : Optional.of(RegistrationMapper.INSTANCE.toEntity(po));
     }
@@ -74,7 +74,7 @@ public class RegistrationRepositoryImpl implements RegistrationRepository {
     }
 
     @Override
-    public PageResult<Registration> findByUserIdAndMeetingStatusIn(Long userId,
+    public PageResult<Registration> findByUserIdAndMeetingStatusIn(String userId,
                                                                    List<Meeting.MeetingStatus> meetingStatuses,
                                                                    int page, int size) {
         if (meetingStatuses == null || meetingStatuses.isEmpty()) {

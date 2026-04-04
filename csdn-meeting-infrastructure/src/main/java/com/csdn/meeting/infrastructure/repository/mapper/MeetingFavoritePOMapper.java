@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Param;
 public interface MeetingFavoritePOMapper extends BaseMapper<MeetingFavoritePO> {
 
     IPage<MeetingFavoritePO> selectPageByUserIdOrderByCreatedAtDesc(Page<MeetingFavoritePO> page,
-                                                                    @Param("userId") Long userId);
+                                                                    @Param("userId") String userId);
 
-    void deleteByUserIdAndMeetingId(@Param("userId") Long userId, @Param("meetingId") Long meetingId);
+    void deleteByUserIdAndMeetingId(@Param("userId") String userId, @Param("meetingId") Long meetingId);
 }

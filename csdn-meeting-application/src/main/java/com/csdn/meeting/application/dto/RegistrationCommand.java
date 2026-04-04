@@ -16,8 +16,8 @@ public class RegistrationCommand {
     @Schema(description = "会议ID", example = "M123456789", required = true)
     private String meetingId;
 
-    @Schema(description = "用户ID", example = "12345", required = true)
-    private Long userId;
+    @Schema(description = "用户ID", example = "U927CFE0E0D2F4A65", required = true)
+    private String userId;
 
     @Schema(description = "表单字段值（name/phone/email/company/position/industry/purpose）")
     private Map<String, String> formData;

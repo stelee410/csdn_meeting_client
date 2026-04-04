@@ -62,7 +62,7 @@ public class MeetingRightsPurchaseUseCase {
     /**
      * 唤起收银台，返回支付跳转 URL
      */
-    public RightsPurchaseResultDTO purchase(Long meetingId, Long userId) {
+    public RightsPurchaseResultDTO purchase(Long meetingId, String userId) {
         BigDecimal price = rightsPriceConfig.getPrice();
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new IllegalArgumentException("会议不存在: " + meetingId));

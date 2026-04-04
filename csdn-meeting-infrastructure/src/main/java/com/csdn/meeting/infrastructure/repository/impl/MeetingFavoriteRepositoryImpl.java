@@ -43,7 +43,7 @@ public class MeetingFavoriteRepositoryImpl implements MeetingFavoriteRepository 
     }
 
     @Override
-    public PageResult<MeetingFavorite> findByUserIdOrderByCreatedAtDesc(Long userId, int page, int size) {
+    public PageResult<MeetingFavorite> findByUserIdOrderByCreatedAtDesc(String userId, int page, int size) {
         Page<MeetingFavoritePO> pageParam = new Page<>(page + 1, size);
         IPage<MeetingFavoritePO> springPage = favoritePOMapper.selectPageByUserIdOrderByCreatedAtDesc(pageParam, userId);
         List<MeetingFavorite> content = springPage.getRecords().stream()
@@ -53,7 +53,7 @@ public class MeetingFavoriteRepositoryImpl implements MeetingFavoriteRepository 
     }
 
     @Override
-    public boolean existsByUserIdAndMeetingId(Long userId, Long meetingId) {
+    public boolean existsByUserIdAndMeetingId(String userId, Long meetingId) {
         LambdaQueryWrapper<MeetingFavoritePO> qw = new LambdaQueryWrapper<>();
         qw.eq(MeetingFavoritePO::getUserId, userId).eq(MeetingFavoritePO::getMeetingId, meetingId);
         return favoritePOMapper.selectCount(qw) > 0;
@@ -66,7 +66,7 @@ public class MeetingFavoriteRepositoryImpl implements MeetingFavoriteRepository 
 
     @Override
     @Transactional
-    public void deleteByUserIdAndMeetingId(Long userId, Long meetingId) {
+    public void deleteByUserIdAndMeetingId(String userId, Long meetingId) {
         favoritePOMapper.deleteByUserIdAndMeetingId(userId, meetingId);
     }
 }

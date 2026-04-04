@@ -47,7 +47,7 @@ public class ParticipantRepositoryImpl implements ParticipantRepository {
     }
 
     @Override
-    public Optional<Participant> findByMeetingIdAndUserId(String meetingId, Long userId) {
+    public Optional<Participant> findByMeetingIdAndUserId(String meetingId, String userId) {
         ParticipantPO po = participantPOMapper.selectByMeetingIdAndUserId(meetingId, userId);
         return po == null ? Optional.empty() : Optional.of(toEntity(po));
     }

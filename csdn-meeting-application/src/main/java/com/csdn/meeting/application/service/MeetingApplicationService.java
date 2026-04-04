@@ -235,7 +235,7 @@ public class MeetingApplicationService {
     }
 
     @Transactional
-    public void leaveMeeting(String meetingId, Long userId) {
+    public void leaveMeeting(String meetingId, String userId) {
         Participant participant = participantRepository
                 .findByMeetingIdAndUserId(meetingId, userId)
                 .orElseThrow(() -> new IllegalArgumentException("参与者不存在"));

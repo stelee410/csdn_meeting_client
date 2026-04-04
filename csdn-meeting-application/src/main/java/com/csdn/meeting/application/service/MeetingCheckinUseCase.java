@@ -125,7 +125,7 @@ public class MeetingCheckinUseCase {
     @Transactional
     public CheckinResultDTO checkin(CheckinCommand command) {
         String meetingId = command.getMeetingId();
-        Long userId = command.getUserId();
+        String userId = command.getUserId();
         String providedToken = command.getCheckinToken();
 
         logger.info("用户 {} 尝试签到会议 {}", userId, meetingId);
@@ -222,7 +222,7 @@ public class MeetingCheckinUseCase {
      * @param userId 用户ID
      * @return 签到状态
      */
-    public CheckinStatusResult getCheckinStatus(String meetingId, Long userId) {
+    public CheckinStatusResult getCheckinStatus(String meetingId, String userId) {
         Meeting meeting = meetingRepository.findByMeetingId(meetingId).orElse(null);
         if (meeting == null) {
             return CheckinStatusResult.notFound(meetingId);

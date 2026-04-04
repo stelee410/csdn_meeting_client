@@ -18,11 +18,11 @@ public interface RegistrationPOMapper extends BaseMapper<RegistrationPO> {
 
     IPage<RegistrationPO> selectPageByMeetingId(Page<RegistrationPO> page, @Param("meetingId") Long meetingId);
 
-    RegistrationPO selectByUserIdAndMeetingId(@Param("userId") Long userId, @Param("meetingId") Long meetingId);
+    RegistrationPO selectByUserIdAndMeetingId(@Param("userId") String userId, @Param("meetingId") Long meetingId);
 
     List<RegistrationPO> selectByMeetingIdAndPhone(@Param("meetingId") Long meetingId, @Param("phone") String phone);
 
     IPage<RegistrationPO> selectPageByUserIdAndMeetingStatusIn(Page<RegistrationPO> page,
-                                                               @Param("userId") Long userId,
+                                                               @Param("userId") String userId,
                                                                @Param("statusCodes") List<Integer> statusCodes);
 }

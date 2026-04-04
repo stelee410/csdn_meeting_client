@@ -12,14 +12,14 @@ public class RegistrationAuditedEvent extends DomainEvent {
 
     private final Long registrationId;
     private final Long meetingId;
-    private final Long userId;
+    private final String userId;
     private final Registration.RegistrationStatus status;
     private final LocalDateTime auditedAt;
     private final String auditRemark;
 
     public RegistrationAuditedEvent(Long registrationId,
                                     Long meetingId,
-                                    Long userId,
+                                    String userId,
                                     Registration.RegistrationStatus status,
                                     LocalDateTime auditedAt,
                                     String auditRemark) {
@@ -40,7 +40,7 @@ public class RegistrationAuditedEvent extends DomainEvent {
         return meetingId;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 

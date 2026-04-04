@@ -9,7 +9,7 @@ public class RegistrationDTO {
 
     private Long id;
     private Long meetingId;
-    private Long userId;
+    private String userId;
     private String name;
     private String phone;
     private String email;
@@ -40,11 +40,11 @@ public class RegistrationDTO {
         this.meetingId = meetingId;
     }
 
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 

@@ -14,5 +14,5 @@ public interface UserProfilePort {
      * @param registrationUserIds 报名用户 ID 列表
      * @return 聚合画像 JSON 或简单 Map 表示
      */
-    String getAggregatedProfile(List<Long> registrationUserIds);
+    String getAggregatedProfile(List<String> registrationUserIds);
 }

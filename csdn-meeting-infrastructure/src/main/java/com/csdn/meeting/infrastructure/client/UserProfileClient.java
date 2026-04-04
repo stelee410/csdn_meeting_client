@@ -13,7 +13,7 @@ import java.util.List;
 public class UserProfileClient implements UserProfilePort {
 
     @Override
-    public String getAggregatedProfile(List<Long> registrationUserIds) {
+    public String getAggregatedProfile(List<String> registrationUserIds) {
         // Stub: 返回模拟聚合画像
         if (registrationUserIds == null || registrationUserIds.isEmpty()) {
             return "{}";

@@ -58,7 +58,7 @@ public class MeetingDetailPageUseCase {
      * @param userId 用户ID（可为null，未登录时）
      * @return 会议详情页DTO
      */
-    public MeetingDetailPageDTO getMeetingDetailPage(String meetingId, Long userId) {
+    public MeetingDetailPageDTO getMeetingDetailPage(String meetingId, String userId) {
         logger.debug("获取会议详情页: meetingId={}, userId={}", meetingId, userId);
 
         // 1. 获取会议基础信息
@@ -106,7 +106,7 @@ public class MeetingDetailPageUseCase {
     /**
      * 获取我的报名状态
      */
-    private MeetingDetailPageDTO.MyRegistrationStatusDTO getMyRegistrationStatus(Meeting meeting, Long userId) {
+    private MeetingDetailPageDTO.MyRegistrationStatusDTO getMyRegistrationStatus(Meeting meeting, String userId) {
         Optional<Registration> regOpt = registrationRepository
                 .findByUserIdAndMeetingId(userId, meeting.getId());
 
@@ -139,7 +139,7 @@ public class MeetingDetailPageUseCase {
     private MeetingDetailPageDTO.ButtonStateDTO calculateButtonState(
             Meeting meeting,
             MeetingDetailPageDTO.MyRegistrationStatusDTO myReg,
-            Long userId) {
+            String userId) {
 
         MeetingDetailPageDTO.ButtonStateDTO button = new MeetingDetailPageDTO.ButtonStateDTO();
 

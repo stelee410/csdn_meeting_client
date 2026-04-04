@@ -138,8 +138,7 @@ public class MeetingController {
             @PathVariable String meetingId,
             HttpServletRequest request) {
         // 从Token获取用户ID（可选，游客为null）
-        String userIdStr = getCurrentUserIdOptional(request);
-        Long userId = userIdStr != null ? Long.valueOf(userIdStr) : null;
+        String userId = getCurrentUserIdOptional(request);
         MeetingDetailPageDTO detailPage = meetingDetailPageUseCase.getMeetingDetailPage(meetingId, userId);
         return ResponseEntity.ok(ApiResponse.success(detailPage));
     }
@@ -222,7 +221,7 @@ public class MeetingController {
             HttpServletRequest request) {
         String userId = getCurrentUserId(request);
         return ResponseEntity.ok(ApiResponse.success(
-                myMeetingsUseCase.getMyRegistered(Long.valueOf(userId), includeEnded, page, size)));
+                myMeetingsUseCase.getMyRegistered(userId, includeEnded, page, size)));
     }
 
     @Operation(summary = "我收藏的会议", description = "获取当前用户收藏的会议列表，按收藏时间倒序。")
@@ -233,7 +232,7 @@ public class MeetingController {
             HttpServletRequest request) {
         String userId = getCurrentUserId(request);
         return ResponseEntity.ok(ApiResponse.success(
-                myMeetingsUseCase.getMyFavorites(Long.valueOf(userId), page, size)));
+                myMeetingsUseCase.getMyFavorites(userId, page, size)));
     }
 
     @Operation(summary = "我创建的会议", description = "办会方创建的所有会议，支持状态、时间范围筛选。")
@@ -295,7 +294,7 @@ public class MeetingController {
             HttpServletRequest request) {
         String userId = getCurrentUserId(request);
         command.setMeetingId(String.valueOf(id));
-        command.setUserId(Long.valueOf(userId));
+        command.setUserId(userId);
         MeetingDTO meeting = meetingApplicationService.joinMeeting(command);
         return ResponseEntity.ok(ApiResponse.success(meeting));
     }
@@ -304,7 +303,7 @@ public class MeetingController {
     @PostMapping("/{id}/leave")
     public ResponseEntity<ApiResponse<Void>> leaveMeeting(@PathVariable Long id, HttpServletRequest request) {
         String userId = getCurrentUserId(request);
-        meetingApplicationService.leaveMeeting(String.valueOf(id), Long.valueOf(userId));
+        meetingApplicationService.leaveMeeting(String.valueOf(id), userId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -399,7 +398,7 @@ public class MeetingController {
             @PathVariable Long id,
             HttpServletRequest request) {
         String userId = getCurrentUserId(request);
-        RightsPurchaseResultDTO dto = meetingRightsPurchaseUseCase.purchase(id, Long.valueOf(userId));
+        RightsPurchaseResultDTO dto = meetingRightsPurchaseUseCase.purchase(id, userId);
         return ResponseEntity.ok(ApiResponse.success(dto));
     }
 
@@ -479,7 +478,7 @@ public class MeetingController {
         // 从Token获取用户ID（可选），用于个性化推荐
         String userIdStr = getCurrentUserIdOptional(request);
         if (userIdStr != null) {
-            query.setUserId(Long.valueOf(userIdStr));
+            query.setUserId(userIdStr);
         }
 
         MeetingListResultDTO<MeetingCardItemDTO> result = meetingListUseCase.queryMeetingList(query);

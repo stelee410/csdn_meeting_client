@@ -14,8 +14,8 @@ public class CheckinCommand {
     @Schema(description = "会议ID", example = "M123456789", required = true)
     private String meetingId;
 
-    @Schema(description = "用户ID", example = "12345", required = true)
-    private Long userId;
+    @Schema(description = "用户ID", example = "U927CFE0E0D2F4A65", required = true)
+    private String userId;
 
     @Schema(description = "签到码Token（从二维码解析）", required = true)
     private String checkinToken;

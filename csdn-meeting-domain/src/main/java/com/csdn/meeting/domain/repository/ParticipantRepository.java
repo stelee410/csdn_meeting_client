@@ -13,7 +13,7 @@ public interface ParticipantRepository {
 
     List<Participant> findByMeetingId(String meetingId);
 
-    Optional<Participant> findByMeetingIdAndUserId(String meetingId, Long userId);
+    Optional<Participant> findByMeetingIdAndUserId(String meetingId, String userId);
 
     List<Participant> findAll();
 

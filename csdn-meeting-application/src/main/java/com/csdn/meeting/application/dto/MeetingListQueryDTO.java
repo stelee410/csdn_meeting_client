@@ -58,8 +58,8 @@ public class MeetingListQueryDTO {
     /**
      * 用户ID（用于个性化推荐，可选）
      */
-    @Schema(description = "用户ID，用于个性化推荐和埋点统计", example = "12345")
-    private Long userId;
+    @Schema(description = "用户ID，用于个性化推荐和埋点统计", example = "U927CFE0E0D2F4A65")
+    private String userId;
 
     /**
      * 展示类型 1-卡片 2-列表

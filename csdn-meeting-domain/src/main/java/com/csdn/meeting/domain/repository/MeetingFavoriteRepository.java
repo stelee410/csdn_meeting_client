@@ -13,11 +13,11 @@ public interface MeetingFavoriteRepository {
     /**
      * 按 userId 分页查询，按 createdAt 倒序
      */
-    PageResult<MeetingFavorite> findByUserIdOrderByCreatedAtDesc(Long userId, int page, int size);
+    PageResult<MeetingFavorite> findByUserIdOrderByCreatedAtDesc(String userId, int page, int size);
 
-    boolean existsByUserIdAndMeetingId(Long userId, Long meetingId);
+    boolean existsByUserIdAndMeetingId(String userId, Long meetingId);
 
     void deleteById(Long id);
 
-    void deleteByUserIdAndMeetingId(Long userId, Long meetingId);
+    void deleteByUserIdAndMeetingId(String userId, Long meetingId);
 }
