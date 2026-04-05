@@ -162,4 +162,18 @@ public class User extends BaseEntity {
     public void verifyEmail() {
         this.emailVerified = true;
     }
+
+    /**
+     * 注销账号
+     */
+    public void cancel() {
+        this.status = UserStatus.CANCELLED;
+    }
+
+    /**
+     * 判断账号是否已注销
+     */
+    public boolean isCancelled() {
+        return status == UserStatus.CANCELLED;
+    }
 }

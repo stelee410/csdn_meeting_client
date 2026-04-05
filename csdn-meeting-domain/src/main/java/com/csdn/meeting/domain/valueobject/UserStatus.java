@@ -17,7 +17,12 @@ public enum UserStatus {
     /**
      * 冻结状态，禁止登录
      */
-    FROZEN(1, "冻结", "frozen");
+    FROZEN(1, "冻结", "frozen"),
+
+    /**
+     * 已注销状态，账号永久失效
+     */
+    CANCELLED(2, "已注销", "cancelled");
 
     private final int code;
     private final String displayName;

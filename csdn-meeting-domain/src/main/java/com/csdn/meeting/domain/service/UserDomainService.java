@@ -125,6 +125,13 @@ public class UserDomainService {
     }
 
     /**
+     * 根据邮箱查找用户
+     */
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    /**
      * 登录成功后的处理（更新最后登录时间等）
      */
     public void onLoginSuccess(User user) {
@@ -139,7 +146,7 @@ public class UserDomainService {
         if (user == null) {
             return false;
         }
-        return user.isActive();
+        return user.isActive() && !user.isCancelled();
     }
 
     /**
@@ -225,6 +232,21 @@ public class UserDomainService {
         User user = userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
         updatePassword(user, newPassword);
+        userRepository.save(user);
+    }
+
+    /**
+     * 注销用户账号
+     *
+     * @param userId 用户ID
+     */
+    public void cancelUser(String userId) {
+        User user = userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("用户不存在"));
+        if (user.isCancelled()) {
+            throw new IllegalArgumentException("账号已注销");
+        }
+        user.cancel();
         userRepository.save(user);
     }
 }

@@ -27,7 +27,22 @@ public enum VerificationCodeScene {
     /**
      * 资料更新场景（邮箱变更验证）
      */
-    PROFILE_UPDATE(3, "资料更新", "profile_update");
+    PROFILE_UPDATE(3, "资料更新", "profile_update"),
+
+    /**
+     * 换绑原邮箱验证场景
+     */
+    CHANGE_EMAIL_OLD(4, "换绑原邮箱验证", "change_email_old"),
+
+    /**
+     * 换绑新邮箱验证场景
+     */
+    CHANGE_EMAIL_NEW(5, "换绑新邮箱验证", "change_email_new"),
+
+    /**
+     * 注销账号验证场景
+     */
+    CANCEL_ACCOUNT(6, "注销账号验证", "cancel_account");
 
     private final int code;
     private final String displayName;

@@ -25,10 +25,13 @@ public class InterceptorConfig implements WebMvcConfigurer {
                 .addPathPatterns(
                         "/api/users/profile",           // 用户资料
                         "/api/users/profile/**",        // 资料相关
+                        "/api/users/password/change",   // 修改密码
+                        "/api/users/email/change",        // 更换邮箱
+                        "/api/users/cancel",              // 注销账号
                         "/api/registrations/**",       // 报名
                         "/api/favorites/**",           // 收藏
                         "/api/subscriptions/**",      // 订阅
-                        "/api/v1/messages/**",        // 消息中心
+                        "/api/messages/**",        // 消息中心
                         "/api/meetings/*/favorite",   // 会议收藏（Toggle接口）
                         "/api/meetings/*/favorite/**", // 收藏相关操作
                         // 会议管理 - 需要登录的接口

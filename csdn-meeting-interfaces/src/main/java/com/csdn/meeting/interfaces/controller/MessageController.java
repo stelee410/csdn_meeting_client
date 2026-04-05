@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Tag(name = "消息中心接口", description = "用户站内信消息管理")
 @RestController
-@RequestMapping("/api/v1/messages")
+@RequestMapping("/api/messages")
 public class MessageController {
 
     private final UserMessageRepository userMessageRepository;

@@ -1,5 +1,8 @@
 package com.csdn.meeting.interfaces.controller;
 
+import com.csdn.meeting.application.dto.CancelAccountCommand;
+import com.csdn.meeting.application.dto.ChangeEmailCommand;
+import com.csdn.meeting.application.dto.ChangePasswordCommand;
 import com.csdn.meeting.application.dto.UpdateUserProfileCommand;
 import com.csdn.meeting.application.dto.UserProfileDTO;
 import com.csdn.meeting.application.service.UserProfileAppService;
@@ -67,5 +70,44 @@ public class UserProfileController {
 
         UserProfileDTO profile = userProfileAppService.updateUserProfile(userId, command);
         return ResponseEntity.ok(ApiResponse.success(profile));
+    }
+
+    @Operation(summary = "修改密码",
+            description = "修改当前登录用户的密码，需要验证原密码。修改成功后建议用户重新登录。")
+    @PostMapping("/password/change")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @Valid @RequestBody ChangePasswordCommand command,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        log.info("用户修改密码: userId={}", userId);
+
+        userProfileAppService.changePassword(userId, command);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @Operation(summary = "更换邮箱",
+            description = "更换当前登录用户绑定的邮箱。需要原邮箱验证码或短信验证码验证身份，同时验证新邮箱。")
+    @PostMapping("/email/change")
+    public ResponseEntity<ApiResponse<UserProfileDTO>> changeEmail(
+            @Valid @RequestBody ChangeEmailCommand command,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        log.info("用户更换邮箱: userId={}, newEmail={}", userId, command.getNewEmail());
+
+        UserProfileDTO profile = userProfileAppService.changeEmail(userId, command);
+        return ResponseEntity.ok(ApiResponse.success(profile));
+    }
+
+    @Operation(summary = "注销账号",
+            description = "注销当前登录用户的账号，需要验证码验证身份。注销后账号不可恢复，请谨慎操作。")
+    @PostMapping("/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelAccount(
+            @RequestBody CancelAccountCommand command,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        log.info("用户注销账号: userId={}", userId);
+
+        userProfileAppService.cancelAccount(userId, command);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
