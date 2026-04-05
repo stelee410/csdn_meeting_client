@@ -21,7 +21,9 @@ public class VerificationCodeSendCommand {
     @NotBlank(message = "类型不能为空")
     private String type;
 
-    @Schema(description = "业务场景：REGISTER-注册, LOGIN-登录, RESET-重置密码", requiredMode = Schema.RequiredMode.REQUIRED, example = "REGISTER")
+    @Schema(description = "业务场景：REGISTER-注册, LOGIN-登录, RESET-重置密码, " +
+            "PROFILE_UPDATE-资料更新场景（邮箱变更验证）,CHANGE_EMAIL_OLD-换绑原邮箱验证,CHANGE_EMAIL_NEW-换绑新邮箱验证," +
+            "CANCEL_ACCOUNT-注销账号验证", requiredMode = Schema.RequiredMode.REQUIRED, example = "REGISTER")
     @NotBlank(message = "场景不能为空")
     private String scene;
 }
