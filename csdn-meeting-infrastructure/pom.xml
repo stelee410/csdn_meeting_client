@@ -130,6 +130,21 @@
             <artifactId>ph-fonts-noto-sans-sc</artifactId>
             <version>5.0.0</version>
         </dependency>
+
+        <!-- 火山云短信服务使用Spring内置HTTP客户端 -->
+        <!-- 阿里云邮件推送SDK -->
+
+        <!-- 阿里云邮件推送SDK -->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-dm</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-core</artifactId>
+            <version>4.5.0</version>
+        </dependency>
     </dependencies>
 
     <build>

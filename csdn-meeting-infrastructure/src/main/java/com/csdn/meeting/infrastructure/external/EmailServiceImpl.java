@@ -1,14 +1,19 @@
 package com.csdn.meeting.infrastructure.external;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 /**
- * 邮件服务实现
- * 目前为Mock实现，后续接入邮件服务器
+ * 邮件服务Mock实现
+ * 当aliyun.dm.access-key-id未配置时作为降级方案使用
+ * 由AliyunEmailServiceImpl在配置无效时自动降级调用此Mock逻辑
+ *
+ * @deprecated 请使用 AliyunEmailServiceImpl 接入阿里云真实邮件推送服务
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(name = "aliyun.dm.access-key-id", matchIfMissing = true)
 public class EmailServiceImpl implements EmailService {
 
     @Override

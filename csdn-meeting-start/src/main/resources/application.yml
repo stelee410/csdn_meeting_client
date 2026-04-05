@@ -167,3 +167,47 @@ jwt:
 ai:
   # AI 解析流程总超时（秒）。文档类通常比图片耗时更长。
   parse-timeout-seconds: ${AI_PARSE_TIMEOUT_SECONDS:60}
+
+# =========================================
+# 火山云短信服务配置 (Volcengine SMS)
+# =========================================
+volcengine:
+  sms:
+    # 访问密钥（从火山云控制台获取）
+    access-key-id: ${VOLC_SMS_ACCESS_KEY_ID:}
+    access-key-secret: ${VOLC_SMS_ACCESS_KEY_SECRET:}
+    # 短信服务端点
+    endpoint: ${VOLC_SMS_ENDPOINT:sms.volcengineapi.com}
+    # 短信签名（需在火山云申请审核通过）
+    sign-name: ${VOLC_SMS_SIGN_NAME:CSDN会议}
+    # 短信模板ID配置
+    templates:
+      register: ${VOLC_SMS_TEMPLATE_REGISTER:}
+      login: ${VOLC_SMS_TEMPLATE_LOGIN:}
+      reset-password: ${VOLC_SMS_TEMPLATE_RESET_PASSWORD:}
+      general: ${VOLC_SMS_TEMPLATE_GENERAL:}
+    # 发送重试配置
+    retry:
+      max-attempts: 3
+      delay-ms: 1000
+
+# =========================================
+# 阿里云邮件推送配置 (Aliyun DirectMail)
+# =========================================
+aliyun:
+  dm:
+    # 阿里云访问密钥
+    access-key-id: ${ALI_DM_ACCESS_KEY_ID:}
+    access-key-secret: ${ALI_DM_ACCESS_KEY_SECRET:}
+    # 服务区域
+    region-id: ${ALI_DM_REGION_ID:cn-hangzhou}
+    # 发件人地址（需在阿里云控制台验证）
+    from-address: ${ALI_DM_FROM_ADDRESS:noreply@csdn.net}
+    # 发件人昵称
+    from-alias: ${ALI_DM_FROM_ALIAS:CSDN会议系统}
+    # 邮件标签
+    tag-name: ${ALI_DM_TAG_NAME:meeting_verify}
+    # 重试配置
+    retry:
+      max-attempts: 3
+      delay-ms: 1000
