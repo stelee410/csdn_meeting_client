@@ -48,7 +48,7 @@ public enum MeetingScene {
             return of(code);
         } catch (NumberFormatException e) {
             for (MeetingScene scene : values()) {
-                if (scene.value.equalsIgnoreCase(trimmed)) {
+                if (scene.name().equalsIgnoreCase(trimmed) || scene.value.equalsIgnoreCase(trimmed)) {
                     return scene;
                 }
             }

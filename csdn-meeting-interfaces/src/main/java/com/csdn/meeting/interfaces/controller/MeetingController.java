@@ -38,6 +38,7 @@ import com.csdn.meeting.application.service.MyMeetingsUseCase;
 import com.csdn.meeting.application.service.TagSuggestionUseCase;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.Registration;
+import com.csdn.meeting.infrastructure.security.JwtTokenProvider;
 import com.csdn.meeting.interfaces.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -75,6 +76,7 @@ public class MeetingController {
     private final HotTagsUseCase hotTagsUseCase;
     private final GenerateDescriptionUseCase generateDescriptionUseCase;
     private final GenerateImageUseCase generateImageUseCase;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public MeetingController(MeetingApplicationService meetingApplicationService,
                              TagSuggestionUseCase tagSuggestionUseCase,
@@ -87,7 +89,8 @@ public class MeetingController {
                              MeetingDetailPageUseCase meetingDetailPageUseCase,
                              HotTagsUseCase hotTagsUseCase,
                              GenerateDescriptionUseCase generateDescriptionUseCase,
-                             GenerateImageUseCase generateImageUseCase) {
+                             GenerateImageUseCase generateImageUseCase,
+                             JwtTokenProvider jwtTokenProvider) {
         this.meetingApplicationService = meetingApplicationService;
         this.tagSuggestionUseCase = tagSuggestionUseCase;
         this.aiParsingUseCase = aiParsingUseCase;
@@ -100,9 +103,10 @@ public class MeetingController {
         this.hotTagsUseCase = hotTagsUseCase;
         this.generateDescriptionUseCase = generateDescriptionUseCase;
         this.generateImageUseCase = generateImageUseCase;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    @Operation(summary = "创建草稿", description = "创建会议草稿，仅校验会议标题必填，日程可为空。状态为 DRAFT。")
+    @Operation(summary = "创建草稿", description = "创建会议草稿，仅校验会议标题必填，日程可为空。状态为 DRAFT。需携带 Authorization: Bearer <token> 请求头。")
     @PostMapping
     public ResponseEntity<ApiResponse<MeetingDTO>> createDraft(@RequestBody CreateMeetingCommand command,
                                                                HttpServletRequest request) {

@@ -4,6 +4,7 @@ import com.csdn.meeting.application.dto.FormFieldConfigDTO;
 import com.csdn.meeting.application.dto.MeetingDTO;
 import com.csdn.meeting.application.dto.MeetingDetailDTO;
 import com.csdn.meeting.application.dto.MeetingDetailPageDTO;
+import com.csdn.meeting.application.dto.MeetingTagDTO;
 import com.csdn.meeting.application.dto.RegistrationDTO;
 import com.csdn.meeting.application.dto.RegistrationStatusDTO;
 import com.csdn.meeting.domain.entity.Meeting;
@@ -11,6 +12,9 @@ import com.csdn.meeting.domain.entity.Registration;
 import com.csdn.meeting.domain.repository.MeetingFavoriteRepository;
 import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.domain.repository.RegistrationRepository;
+import com.csdn.meeting.domain.valueobject.MeetingFormat;
+import com.csdn.meeting.domain.valueobject.MeetingScene;
+import com.csdn.meeting.domain.valueobject.MeetingType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -293,6 +297,21 @@ public class MeetingDetailPageUseCase {
         detailDTO.setContactDepartment(meetingDTO.getContactDepartment());
         detailDTO.setContactPosition(meetingDTO.getContactPosition());
         detailDTO.setTagIds(meetingDTO.getTagIds());
+        detailDTO.setTags(buildTagList(meetingDTO.getTagIds(), meetingDTO.getTags()));
+        detailDTO.setScaleDisplay(meetingDTO.getScale());
+
+        MeetingFormat fmt = MeetingFormat.of(meetingDTO.getFormat());
+        detailDTO.setFormat(fmt != null ? fmt.getCode() : null);
+        detailDTO.setFormatName(fmt != null ? fmt.getDisplayName() : null);
+
+        MeetingType mType = MeetingType.of(meetingDTO.getMeetingType());
+        detailDTO.setMeetingType(mType != null ? mType.getCode() : null);
+        detailDTO.setMeetingTypeName(mType != null ? mType.getDisplayName() : null);
+
+        MeetingScene mScene = MeetingScene.of(meetingDTO.getScene());
+        detailDTO.setScene(mScene != null ? mScene.getCode() : null);
+        detailDTO.setSceneName(mScene != null ? mScene.getDisplayName() : meetingDTO.getScene());
+
         detailDTO.setStatus(1); // 默认值
         detailDTO.setStatusName(meetingDTO.getStatus());
         detailDTO.setMaxParticipants(meetingDTO.getMaxParticipants());
@@ -316,5 +335,31 @@ public class MeetingDetailPageUseCase {
         // 设置默认值
         detailDTO.setHotScore(0);
         return detailDTO;
+    }
+
+    /**
+     * 将逗号分隔的 tagIds 和 tagNames 字符串组装为 MeetingTagDTO 列表。
+     * tagIds: "1,2,3"；tagNames: "创新创业,智慧医疗,AI医疗"（由 resolveTagIdsToNames 已处理）
+     */
+    private List<MeetingTagDTO> buildTagList(String tagIds, String tagNames) {
+        if (tagIds == null || tagIds.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        String[] ids = tagIds.split(",");
+        String[] names = (tagNames != null && !tagNames.trim().isEmpty()) ? tagNames.split(",") : new String[0];
+        List<MeetingTagDTO> result = new ArrayList<>();
+        for (int i = 0; i < ids.length; i++) {
+            String idStr = ids[i].trim();
+            if (idStr.isEmpty()) continue;
+            MeetingTagDTO dto = new MeetingTagDTO();
+            try {
+                dto.setTagId(Long.parseLong(idStr));
+            } catch (NumberFormatException e) {
+                continue;
+            }
+            dto.setTagName(i < names.length ? names[i].trim() : idStr);
+            result.add(dto);
+        }
+        return result;
     }
 }

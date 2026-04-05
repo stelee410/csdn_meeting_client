@@ -45,7 +45,7 @@ public enum MeetingFormat {
             return of(code);
         } catch (NumberFormatException e) {
             for (MeetingFormat format : values()) {
-                if (format.value.equalsIgnoreCase(trimmed)) {
+                if (format.name().equalsIgnoreCase(trimmed) || format.value.equalsIgnoreCase(trimmed)) {
                     return format;
                 }
             }

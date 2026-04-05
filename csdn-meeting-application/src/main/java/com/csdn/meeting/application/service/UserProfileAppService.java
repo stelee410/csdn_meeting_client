@@ -243,6 +243,7 @@ public class UserProfileAppService {
      */
     private UserProfileDTO convertToProfileDTO(User user) {
         UserProfileDTO dto = new UserProfileDTO();
+        dto.setDbId(user.getId());
         dto.setUserId(user.getUserId());
         dto.setMobile(maskMobile(user.getMobile()));
         dto.setUserType(user.getUserType() != null ? user.getUserType().name() : null);

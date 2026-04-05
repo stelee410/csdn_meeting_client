@@ -12,6 +12,9 @@ import java.time.LocalDateTime;
 @Schema(description = "用户信息")
 public class UserProfileDTO {
 
+    @Schema(description = "数据库主键（数字），用于需要 Long userId 的接口", example = "1")
+    private Long dbId;
+
     @Schema(description = "用户ID", example = "U1234567890ABCDEF")
     private String userId;
 

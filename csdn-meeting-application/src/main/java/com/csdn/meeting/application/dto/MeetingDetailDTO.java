@@ -98,6 +98,9 @@ public class MeetingDetailDTO {
     @Schema(description = "最大参与人数", example = "1000")
     private Integer maxParticipants;
 
+    @Schema(description = "会议规模描述", example = "500人以上")
+    private String scaleDisplay;
+
     @Schema(description = "报名人数显示", example = "856 / 1000 人")
     private String participantsDisplay;
 

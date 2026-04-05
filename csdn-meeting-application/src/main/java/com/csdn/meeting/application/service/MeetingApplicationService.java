@@ -65,6 +65,9 @@ public class MeetingApplicationService {
         if (command.getTitle() == null || command.getTitle().trim().isEmpty()) {
             throw new IllegalArgumentException("会议标题不能为空");
         }
+        if (command.getCreatorId() == null || command.getCreatorId().trim().isEmpty()) {
+            throw new IllegalArgumentException("创建者ID不能为空，请携带有效的 Authorization 请求头");
+        }
         Meeting meeting = new Meeting();
         meeting.setMeetingId(meetingDomainService.generateMeetingId());
         applyCreateCommandToMeeting(meeting, command);
