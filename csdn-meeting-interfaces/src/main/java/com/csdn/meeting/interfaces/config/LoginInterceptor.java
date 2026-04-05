@@ -8,6 +8,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.regex.Pattern;
 
 /**
  * 登录拦截器
@@ -20,6 +21,9 @@ public class LoginInterceptor implements HandlerInterceptor {
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenRevocationStore tokenRevocationStore;
 
+    // 会议详情路径正则（单层ID路径，如 /api/meetings/25）
+    private static final Pattern MEETING_DETAIL_PATTERN = Pattern.compile("^/api/meetings/[^/]+$");
+
     public LoginInterceptor(JwtTokenProvider jwtTokenProvider,
                             TokenRevocationStore tokenRevocationStore) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -28,6 +32,56 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        String requestUri = request.getRequestURI();
+        String method = request.getMethod();
+
+        // 1. 检查是否为会议详情路径（单层ID路径）
+        // GET /api/meetings/{id} 允许游客访问
+        // PUT/DELETE /api/meetings/{id} 需要登录
+        if (MEETING_DETAIL_PATTERN.matcher(requestUri).matches()) {
+            if ("GET".equalsIgnoreCase(method)) {
+                // GET 请求允许游客访问，尝试解析token但不强制要求
+                return handleOptionalAuth(request, response);
+            } else {
+                // PUT/DELETE 等其他方法需要强制登录
+                return handleRequiredAuth(request, response);
+            }
+        }
+
+        // 2. 其他路径强制登录验证
+        return handleRequiredAuth(request, response);
+    }
+
+    /**
+     * 处理可选认证（游客访问）
+     * 有token则解析并设置userId，无token则放行
+     */
+    private boolean handleOptionalAuth(HttpServletRequest request, HttpServletResponse response) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            // 无token，放行（游客访问）
+            return true;
+        }
+
+        String token = authHeader.substring(7);
+
+        // token无效或已撤销，仍放行（视为游客）
+        if (!jwtTokenProvider.validateToken(token) || tokenRevocationStore.isRevoked(token)) {
+            return true;
+        }
+
+        // token有效，设置userId
+        String userId = jwtTokenProvider.getUserIdFromToken(token);
+        request.setAttribute("currentUserId", userId);
+        log.debug("用户[{}]以登录状态访问公开接口[{}]", userId, request.getRequestURI());
+        return true;
+    }
+
+    /**
+     * 处理强制认证（必须登录）
+     */
+    private boolean handleRequiredAuth(HttpServletRequest request, HttpServletResponse response) throws Exception {
         // 1. 获取Authorization头
         String authHeader = request.getHeader("Authorization");
 
