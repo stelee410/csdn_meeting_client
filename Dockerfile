@@ -1,3 +1,5 @@
+# 可选：本地或 CI 全量构建镜像（生产默认用 docker-compose 中 JRE 镜像 + 挂载 runtime/app.jar，见 deploy.sh）
+#
 # ── Stage 1: Maven 构建 ────────────────────────────────────────────────
 FROM maven:3.9-eclipse-temurin-17-alpine AS builder
 

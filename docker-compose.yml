@@ -1,6 +1,8 @@
 # 生产环境 - Docker Compose
-# 首次部署: cp .env.example .env，填写真实值后执行 docker compose up -d --build
-# 更新部署: git pull && docker compose up -d --build
+# 首次部署: cp .env.example .env，填写真实值；本地 ./deploy.sh <用户> <IP> 上传 JAR 后
+#           在服务器执行 docker compose up -d（无需 --build）
+# 后端更新: 本地 ./deploy.sh <用户> <IP>（上传 runtime/app.jar 并重启 app）
+# app 使用宿主机 ./runtime/app.jar 挂载，不在服务器上 mvn/docker build
 
 services:
   mysql:
@@ -24,9 +26,11 @@ services:
       retries: 20
 
   app:
-    build: .
+    image: eclipse-temurin:8-jre-alpine
     container_name: csdn-meeting-app
     restart: unless-stopped
+    working_dir: /app
+    command: ["java", "-jar", "app.jar"]
     depends_on:
       mysql:
         condition: service_healthy
@@ -43,6 +47,8 @@ services:
     volumes:
       # 宿主机 ./data 目录挂载到容器 /app/data，图片等持久化数据存于此
       - ./data:/app/data
+      # 后端 JAR 由本地 deploy.sh 上传到 ./runtime/app.jar（方案三，免镜像构建）
+      - ./runtime/app.jar:/app/app.jar:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP || exit 1"]
       interval: 10s
