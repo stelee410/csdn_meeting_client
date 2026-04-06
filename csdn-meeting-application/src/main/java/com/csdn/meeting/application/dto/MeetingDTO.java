@@ -52,6 +52,9 @@ public class MeetingDTO {
     private String sceneMarketingRegions;
     private String sceneUniversities;
 
+    // V29 开发者类型
+    private String developerType;
+
     // 四级日程结构
     private List<ScheduleDayDTO> scheduleDays;
 
@@ -346,6 +349,8 @@ public class MeetingDTO {
     public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
     public String getSceneUniversities() { return sceneUniversities; }
     public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
+    public String getDeveloperType() { return developerType; }
+    public void setDeveloperType(String developerType) { this.developerType = developerType; }
 
     /**
      * 移动端可操作标记

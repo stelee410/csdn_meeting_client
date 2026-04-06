@@ -31,6 +31,9 @@ public class UpdateMeetingCommand {
     private String sceneMarketingRegions;
     private String sceneUniversities;
 
+    // V29 开发者类型
+    private String developerType;
+
     private String creatorName;
     private String contactName;
     private String contactPhone;
@@ -173,6 +176,8 @@ public class UpdateMeetingCommand {
     public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
     public String getSceneUniversities() { return sceneUniversities; }
     public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
+    public String getDeveloperType() { return developerType; }
+    public void setDeveloperType(String developerType) { this.developerType = developerType; }
 
     public String getCreatorName() {
         return creatorName;

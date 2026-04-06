@@ -35,6 +35,9 @@ public class CreateMeetingCommand {
     private String sceneMarketingRegions;
     private String sceneUniversities;
 
+    // V29 开发者类型
+    private String developerType;
+
     // 四级日程结构
     private List<ScheduleDayDTO> scheduleDays;
 
@@ -196,6 +199,8 @@ public class CreateMeetingCommand {
     public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
     public String getSceneUniversities() { return sceneUniversities; }
     public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
+    public String getDeveloperType() { return developerType; }
+    public void setDeveloperType(String developerType) { this.developerType = developerType; }
 
     public String getContactName() {
         return contactName;

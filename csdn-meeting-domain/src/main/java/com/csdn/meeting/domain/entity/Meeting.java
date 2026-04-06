@@ -141,6 +141,9 @@ public class Meeting extends BaseEntity {
     private String sceneMarketingRegions; // 涉及区域，逗号分隔（场景=区域营销会议）
     private String sceneUniversities;     // 涉及高校，逗号分隔（场景=高校会议）
 
+    // V29新增字段 - 开发者类型
+    private String developerType;         // 开发者类型，逗号分隔 code（如 frontend,backend）
+
     // V1.2新增字段 - 报名签到功能
     /**
      * 报名截止时间
@@ -587,4 +590,6 @@ public class Meeting extends BaseEntity {
     public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
     public String getSceneUniversities() { return sceneUniversities; }
     public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
+    public String getDeveloperType() { return developerType; }
+    public void setDeveloperType(String developerType) { this.developerType = developerType; }
 }

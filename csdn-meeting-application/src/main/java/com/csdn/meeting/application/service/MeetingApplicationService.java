@@ -397,6 +397,7 @@ public class MeetingApplicationService {
         meeting.setSceneProduct(cmd.getSceneProduct());
         meeting.setSceneMarketingRegions(cmd.getSceneMarketingRegions());
         meeting.setSceneUniversities(cmd.getSceneUniversities());
+        meeting.setDeveloperType(cmd.getDeveloperType());
         meeting.setScheduleDays(toScheduleDays(cmd.getScheduleDays()));
     }
 
@@ -427,6 +428,7 @@ public class MeetingApplicationService {
         if (cmd.getSceneProduct() != null) meeting.setSceneProduct(cmd.getSceneProduct());
         if (cmd.getSceneMarketingRegions() != null) meeting.setSceneMarketingRegions(cmd.getSceneMarketingRegions());
         if (cmd.getSceneUniversities() != null) meeting.setSceneUniversities(cmd.getSceneUniversities());
+        if (cmd.getDeveloperType() != null) meeting.setDeveloperType(cmd.getDeveloperType());
         if (cmd.getScheduleDays() != null) meeting.setScheduleDays(toScheduleDays(cmd.getScheduleDays()));
         if (cmd.getContactName() != null && !cmd.getContactName().trim().isEmpty()) {
             meeting.setCreatorName(cmd.getContactName().trim());
@@ -564,6 +566,7 @@ public class MeetingApplicationService {
         dto.setSceneProduct(meeting.getSceneProduct());
         dto.setSceneMarketingRegions(meeting.getSceneMarketingRegions());
         dto.setSceneUniversities(meeting.getSceneUniversities());
+        dto.setDeveloperType(meeting.getDeveloperType());
         dto.setScheduleDays(toScheduleDayDTOs(meeting.getScheduleDays()));
         dto.setScale(convertScale(meeting.getMaxParticipants()));
         return dto;

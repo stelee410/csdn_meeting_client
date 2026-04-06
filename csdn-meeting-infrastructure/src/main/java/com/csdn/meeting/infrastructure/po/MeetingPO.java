@@ -142,6 +142,10 @@ public class MeetingPO {
     @TableField("scene_universities")
     private String sceneUniversities;
 
+    // V29新增字段 - 开发者类型
+    @TableField("developer_type")
+    private String developerType;
+
     /**
      * 软删除标志：0-未删除, 1-已删除
      */
@@ -244,4 +248,7 @@ public class MeetingPO {
     public void setSceneMarketingRegions(String sceneMarketingRegions) { this.sceneMarketingRegions = sceneMarketingRegions; }
     public String getSceneUniversities() { return sceneUniversities; }
     public void setSceneUniversities(String sceneUniversities) { this.sceneUniversities = sceneUniversities; }
+    // V29开发者类型
+    public String getDeveloperType() { return developerType; }
+    public void setDeveloperType(String developerType) { this.developerType = developerType; }
 }

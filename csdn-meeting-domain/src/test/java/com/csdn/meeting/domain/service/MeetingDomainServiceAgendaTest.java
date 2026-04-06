@@ -188,4 +188,198 @@ class MeetingDomainServiceAgendaTest {
             assertDoesNotThrow(() -> domainService.validateAgendaIntegrity(m));
         }
     }
+
+    private Meeting createMeetingWithTimeWindow(LocalDateTime start, LocalDateTime end, List<ScheduleDay> scheduleDays) {
+        Meeting m = new Meeting();
+        m.setStartTime(start);
+        m.setEndTime(end);
+        m.setScheduleDays(scheduleDays);
+        return m;
+    }
+
+    @Nested
+    @DisplayName("环节时间必须在会议时间窗口内")
+    class SessionTimeWindow {
+
+        @Test
+        @DisplayName("半天上午会议(09:00-13:00)：环节09:00-12:00 → 通过")
+        void halfDayMorning_sessionWithinWindow_passes() {
+            Session ses = session("上午场", LocalTime.of(9, 0), LocalTime.of(12, 0), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 7, 13, 0),
+                    Collections.singletonList(d));
+            assertDoesNotThrow(() -> domainService.validateAgendaIntegrity(m));
+        }
+
+        @Test
+        @DisplayName("半天上午会议(09:00-13:00)：环节09:00-21:00 → 结束时间超出，拒绝")
+        void halfDayMorning_sessionEndExceedsWindow_throws() {
+            Session ses = session("测试", LocalTime.of(9, 0), LocalTime.of(21, 0), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 7, 13, 0),
+                    Collections.singletonList(d));
+            AgendaIntegrityException ex = assertThrows(AgendaIntegrityException.class,
+                    () -> domainService.validateAgendaIntegrity(m));
+            assertTrue(ex.getMessage().contains("不能晚于会议结束时间"));
+        }
+
+        @Test
+        @DisplayName("半天上午会议(09:00-13:00)：环节07:00-12:00 → 开始时间超前，拒绝")
+        void halfDayMorning_sessionStartBeforeWindow_throws() {
+            Session ses = session("早场", LocalTime.of(7, 0), LocalTime.of(12, 0), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 7, 13, 0),
+                    Collections.singletonList(d));
+            AgendaIntegrityException ex = assertThrows(AgendaIntegrityException.class,
+                    () -> domainService.validateAgendaIntegrity(m));
+            assertTrue(ex.getMessage().contains("不能早于会议开始时间"));
+        }
+
+        @Test
+        @DisplayName("半天下午会议(14:00-18:00)：环节14:00-17:30 → 通过")
+        void halfDayAfternoon_sessionWithinWindow_passes() {
+            Session ses = session("下午场", LocalTime.of(14, 0), LocalTime.of(17, 30), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 14, 0),
+                    LocalDateTime.of(2026, 4, 7, 18, 0),
+                    Collections.singletonList(d));
+            assertDoesNotThrow(() -> domainService.validateAgendaIntegrity(m));
+        }
+
+        @Test
+        @DisplayName("半天下午会议(14:00-18:00)：环节09:00-17:00 → 开始时间超前，拒绝")
+        void halfDayAfternoon_sessionStartBeforeWindow_throws() {
+            Session ses = session("全天场", LocalTime.of(9, 0), LocalTime.of(17, 0), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 14, 0),
+                    LocalDateTime.of(2026, 4, 7, 18, 0),
+                    Collections.singletonList(d));
+            AgendaIntegrityException ex = assertThrows(AgendaIntegrityException.class,
+                    () -> domainService.validateAgendaIntegrity(m));
+            assertTrue(ex.getMessage().contains("不能早于会议开始时间"));
+        }
+
+        @Test
+        @DisplayName("半天下午会议(14:00-18:00)：环节14:00-20:00 → 结束时间超出，拒绝")
+        void halfDayAfternoon_sessionEndExceedsWindow_throws() {
+            Session ses = session("加班场", LocalTime.of(14, 0), LocalTime.of(20, 0), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 14, 0),
+                    LocalDateTime.of(2026, 4, 7, 18, 0),
+                    Collections.singletonList(d));
+            AgendaIntegrityException ex = assertThrows(AgendaIntegrityException.class,
+                    () -> domainService.validateAgendaIntegrity(m));
+            assertTrue(ex.getMessage().contains("不能晚于会议结束时间"));
+        }
+
+        @Test
+        @DisplayName("一天会议(09:00-17:00)：环节09:00-17:00 → 通过")
+        void oneDay_sessionExactWindow_passes() {
+            Session ses = session("全天", LocalTime.of(9, 0), LocalTime.of(17, 0), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 7, 17, 0),
+                    Collections.singletonList(d));
+            assertDoesNotThrow(() -> domainService.validateAgendaIntegrity(m));
+        }
+
+        @Test
+        @DisplayName("一天会议(09:00-17:00)：环节08:00-18:00 → 两端超出，拒绝")
+        void oneDay_sessionExceedsBothEnds_throws() {
+            Session ses = session("超时场", LocalTime.of(8, 0), LocalTime.of(18, 0), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 7, 17, 0),
+                    Collections.singletonList(d));
+            assertThrows(AgendaIntegrityException.class,
+                    () -> domainService.validateAgendaIntegrity(m));
+        }
+
+        @Test
+        @DisplayName("两天会议：第一天环节不能早于会议开始时间")
+        void twoDays_firstDaySessionStartBeforeMeeting_throws() {
+            Session ses = session("早场", LocalTime.of(7, 0), LocalTime.of(12, 0), Collections.emptyList());
+            ScheduleDay d1 = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses));
+            Session ses2 = session("第二天", LocalTime.of(9, 0), LocalTime.of(12, 0), Collections.emptyList());
+            ScheduleDay d2 = day(LocalDate.of(2026, 4, 8), Collections.singletonList(ses2));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 8, 17, 0),
+                    Arrays.asList(d1, d2));
+            AgendaIntegrityException ex = assertThrows(AgendaIntegrityException.class,
+                    () -> domainService.validateAgendaIntegrity(m));
+            assertTrue(ex.getMessage().contains("不能早于会议开始时间"));
+        }
+
+        @Test
+        @DisplayName("两天会议：最后一天环节不能晚于会议结束时间")
+        void twoDays_lastDaySessionEndAfterMeeting_throws() {
+            Session ses1 = session("第一天", LocalTime.of(9, 0), LocalTime.of(18, 0), Collections.emptyList());
+            ScheduleDay d1 = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses1));
+            Session ses2 = session("晚场", LocalTime.of(9, 0), LocalTime.of(20, 0), Collections.emptyList());
+            ScheduleDay d2 = day(LocalDate.of(2026, 4, 8), Collections.singletonList(ses2));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 8, 17, 0),
+                    Arrays.asList(d1, d2));
+            AgendaIntegrityException ex = assertThrows(AgendaIntegrityException.class,
+                    () -> domainService.validateAgendaIntegrity(m));
+            assertTrue(ex.getMessage().contains("不能晚于会议结束时间"));
+        }
+
+        @Test
+        @DisplayName("两天会议：所有环节在时间窗口内 → 通过")
+        void twoDays_allSessionsWithinWindow_passes() {
+            Session ses1 = session("第一天", LocalTime.of(10, 0), LocalTime.of(18, 0), Collections.emptyList());
+            ScheduleDay d1 = day(LocalDate.of(2026, 4, 7), Collections.singletonList(ses1));
+            Session ses2 = session("第二天", LocalTime.of(9, 0), LocalTime.of(16, 0), Collections.emptyList());
+            ScheduleDay d2 = day(LocalDate.of(2026, 4, 8), Collections.singletonList(ses2));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 8, 17, 0),
+                    Arrays.asList(d1, d2));
+            assertDoesNotThrow(() -> domainService.validateAgendaIntegrity(m));
+        }
+
+        @Test
+        @DisplayName("半天会议(09:00-13:00)：多个环节均在窗口内 → 通过")
+        void halfDay_multipleSessionsWithinWindow_passes() {
+            Session s1 = session("环节1", LocalTime.of(9, 0), LocalTime.of(10, 0), Collections.emptyList());
+            Session s2 = session("环节2", LocalTime.of(10, 30), LocalTime.of(11, 30), Collections.emptyList());
+            Session s3 = session("环节3", LocalTime.of(12, 0), LocalTime.of(13, 0), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Arrays.asList(s1, s2, s3));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 7, 13, 0),
+                    Collections.singletonList(d));
+            assertDoesNotThrow(() -> domainService.validateAgendaIntegrity(m));
+        }
+
+        @Test
+        @DisplayName("半天会议(09:00-13:00)：多个环节中一个超出 → 拒绝")
+        void halfDay_oneOfMultipleSessionsExceedsWindow_throws() {
+            Session s1 = session("环节1", LocalTime.of(9, 0), LocalTime.of(10, 0), Collections.emptyList());
+            Session s2 = session("环节2", LocalTime.of(11, 0), LocalTime.of(14, 0), Collections.emptyList());
+            ScheduleDay d = day(LocalDate.of(2026, 4, 7), Arrays.asList(s1, s2));
+            Meeting m = createMeetingWithTimeWindow(
+                    LocalDateTime.of(2026, 4, 7, 9, 0),
+                    LocalDateTime.of(2026, 4, 7, 13, 0),
+                    Collections.singletonList(d));
+            AgendaIntegrityException ex = assertThrows(AgendaIntegrityException.class,
+                    () -> domainService.validateAgendaIntegrity(m));
+            assertTrue(ex.getMessage().contains("环节2"));
+            assertTrue(ex.getMessage().contains("不能晚于会议结束时间"));
+        }
+    }
 }

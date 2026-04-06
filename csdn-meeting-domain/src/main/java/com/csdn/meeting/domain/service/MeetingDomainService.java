@@ -68,6 +68,23 @@ public class MeetingDomainService {
                         throw new AgendaIntegrityException("AGENDA_INVALID: 第" + (d + 1) + "个日程日内，第" + (i + 1) + "个环节与第" + (j + 1) + "个环节时间重叠");
                     }
                 }
+            }
+            // 3.1 环节时间必须在会议时间窗口内
+            LocalTime meetingStartTime = meeting.getStartTime().toLocalTime();
+            LocalTime meetingEndTime = meeting.getEndTime().toLocalTime();
+            for (int i = 0; i < sessions.size(); i++) {
+                Session session = sessions.get(i);
+                String sessionLabel = session.getSessionName() != null ? session.getSessionName() : "第" + (i + 1) + "个环节";
+                if (scheduleDate.equals(startDate) && session.getStartTime().isBefore(meetingStartTime)) {
+                    throw new AgendaIntegrityException("AGENDA_INVALID: 第" + (d + 1) + "个日程日「" + sessionLabel
+                            + "」开始时间(" + session.getStartTime() + ")不能早于会议开始时间(" + meetingStartTime + ")");
+                }
+                if (scheduleDate.equals(endDate) && session.getEndTime().isAfter(meetingEndTime)) {
+                    throw new AgendaIntegrityException("AGENDA_INVALID: 第" + (d + 1) + "个日程日「" + sessionLabel
+                            + "」结束时间(" + session.getEndTime() + ")不能晚于会议结束时间(" + meetingEndTime + ")");
+                }
+            }
+            for (int i = 0; i < sessions.size(); i++) {
                 Session session = sessions.get(i);
                 List<SubVenue> subVenues = session.getSubVenues();
                 // 4. 每个 Session 下 SubVenue 可选（issue001：产品原型无分会场设计时可省略）
