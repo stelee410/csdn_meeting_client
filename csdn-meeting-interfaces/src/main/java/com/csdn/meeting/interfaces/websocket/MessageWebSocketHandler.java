@@ -185,17 +185,24 @@ public class MessageWebSocketHandler extends TextWebSocketHandler {
     /**
      * 发送新消息通知给指定用户
      *
-     * @param userId     用户ID
-     * @param messageId  消息ID
-     * @param title      消息标题
-     * @param unreadCount 未读消息数
+     * @param userId       用户ID
+     * @param messageId    消息ID
+     * @param messageType  消息类型（如 MEETING_PUBLISH, SYSTEM_NOTICE 等）
+     * @param bizType      业务类型（MEETING/REGISTRATION/SYSTEM）
+     * @param title        消息标题
+     * @param bizId        关联业务ID
+     * @param unreadCount  未读消息数
      */
-    public void sendNewMessageNotification(String userId, String messageId, String title, long unreadCount) {
+    public void sendNewMessageNotification(String userId, String messageId, String messageType,
+                                           String bizType, String title, String bizId, long unreadCount) {
         try {
             Map<String, Object> message = new HashMap<>();
             message.put("type", "NEW_MESSAGE");
             message.put("messageId", messageId);
+            message.put("messageType", messageType);
+            message.put("bizType", bizType);
             message.put("title", title);
+            message.put("bizId", bizId);
             message.put("unreadCount", unreadCount);
             message.put("timestamp", System.currentTimeMillis());
 

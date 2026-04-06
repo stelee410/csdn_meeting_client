@@ -100,6 +100,7 @@ public class InternalMessagePushClient implements MessagePushPort {
         int onlineCount = 0;
         int pushCount = 0;
         String bizType = detectBizType(type);
+        String messageId = generateMessageId();
 
         for (String userId : userIds) {
             // 检查用户是否在线
@@ -113,6 +114,7 @@ public class InternalMessagePushClient implements MessagePushPort {
                     // 构建推送消息（JDK 1.8兼容）
                     Map<String, Object> pushMessage = new HashMap<>();
                     pushMessage.put("type", "NEW_MESSAGE");
+                    pushMessage.put("messageId", messageId);
                     pushMessage.put("messageType", type.name());
                     pushMessage.put("bizType", bizType);
                     pushMessage.put("title", title);
