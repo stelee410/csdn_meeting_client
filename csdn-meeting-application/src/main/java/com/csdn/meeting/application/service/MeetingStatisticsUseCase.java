@@ -3,12 +3,15 @@ package com.csdn.meeting.application.service;
 import com.csdn.meeting.application.dto.MeetingStatisticsDTO;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.MeetingRights;
+import com.csdn.meeting.domain.port.MeetingAnalyticsPort;
 import com.csdn.meeting.domain.port.UserProfilePort;
 import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.domain.repository.MeetingRightsRepository;
 import com.csdn.meeting.domain.repository.RegistrationRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,15 +27,18 @@ public class MeetingStatisticsUseCase {
     private final MeetingRightsRepository rightsRepository;
     private final RegistrationRepository registrationRepository;
     private final UserProfilePort userProfilePort;
+    private final MeetingAnalyticsPort meetingAnalyticsPort;
 
     public MeetingStatisticsUseCase(MeetingRepository meetingRepository,
                                     MeetingRightsRepository rightsRepository,
                                     RegistrationRepository registrationRepository,
-                                    UserProfilePort userProfilePort) {
+                                    UserProfilePort userProfilePort,
+                                    MeetingAnalyticsPort meetingAnalyticsPort) {
         this.meetingRepository = meetingRepository;
         this.rightsRepository = rightsRepository;
         this.registrationRepository = registrationRepository;
         this.userProfilePort = userProfilePort;
+        this.meetingAnalyticsPort = meetingAnalyticsPort;
     }
 
     public MeetingStatisticsDTO getStatistics(Long meetingId) {
@@ -56,17 +62,44 @@ public class MeetingStatisticsUseCase {
     private MeetingStatisticsDTO.BasicStats buildBasicStats(Long meetingId) {
         long regCount = registrationRepository.findByMeetingIdAndStatus(meetingId, null, 0, Integer.MAX_VALUE)
                 .getTotalElements();
-        // Stub: t_meeting_stats 未建表，用模拟值
+
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+
+        long totalPv = meetingAnalyticsPort.countExposure(meetingId, null);
+        long totalClicks = meetingAnalyticsPort.countClicks(meetingId, null);
+        long totalUv = meetingAnalyticsPort.countUniqueVisitors(meetingId, null);
+
+        long todayPv = meetingAnalyticsPort.countExposure(meetingId, today);
+        long yesterdayPv = meetingAnalyticsPort.countExposure(meetingId, yesterday);
+        long todayClicks = meetingAnalyticsPort.countClicks(meetingId, today);
+        long yesterdayClicks = meetingAnalyticsPort.countClicks(meetingId, yesterday);
+
         MeetingStatisticsDTO.BasicStats basic = new MeetingStatisticsDTO.BasicStats();
-        basic.setPv(1000);
-        basic.setUv(500);
+        basic.setPv(totalPv);
+        basic.setUv(totalUv);
+        basic.setClicks(totalClicks);
         basic.setRegistrations(regCount);
         basic.setCheckins((long) (regCount * 0.75));
         basic.setCheckinRate(regCount > 0 ? 0.75 : 0);
+        basic.setExposureTrend(calcTrendPercent(todayPv, yesterdayPv));
+        basic.setClicksTrend(calcTrendPercent(todayClicks, yesterdayClicks));
+        basic.setConversionRate(totalClicks > 0 ? (double) regCount / totalClicks * 100 : 0);
+
+        LocalDate weekAgo = today.minusDays(6);
+        List<MeetingAnalyticsPort.DailyStats> dailyStats = meetingAnalyticsPort.getDailyStats(meetingId, weekAgo, today);
         List<MeetingStatisticsDTO.TrendItem> trend = new ArrayList<>();
-        trend.add(new MeetingStatisticsDTO.TrendItem("2026-03-01", 100, 10));
+        for (MeetingAnalyticsPort.DailyStats ds : dailyStats) {
+            trend.add(new MeetingStatisticsDTO.TrendItem(
+                    ds.getDate().format(DateTimeFormatter.ISO_LOCAL_DATE), ds.getPv(), ds.getClicks()));
+        }
         basic.setTrend7d(trend);
         return basic;
+    }
+
+    private static double calcTrendPercent(long current, long previous) {
+        if (previous == 0) return 0;
+        return (double) (current - previous) / previous * 100;
     }
 
     private List<String> getRegistrationUserIds(Long meetingId) {
