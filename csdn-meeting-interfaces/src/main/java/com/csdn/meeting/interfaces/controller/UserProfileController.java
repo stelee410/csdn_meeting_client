@@ -99,7 +99,9 @@ public class UserProfileController {
     }
 
     @Operation(summary = "注销账号",
-            description = "注销当前登录用户的账号，需要验证码验证身份。注销后账号不可恢复，请谨慎操作。")
+             description = "注销当前登录用户的账号，需要验证码验证身份。\n" +
+                    "- 注销后账号不可恢复，请谨慎操作\n" +
+                    "- 注销后手机号将被释放，可用于重新注册新账号")
     @PostMapping("/cancel")
     public ResponseEntity<ApiResponse<Void>> cancelAccount(
             @RequestBody CancelAccountCommand command,

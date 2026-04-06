@@ -171,6 +171,16 @@ public class User extends BaseEntity {
     }
 
     /**
+     * 注销账号并给手机号加前缀，释放手机号供重新注册
+     *
+     * @param prefixedMobile 带前缀的手机号（格式：CANCELLED_原手机号_时间戳）
+     */
+    public void cancelWithMobilePrefix(String prefixedMobile) {
+        this.status = UserStatus.CANCELLED;
+        this.mobile = prefixedMobile;
+    }
+
+    /**
      * 判断账号是否已注销
      */
     public boolean isCancelled() {

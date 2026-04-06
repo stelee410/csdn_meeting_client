@@ -97,10 +97,30 @@ public class UserDomainService {
     }
 
     /**
-     * 检查手机号是否已注册
+     * 检查手机号是否已注册（查询所有用户，包括已注销）
      */
     public boolean isMobileRegistered(String mobile) {
         return userRepository.findByMobile(mobile).isPresent();
+    }
+
+    /**
+     * 查询非注销状态的用户（用于注册时检查手机号是否可用）
+     *
+     * @param mobile 手机号
+     * @return 非注销状态的用户
+     */
+    public Optional<User> findActiveUserByMobile(String mobile) {
+        return userRepository.findActiveByMobile(mobile);
+    }
+
+    /**
+     * 检查手机号是否已被非注销用户占用
+     *
+     * @param mobile 手机号
+     * @return true-已被占用，false-可用
+     */
+    public boolean isMobileActive(String mobile) {
+        return userRepository.findActiveByMobile(mobile).isPresent();
     }
 
     /**
@@ -237,6 +257,7 @@ public class UserDomainService {
 
     /**
      * 注销用户账号
+     * 注销时会将手机号加前缀，释放该手机号供重新注册
      *
      * @param userId 用户ID
      */
@@ -246,7 +267,9 @@ public class UserDomainService {
         if (user.isCancelled()) {
             throw new IllegalArgumentException("账号已注销");
         }
-        user.cancel();
+        // 生成带前缀的手机号：C_13800138000_1712345678（缩短前缀避免超过字段长度）
+        String prefixedMobile = "C_" + user.getMobile() + "_" + System.currentTimeMillis();
+        user.cancelWithMobilePrefix(prefixedMobile);
         userRepository.save(user);
     }
 }

@@ -59,6 +59,12 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public Optional<User> findActiveByMobile(String mobile) {
+        UserPO po = userBaseMapper.selectActiveByMobile(mobile);
+        return po != null ? Optional.of(UserMapper.INSTANCE.toEntity(po)) : Optional.empty();
+    }
+
+    @Override
     public Optional<User> findByCsdnBindId(String csdnBindId) {
         UserPO po = userBaseMapper.selectByCsdnBindId(csdnBindId);
         return po != null ? Optional.of(UserMapper.INSTANCE.toEntity(po)) : Optional.empty();

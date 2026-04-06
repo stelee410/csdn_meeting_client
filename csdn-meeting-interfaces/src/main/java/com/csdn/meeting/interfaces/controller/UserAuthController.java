@@ -66,7 +66,8 @@ public class UserAuthController {
         return ResponseEntity.ok(ApiResponse.success(verificationCode));
     }
 
-    @Operation(summary = "用户注册", description = "表单注册，需手机号+验证码+密码+协议同意")
+    @Operation(summary = "用户注册", description = "表单注册，需手机号+验证码+密码+协议同意\n" +
+            "- 已注销账号的手机号可以重新注册")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<LoginResultDTO>> register(@Valid @RequestBody UserRegisterCommand command) {
         LoginResultDTO result = userAuthAppService.register(command);

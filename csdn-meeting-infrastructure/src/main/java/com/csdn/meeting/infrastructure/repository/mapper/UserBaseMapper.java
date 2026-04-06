@@ -23,4 +23,11 @@ public interface UserBaseMapper extends BaseMapper<UserPO> {
 
     @Select("SELECT * FROM t_user WHERE email = #{email}")
     UserPO selectByEmail(@Param("email") String email);
+
+    /**
+     * 查询非注销状态的用户（status != 2表示未注销）
+     * 用于注册时检查手机号是否可用
+     */
+    @Select("SELECT * FROM t_user WHERE mobile = #{mobile} AND status != 2")
+    UserPO selectActiveByMobile(@Param("mobile") String mobile);
 }

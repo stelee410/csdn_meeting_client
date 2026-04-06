@@ -69,8 +69,8 @@ public class UserAuthAppService {
             throw new IllegalArgumentException("短信验证码错误或已过期");
         }
 
-        // 5. 检查手机号是否已注册
-        if (userDomainService.isMobileRegistered(command.getMobile())) {
+        // 5. 检查手机号是否已被非注销用户占用（允许注销后的手机号重新注册）
+        if (userDomainService.isMobileActive(command.getMobile())) {
             throw new IllegalArgumentException("该手机号已注册，请直接登录");
         }
 
@@ -201,8 +201,8 @@ public class UserAuthAppService {
             return result;
         }
 
-        // 3. 检查手机号是否已注册
-        User mobileUser = userDomainService.findByMobile(csdnInfo.getMobile()).orElse(null);
+        // 3. 检查手机号是否已被非注销用户注册
+        User mobileUser = userDomainService.findActiveUserByMobile(csdnInfo.getMobile()).orElse(null);
         if (mobileUser != null) {
             // 手机号已注册，绑定CSDN ID并登录
             mobileUser.setCsdnBindId(csdnInfo.getCsdnUserId());

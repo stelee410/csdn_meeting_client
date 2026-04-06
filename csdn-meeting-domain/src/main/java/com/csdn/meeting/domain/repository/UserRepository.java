@@ -33,6 +33,15 @@ public interface UserRepository {
     Optional<User> findByMobile(String mobile);
 
     /**
+     * 根据手机号查询非注销状态的用户
+     * 用于注册时检查手机号是否已被占用（排除已注销用户）
+     *
+     * @param mobile 手机号
+     * @return 非注销状态的用户
+     */
+    Optional<User> findActiveByMobile(String mobile);
+
+    /**
      * 根据CSDN绑定ID查询
      */
     Optional<User> findByCsdnBindId(String csdnBindId);
