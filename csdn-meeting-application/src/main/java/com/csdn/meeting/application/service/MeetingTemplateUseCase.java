@@ -187,13 +187,18 @@ public class MeetingTemplateUseCase {
         dto.setSortWeight(e.getSortWeight());
         dto.setStatus(e.getStatus());
         dto.setUseCount(e.getUseCount());
-        dto.setDefaultMeetingType(e.getDefaultMeetingType());
-        dto.setDefaultForm(e.getDefaultForm());
-        dto.setDefaultScene(e.getDefaultScene());
-        dto.setDefaultScale(e.getDefaultScale());
-        dto.setDefaultScaleDisplay(resolveScaleDisplay(e.getDefaultScale()));
-        dto.setDefaultDuration(e.getDefaultDuration());
-        dto.setDefaultRecurrence(e.getDefaultRecurrence());
+//        dto.setDefaultMeetingType(e.getDefaultMeetingType());
+        dto.setDefaultMeetingType(resolveMeetingTypeDisplay(e.getDefaultMeetingType()));
+//        dto.setDefaultForm(e.getDefaultForm());
+        dto.setDefaultForm(resolveFormDisplay(e.getDefaultForm()));
+//        dto.setDefaultScene(e.getDefaultScene());
+        dto.setDefaultScene(resolveSceneDisplay(e.getDefaultScene()));
+//        dto.setDefaultScale(e.getDefaultScale());
+        dto.setDefaultScale(resolveScaleDisplay(e.getDefaultScale()));
+//        dto.setDefaultDuration(e.getDefaultDuration());
+        dto.setDefaultDuration(resolveDurationDisplay(e.getDefaultDuration()));
+//        dto.setDefaultRecurrence(e.getDefaultRecurrence());
+        dto.setDefaultRecurrence(resolveRecurrenceDisplay(e.getDefaultRecurrence()));
         dto.setDefaultTitlePrefix(e.getDefaultTitlePrefix());
         dto.setDefaultHostCompany(e.getDefaultHostCompany());
         dto.setDefaultDepartment(e.getDefaultDepartment());
@@ -227,16 +232,126 @@ public class MeetingTemplateUseCase {
             return null;
         }
         switch (scale) {
-            case "50":
+            case "1":
                 return "50人以下";
-            case "200":
+            case "2":
                 return "50-200人";
-            case "500":
+            case "3":
                 return "200-500人";
-            case "1000":
+            case "4":
                 return "500人以上";
             default:
                 return scale;
+        }
+    }
+
+    /**
+     * 将 form code 转换为中文显示
+     * 1 -> 线上, 2 -> 线下, 3 -> 线上+线下
+     */
+    private String resolveFormDisplay(String form) {
+        if (form == null || form.isEmpty()) {
+            return null;
+        }
+        switch (form) {
+            case "1":
+                return "线上";
+            case "2":
+                return "线下";
+            case "3":
+                return "线上+线下";
+            default:
+                return form;
+        }
+    }
+
+    /**
+     * 将 scene code 转换为中文显示
+     * 1 -> 开发者会议, 2 -> 产业会议, 3 -> 产品发布会, 4 -> 区域营销, 5 -> 高校活动
+     */
+    private String resolveSceneDisplay(String scene) {
+        if (scene == null || scene.isEmpty()) {
+            return null;
+        }
+        switch (scene) {
+            case "1":
+                return "开发者会议";
+            case "2":
+                return "产业会议";
+            case "3":
+                return "产品发布会";
+            case "4":
+                return "区域营销";
+            case "5":
+                return "高校活动";
+            default:
+                return scene;
+        }
+    }
+
+    /**
+     * 将 duration code 转换为中文显示
+     * 1 -> 半天, 2 -> 1天, 3 -> 2天, 4 -> 3天, 5 -> 3天以上
+     */
+    private String resolveDurationDisplay(String duration) {
+        if (duration == null || duration.isEmpty()) {
+            return null;
+        }
+        switch (duration) {
+            case "1":
+                return "半天";
+            case "2":
+                return "1天";
+            case "3":
+                return "2天";
+            case "4":
+                return "3天";
+            case "5":
+                return "3天以上";
+            default:
+                return duration;
+        }
+    }
+
+    /**
+     * 将 recurrence code 转换为中文显示
+     * 1 -> 单次举办, 2 -> 定期举办
+     */
+    private String resolveRecurrenceDisplay(String recurrence) {
+        if (recurrence == null || recurrence.isEmpty()) {
+            return null;
+        }
+        switch (recurrence) {
+            case "1":
+                return "单次举办";
+            case "2":
+                return "定期举办";
+            default:
+                return recurrence;
+        }
+    }
+
+    /**
+     * 将 meeting type code 转换为中文显示
+     * 1 -> 技术峰会, 2 -> 技术沙龙, 3 -> 技术研讨会, 4 -> 产品发布会, 5 -> 开发者大会
+     */
+    private String resolveMeetingTypeDisplay(String meetingType) {
+        if (meetingType == null || meetingType.isEmpty()) {
+            return null;
+        }
+        switch (meetingType) {
+            case "1":
+                return "技术峰会";
+            case "2":
+                return "技术沙龙";
+            case "3":
+                return "技术研讨会";
+            case "4":
+                return "产品发布会";
+            case "5":
+                return "开发者大会";
+            default:
+                return meetingType;
         }
     }
 }

@@ -14,12 +14,17 @@ public class MeetingTemplateDTO {
     private Integer status;
     private Integer useCount;
     private String defaultMeetingType;
+    private String defaultMeetingTypeDisplay; // 类型中文显示：技术峰会/技术沙龙/技术研讨会/产品发布会/开发者大会
     private String defaultForm;
+    private String defaultFormDisplay; // 形式中文显示：线上/线下/线上+线下
     private String defaultScene;
+    private String defaultSceneDisplay; // 场景中文显示：开发者会议/产业会议/产品发布会/区域营销/高校活动
     private String defaultScale;
     private String defaultScaleDisplay; // 规模中文显示：50人以下/50-200人/200-500人/500人以上
     private String defaultDuration;
+    private String defaultDurationDisplay; // 时长中文显示：半天/1天/2天/3天/3天以上
     private String defaultRecurrence;
+    private String defaultRecurrenceDisplay; // 频率中文显示：单次举办/定期举办
     private String defaultTitlePrefix;
     private String defaultHostCompany;
     private String defaultDepartment;
@@ -70,6 +75,16 @@ public class MeetingTemplateDTO {
     public void setDefaultDuration(String defaultDuration) { this.defaultDuration = defaultDuration; }
     public String getDefaultRecurrence() { return defaultRecurrence; }
     public void setDefaultRecurrence(String defaultRecurrence) { this.defaultRecurrence = defaultRecurrence; }
+    public String getDefaultDurationDisplay() { return defaultDurationDisplay; }
+    public void setDefaultDurationDisplay(String defaultDurationDisplay) { this.defaultDurationDisplay = defaultDurationDisplay; }
+    public String getDefaultFormDisplay() { return defaultFormDisplay; }
+    public void setDefaultFormDisplay(String defaultFormDisplay) { this.defaultFormDisplay = defaultFormDisplay; }
+    public String getDefaultSceneDisplay() { return defaultSceneDisplay; }
+    public void setDefaultSceneDisplay(String defaultSceneDisplay) { this.defaultSceneDisplay = defaultSceneDisplay; }
+    public String getDefaultRecurrenceDisplay() { return defaultRecurrenceDisplay; }
+    public void setDefaultRecurrenceDisplay(String defaultRecurrenceDisplay) { this.defaultRecurrenceDisplay = defaultRecurrenceDisplay; }
+    public String getDefaultMeetingTypeDisplay() { return defaultMeetingTypeDisplay; }
+    public void setDefaultMeetingTypeDisplay(String defaultMeetingTypeDisplay) { this.defaultMeetingTypeDisplay = defaultMeetingTypeDisplay; }
     public String getDefaultTitlePrefix() { return defaultTitlePrefix; }
     public void setDefaultTitlePrefix(String defaultTitlePrefix) { this.defaultTitlePrefix = defaultTitlePrefix; }
     public String getDefaultHostCompany() { return defaultHostCompany; }

@@ -28,6 +28,9 @@ public class DictionaryDTO {
     @Schema(description = "目标人群")
     private List<Option> targetAudiences;
 
+    @Schema(description = "会议标签")
+    private List<Option> meetingTags;
+
     @Schema(description = "开发者类型")
     private List<Option> developerTypes;
 

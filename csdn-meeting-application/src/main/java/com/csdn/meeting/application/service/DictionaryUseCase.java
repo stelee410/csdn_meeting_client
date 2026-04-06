@@ -1,6 +1,8 @@
 package com.csdn.meeting.application.service;
 
 import com.csdn.meeting.application.dto.DictionaryDTO;
+import com.csdn.meeting.domain.entity.Tag;
+import com.csdn.meeting.domain.repository.TagRepository;
 import com.csdn.meeting.infrastructure.po.DictionaryPO;
 import com.csdn.meeting.infrastructure.repository.mapper.DictionaryPOMapper;
 import org.springframework.stereotype.Service;
@@ -13,14 +15,17 @@ import java.util.stream.Collectors;
 /**
  * 字典/下拉选项 UseCase
  * V14 起：flat 类型选项从 t_dictionary 表读取，地域仍保持静态（层级结构较复杂）。
+ * 会议标签从 t_tag 表读取。
  */
 @Service
 public class DictionaryUseCase {
 
     private final DictionaryPOMapper dictionaryPOMapper;
+    private final TagRepository tagRepository;
 
-    public DictionaryUseCase(DictionaryPOMapper dictionaryPOMapper) {
+    public DictionaryUseCase(DictionaryPOMapper dictionaryPOMapper, TagRepository tagRepository) {
         this.dictionaryPOMapper = dictionaryPOMapper;
+        this.tagRepository = tagRepository;
     }
 
     public DictionaryDTO getCreateMeetingDictionaries() {
@@ -30,12 +35,29 @@ public class DictionaryUseCase {
         dto.setFrequencies(loadOptions("meeting_frequency"));
         dto.setRegions(getRegionOptions());
         dto.setTargetAudiences(loadOptions("target_audience"));
+        dto.setMeetingTags(getMeetingTagOptions());
         dto.setDeveloperTypes(loadOptions("developer_type"));
         dto.setOrganizers(loadOptions("organizer"));
         dto.setSceneIndustries(loadOptions("scene_industry"));
         dto.setSceneMarketingRegions(loadOptions("scene_marketing_region"));
         dto.setSceneUniversities(loadOptions("scene_university"));
         return dto;
+    }
+
+    /**
+     * 从 t_tag 表查询会议标签选项
+     */
+    private List<DictionaryDTO.Option> getMeetingTagOptions() {
+        List<Tag> tags = tagRepository.findAll();
+        if (tags == null || tags.isEmpty()) {
+            return loadOptions("meeting_tag");
+        }
+        return tags.stream()
+                .map(tag -> new DictionaryDTO.Option(
+                        String.valueOf(tag.getId()),
+                        tag.getTagName()
+                ))
+                .collect(Collectors.toList());
     }
 
     /**
