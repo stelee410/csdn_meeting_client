@@ -257,6 +257,21 @@ public class UserAuthAppService {
     }
 
     /**
+     * 开发环境快速登录：查找或创建测试用户，直接颁发JWT
+     */
+    @Transactional
+    public LoginResultDTO devLogin() {
+        String devMobile = "13800000001";
+        User user = userDomainService.findByMobile(devMobile).orElse(null);
+        if (user == null) {
+            user = userDomainService.createNormalUser(devMobile, "dev123456", "本地测试用户", null);
+        }
+        String token = jwtTokenProvider.generateToken(user.getUserId());
+        log.info("开发环境快速登录: userId={}", user.getUserId());
+        return buildLoginResult(user, token);
+    }
+
+    /**
      * 构建登录结果
      */
     private LoginResultDTO buildLoginResult(User user, String token) {

@@ -173,6 +173,13 @@ public class UserAuthController {
         }
     }
 
+    @Operation(summary = "开发环境快速登录", description = "仅用于本地开发测试，直接颁发JWT，无需验证码。生产环境应禁用。")
+    @PostMapping("/dev-login")
+    public ResponseEntity<ApiResponse<LoginResultDTO>> devLogin() {
+        LoginResultDTO result = userAuthAppService.devLogin();
+        return ResponseEntity.ok(ApiResponse.success(result));
+    }
+
     @Operation(summary = "退出登录", description = "退出登录并将当前 Token 加入黑名单，使其立即失效")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {

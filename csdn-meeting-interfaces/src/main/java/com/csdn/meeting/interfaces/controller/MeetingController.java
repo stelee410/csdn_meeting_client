@@ -458,11 +458,22 @@ public class MeetingController {
 
     /**
      * 从请求中获取当前用户ID（可选，游客访问时返回null）
+     * 优先从拦截器设置的attribute中获取，若不存在则尝试手动解析JWT Token
      */
     private String getCurrentUserIdOptional(HttpServletRequest request) {
         String userId = (String) request.getAttribute("currentUserId");
         if (userId != null && !userId.isEmpty()) {
             return userId;
+        }
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            try {
+                if (jwtTokenProvider.validateToken(token)) {
+                    return jwtTokenProvider.getUserIdFromToken(token);
+                }
+            } catch (Exception ignored) {
+            }
         }
         return null;
     }
