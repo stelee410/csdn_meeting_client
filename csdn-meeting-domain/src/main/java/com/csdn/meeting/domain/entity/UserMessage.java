@@ -94,6 +94,21 @@ public class UserMessage extends BaseEntity {
         REGISTRATION_REJECTED(3, "报名拒绝"),
 
         /**
+         * 会议审核通过（通知创建者）
+         */
+        MEETING_AUDIT_APPROVED(6, "会议审核通过"),
+
+        /**
+         * 会议审核拒绝（通知创建者）
+         */
+        MEETING_AUDIT_REJECTED(7, "会议审核拒绝"),
+
+        /**
+         * 会议强制下架（通知创建者）
+         */
+        MEETING_TAKEDOWN(8, "会议下架通知"),
+
+        /**
          * 系统公告
          */
         SYSTEM_NOTICE(4, "系统公告"),

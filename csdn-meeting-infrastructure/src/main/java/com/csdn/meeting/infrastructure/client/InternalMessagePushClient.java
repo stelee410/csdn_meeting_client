@@ -171,6 +171,12 @@ public class InternalMessagePushClient implements MessagePushPort {
                 return UserMessage.MessageType.REGISTRATION_APPROVED;
             case REGISTRATION_REJECTED:
                 return UserMessage.MessageType.REGISTRATION_REJECTED;
+            case MEETING_AUDIT_APPROVED:
+                return UserMessage.MessageType.MEETING_AUDIT_APPROVED;
+            case MEETING_AUDIT_REJECTED:
+                return UserMessage.MessageType.MEETING_AUDIT_REJECTED;
+            case MEETING_TAKEDOWN:
+                return UserMessage.MessageType.MEETING_TAKEDOWN;
             case SYSTEM_NOTICE:
                 return UserMessage.MessageType.SYSTEM_NOTICE;
             case SYSTEM_UPDATE:
@@ -186,6 +192,9 @@ public class InternalMessagePushClient implements MessagePushPort {
     private String detectBizType(MessageType type) {
         switch (type) {
             case MEETING_PUBLISH:
+            case MEETING_AUDIT_APPROVED:
+            case MEETING_AUDIT_REJECTED:
+            case MEETING_TAKEDOWN:
                 return "MEETING";
             case REGISTRATION_APPROVED:
             case REGISTRATION_REJECTED:

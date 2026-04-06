@@ -17,6 +17,7 @@ import com.csdn.meeting.domain.repository.MeetingRepository;
 import com.csdn.meeting.domain.repository.ParticipantRepository;
 import com.csdn.meeting.domain.repository.TagRepository;
 import com.csdn.meeting.domain.service.MeetingDomainService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class MeetingApplicationService {
 
@@ -192,6 +194,28 @@ public class MeetingApplicationService {
                                       Meeting.MeetingStatus to, String actor) {
         eventPublisher.publishEvent(
                 new MeetingStatusChangedEvent(meetingId, from, to, LocalDateTime.now(), actor));
+    }
+
+    /**
+     * 处理外部会议发布通知（来自 operation 服务）
+     * 触发会议发布事件，通知订阅用户
+     */
+    public void handleExternalPublish(String meetingId, String title,
+                                       List<Long> tagIds, String creatorId) {
+        log.info("处理外部会议发布通知: meetingId={}, title={}, tagCount={}",
+                meetingId, title, tagIds != null ? tagIds.size() : 0);
+
+        // 触发会议发布事件
+        MeetingPublishedEvent event = new MeetingPublishedEvent(
+                meetingId,
+                title,
+                tagIds,
+                LocalDateTime.now(),
+                creatorId
+        );
+        eventPublisher.publishEvent(event);
+
+        log.info("会议发布事件已触发: meetingId={}", meetingId);
     }
 
     /**

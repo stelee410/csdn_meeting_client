@@ -75,3 +75,4 @@ csdn-meeting-start/uploads/
 /csdn-meeting-start/src/main/resources/test-data-0314-2.sql
 /csdn-meeting-start/src/main/resources/test-data-0314.sql
 /csdn-meeting-start/src/main/resources/db/seed/seed_meeting_id35_test_data.sql
+/docs/*.md

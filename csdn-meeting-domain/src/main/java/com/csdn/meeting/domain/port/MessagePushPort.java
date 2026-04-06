@@ -44,6 +44,21 @@ public interface MessagePushPort {
         REGISTRATION_REJECTED,
 
         /**
+         * 会议审核通过（通知创建者）
+         */
+        MEETING_AUDIT_APPROVED,
+
+        /**
+         * 会议审核拒绝（通知创建者）
+         */
+        MEETING_AUDIT_REJECTED,
+
+        /**
+         * 会议强制下架（通知创建者）
+         */
+        MEETING_TAKEDOWN,
+
+        /**
          * 系统公告
          */
         SYSTEM_NOTICE,
