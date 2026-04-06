@@ -84,6 +84,8 @@ public class UserMessageRepositoryImpl implements UserMessageRepository {
         LambdaQueryWrapper<UserMessagePO> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(UserMessagePO::getUserId, userId)
                 .eq(UserMessagePO::getIsDeleted, false)
+                // 未读消息排在前面，再按创建时间倒序
+                .orderByAsc(UserMessagePO::getIsRead)
                 .orderByDesc(UserMessagePO::getCreatedAt);
 
         IPage<UserMessagePO> resultPage = userMessageBaseMapper.selectPage(pageParam, wrapper);
@@ -125,7 +127,9 @@ public class UserMessageRepositoryImpl implements UserMessageRepository {
             wrapper.eq(UserMessagePO::getBizType, "SYSTEM");
         }
 
-        wrapper.orderByDesc(UserMessagePO::getCreatedAt);
+        // 未读消息排在前面，再按创建时间倒序
+        wrapper.orderByAsc(UserMessagePO::getIsRead)
+               .orderByDesc(UserMessagePO::getCreatedAt);
 
         IPage<UserMessagePO> resultPage = userMessageBaseMapper.selectPage(pageParam, wrapper);
 
