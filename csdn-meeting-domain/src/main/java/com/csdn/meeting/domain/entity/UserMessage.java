@@ -91,7 +91,17 @@ public class UserMessage extends BaseEntity {
         /**
          * 报名审核拒绝
          */
-        REGISTRATION_REJECTED(3, "报名拒绝");
+        REGISTRATION_REJECTED(3, "报名拒绝"),
+
+        /**
+         * 系统公告
+         */
+        SYSTEM_NOTICE(4, "系统公告"),
+
+        /**
+         * 服务更新
+         */
+        SYSTEM_UPDATE(5, "服务更新");
 
         private final int code;
         private final String desc;

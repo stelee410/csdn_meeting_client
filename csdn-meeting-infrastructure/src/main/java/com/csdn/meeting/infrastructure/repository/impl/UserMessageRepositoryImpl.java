@@ -112,6 +112,55 @@ public class UserMessageRepositoryImpl implements UserMessageRepository {
     }
 
     @Override
+    public PageResult<UserMessage> findByUserIdAndBizType(String userId, String bizType, int page, int size) {
+        Page<UserMessagePO> pageParam = new Page<>(page, size);
+        LambdaQueryWrapper<UserMessagePO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserMessagePO::getUserId, userId)
+                .eq(UserMessagePO::getIsDeleted, false);
+
+        // 业务类型筛选逻辑：MEETING 包含 MEETING 和 REGISTRATION
+        if ("MEETING".equals(bizType)) {
+            wrapper.in(UserMessagePO::getBizType, "MEETING", "REGISTRATION");
+        } else if ("SYSTEM".equals(bizType)) {
+            wrapper.eq(UserMessagePO::getBizType, "SYSTEM");
+        }
+
+        wrapper.orderByDesc(UserMessagePO::getCreatedAt);
+
+        IPage<UserMessagePO> resultPage = userMessageBaseMapper.selectPage(pageParam, wrapper);
+
+        List<UserMessage> content = resultPage.getRecords().stream()
+                .map(this::toEntity)
+                .collect(Collectors.toList());
+        return new PageResult<>(content, resultPage.getTotal(), page, size);
+    }
+
+    @Override
+    public PageResult<UserMessage> findUnreadByUserIdAndBizType(String userId, String bizType, int page, int size) {
+        Page<UserMessagePO> pageParam = new Page<>(page, size);
+        LambdaQueryWrapper<UserMessagePO> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserMessagePO::getUserId, userId)
+                .eq(UserMessagePO::getIsRead, false)
+                .eq(UserMessagePO::getIsDeleted, false);
+
+        // 业务类型筛选逻辑：MEETING 包含 MEETING 和 REGISTRATION
+        if ("MEETING".equals(bizType)) {
+            wrapper.in(UserMessagePO::getBizType, "MEETING", "REGISTRATION");
+        } else if ("SYSTEM".equals(bizType)) {
+            wrapper.eq(UserMessagePO::getBizType, "SYSTEM");
+        }
+
+        wrapper.orderByDesc(UserMessagePO::getCreatedAt);
+
+        IPage<UserMessagePO> resultPage = userMessageBaseMapper.selectPage(pageParam, wrapper);
+
+        List<UserMessage> content = resultPage.getRecords().stream()
+                .map(this::toEntity)
+                .collect(Collectors.toList());
+        return new PageResult<>(content, resultPage.getTotal(), page, size);
+    }
+
+    @Override
     public long countUnreadByUserId(String userId) {
         return userMessageBaseMapper.countUnreadByUserId(userId);
     }

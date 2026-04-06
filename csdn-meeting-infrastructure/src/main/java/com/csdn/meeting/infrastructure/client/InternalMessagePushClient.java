@@ -99,6 +99,7 @@ public class InternalMessagePushClient implements MessagePushPort {
     private void tryWebSocketPush(List<String> userIds, MessageType type, String title, String bizId) {
         int onlineCount = 0;
         int pushCount = 0;
+        String bizType = detectBizType(type);
 
         for (String userId : userIds) {
             // 检查用户是否在线
@@ -113,6 +114,7 @@ public class InternalMessagePushClient implements MessagePushPort {
                     Map<String, Object> pushMessage = new HashMap<>();
                     pushMessage.put("type", "NEW_MESSAGE");
                     pushMessage.put("messageType", type.name());
+                    pushMessage.put("bizType", bizType);
                     pushMessage.put("title", title);
                     pushMessage.put("bizId", bizId);
                     pushMessage.put("unreadCount", unreadCount);
@@ -167,6 +169,10 @@ public class InternalMessagePushClient implements MessagePushPort {
                 return UserMessage.MessageType.REGISTRATION_APPROVED;
             case REGISTRATION_REJECTED:
                 return UserMessage.MessageType.REGISTRATION_REJECTED;
+            case SYSTEM_NOTICE:
+                return UserMessage.MessageType.SYSTEM_NOTICE;
+            case SYSTEM_UPDATE:
+                return UserMessage.MessageType.SYSTEM_UPDATE;
             default:
                 return UserMessage.MessageType.MEETING_PUBLISH;
         }
@@ -182,6 +188,9 @@ public class InternalMessagePushClient implements MessagePushPort {
             case REGISTRATION_APPROVED:
             case REGISTRATION_REJECTED:
                 return "REGISTRATION";
+            case SYSTEM_NOTICE:
+            case SYSTEM_UPDATE:
+                return "SYSTEM";
             default:
                 return "MEETING";
         }

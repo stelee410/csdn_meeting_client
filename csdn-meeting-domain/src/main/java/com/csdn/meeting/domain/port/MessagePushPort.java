@@ -41,6 +41,16 @@ public interface MessagePushPort {
         /**
          * 报名审核拒绝
          */
-        REGISTRATION_REJECTED
+        REGISTRATION_REJECTED,
+
+        /**
+         * 系统公告
+         */
+        SYSTEM_NOTICE,
+
+        /**
+         * 服务更新
+         */
+        SYSTEM_UPDATE
     }
 }

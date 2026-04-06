@@ -53,6 +53,28 @@ public interface UserMessageRepository {
     PageResult<UserMessage> findUnreadByUserId(String userId, int page, int size);
 
     /**
+     * 根据业务类型查询用户的消息列表（分页）
+     *
+     * @param userId  用户ID
+     * @param bizType 业务类型（MEETING/REGISTRATION/SYSTEM）
+     * @param page    页码（从1开始）
+     * @param size    每页条数
+     * @return 分页结果
+     */
+    PageResult<UserMessage> findByUserIdAndBizType(String userId, String bizType, int page, int size);
+
+    /**
+     * 根据业务类型查询用户的未读消息列表（分页）
+     *
+     * @param userId  用户ID
+     * @param bizType 业务类型（MEETING/REGISTRATION/SYSTEM）
+     * @param page    页码（从1开始）
+     * @param size    每页条数
+     * @return 分页结果
+     */
+    PageResult<UserMessage> findUnreadByUserIdAndBizType(String userId, String bizType, int page, int size);
+
+    /**
      * 统计用户未读消息数
      *
      * @param userId 用户ID

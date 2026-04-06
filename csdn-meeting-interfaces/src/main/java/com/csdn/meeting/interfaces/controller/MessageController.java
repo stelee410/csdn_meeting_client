@@ -68,7 +68,7 @@ public class MessageController {
 
     @Operation(
             summary = "获取用户消息列表",
-            description = "分页获取当前用户的站内信消息列表，支持筛选未读消息"
+            description = "分页获取当前用户的站内信消息列表，支持按业务类型筛选和未读消息筛选。业务类型：不传则查询全部，MEETING查询会议相关消息（包含会议发布和报名通知），SYSTEM查询系统消息"
     )
     @GetMapping
     public ResponseEntity<ApiResponse<MessagePageResult>> listMessages(
@@ -76,18 +76,31 @@ public class MessageController {
             @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "每页大小", example = "20")
             @RequestParam(defaultValue = "20") Integer size,
+            @Parameter(description = "业务类型筛选：MEETING-会议相关(会议发布+报名通知)，SYSTEM-系统消息", example = "MEETING")
+            @RequestParam(required = false) String bizType,
             @Parameter(description = "是否只查询未读消息", example = "false")
             @RequestParam(required = false) Boolean unreadOnly,
             HttpServletRequest request) {
 
         String userId = getCurrentUserId(request);
-        log.debug("获取用户消息列表: userId={}, page={}, size={}, unreadOnly={}", userId, page, size, unreadOnly);
+        log.debug("获取用户消息列表: userId={}, page={}, size={}, bizType={}, unreadOnly={}",
+                userId, page, size, bizType, unreadOnly);
 
         PageResult<UserMessage> pageResult;
-        if (Boolean.TRUE.equals(unreadOnly)) {
-            pageResult = userMessageRepository.findUnreadByUserId(userId, page, size);
+        if (bizType != null && !bizType.isEmpty()) {
+            // 按业务类型筛选
+            if (Boolean.TRUE.equals(unreadOnly)) {
+                pageResult = userMessageRepository.findUnreadByUserIdAndBizType(userId, bizType, page, size);
+            } else {
+                pageResult = userMessageRepository.findByUserIdAndBizType(userId, bizType, page, size);
+            }
         } else {
-            pageResult = userMessageRepository.findByUserId(userId, page, size);
+            // 不按业务类型筛选
+            if (Boolean.TRUE.equals(unreadOnly)) {
+                pageResult = userMessageRepository.findUnreadByUserId(userId, page, size);
+            } else {
+                pageResult = userMessageRepository.findByUserId(userId, page, size);
+            }
         }
 
         // 转换为VO

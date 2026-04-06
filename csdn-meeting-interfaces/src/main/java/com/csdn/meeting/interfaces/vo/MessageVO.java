@@ -15,7 +15,7 @@ public class MessageVO {
     @Schema(description = "消息业务ID", example = "MSG202603290001")
     private String messageId;
 
-    @Schema(description = "消息类型: 1-会议发布 2-报名通过 3-报名拒绝", example = "1")
+    @Schema(description = "消息类型: 1-会议发布 2-报名通过 3-报名拒绝 4-系统公告 5-服务更新", example = "1")
     private Integer messageType;
 
     @Schema(description = "消息类型描述", example = "会议发布")
@@ -30,7 +30,7 @@ public class MessageVO {
     @Schema(description = "关联业务ID（如会议ID）", example = "MT202603290001")
     private String bizId;
 
-    @Schema(description = "业务类型: MEETING/REGISTRATION", example = "MEETING")
+    @Schema(description = "业务类型: MEETING(会议发布)/REGISTRATION(报名通知)/SYSTEM(系统消息),MEETING/REGISTRATION为会议通知大类、SYSTEM为系统通知", example = "MEETING")
     private String bizType;
 
     @Schema(description = "扩展数据，包含会议标题、标签名等")
