@@ -173,4 +173,16 @@ public class MessageController {
         userMessageRepository.deleteById(messageId, userId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    @Operation(
+            summary = "清空全部消息",
+            description = "清空当前用户的所有消息（包含已读和未读，软删除），请谨慎使用"
+    )
+    @DeleteMapping("/clear-all")
+    public ResponseEntity<ApiResponse<Integer>> clearAllMessages(HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        log.info("清空全部消息: userId={}", userId);
+        int count = userMessageRepository.deleteAllByUserId(userId);
+        return ResponseEntity.ok(ApiResponse.success(count));
+    }
 }

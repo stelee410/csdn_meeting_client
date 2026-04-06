@@ -202,6 +202,13 @@ public class UserMessageRepositoryImpl implements UserMessageRepository {
     }
 
     @Override
+    public int deleteAllByUserId(String userId) {
+        int deleted = userMessageBaseMapper.deleteAllByUserId(userId);
+        logger.info("清空用户全部消息: userId={}, deleted={}", userId, deleted);
+        return deleted;
+    }
+
+    @Override
     public int cleanupExpiredMessages(LocalDateTime beforeDate) {
         // 删除指定日期之前已读的消息（物理删除）
         LambdaQueryWrapper<UserMessagePO> wrapper = new LambdaQueryWrapper<>();

@@ -48,4 +48,11 @@ public interface UserMessageBaseMapper extends BaseMapper<UserMessagePO> {
     @Update("UPDATE t_user_message SET is_deleted = TRUE " +
             "WHERE message_id = #{messageId} AND user_id = #{userId} AND is_deleted = FALSE")
     int deleteByMessageId(@Param("messageId") String messageId, @Param("userId") String userId);
+
+    /**
+     * 软删除用户全部消息
+     */
+    @Update("UPDATE t_user_message SET is_deleted = TRUE " +
+            "WHERE user_id = #{userId} AND is_deleted = FALSE")
+    int deleteAllByUserId(@Param("userId") String userId);
 }

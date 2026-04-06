@@ -114,6 +114,14 @@ public interface UserMessageRepository {
     void deleteByIds(List<String> messageIds, String userId);
 
     /**
+     * 删除用户全部消息（软删除）
+     *
+     * @param userId 用户ID
+     * @return 删除的消息数量
+     */
+    int deleteAllByUserId(String userId);
+
+    /**
      * 清理过期消息（物理删除）
      * 删除指定日期之前已读的消息
      *
