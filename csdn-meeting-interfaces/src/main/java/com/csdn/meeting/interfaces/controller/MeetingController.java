@@ -14,6 +14,7 @@ import com.csdn.meeting.application.dto.MeetingListQueryDTO;
 import com.csdn.meeting.application.dto.MeetingListResultDTO;
 import com.csdn.meeting.application.dto.MeetingCardItemDTO;
 import com.csdn.meeting.application.dto.MeetingRightsDTO;
+import com.csdn.meeting.application.dto.MeetingBriefingDTO;
 import com.csdn.meeting.application.dto.MeetingStatisticsDTO;
 import com.csdn.meeting.application.dto.PageResult;
 import com.csdn.meeting.application.dto.ReasonRequest;
@@ -30,6 +31,7 @@ import com.csdn.meeting.application.service.GenerateImageUseCase;
 import com.csdn.meeting.application.service.HotTagsUseCase;
 import com.csdn.meeting.application.service.MeetingApplicationService;
 import com.csdn.meeting.application.service.MeetingBriefUseCase;
+import com.csdn.meeting.application.service.MeetingBriefingUseCase;
 import com.csdn.meeting.application.service.MeetingDetailPageUseCase;
 import com.csdn.meeting.application.service.MeetingListUseCase;
 import com.csdn.meeting.application.service.MeetingRightsPurchaseUseCase;
@@ -71,6 +73,7 @@ public class MeetingController {
     private final MeetingStatisticsUseCase meetingStatisticsUseCase;
     private final MeetingRightsPurchaseUseCase meetingRightsPurchaseUseCase;
     private final MeetingBriefUseCase meetingBriefUseCase;
+    private final MeetingBriefingUseCase meetingBriefingUseCase;
     private final MeetingListUseCase meetingListUseCase;
     private final MeetingDetailPageUseCase meetingDetailPageUseCase;
     private final HotTagsUseCase hotTagsUseCase;
@@ -85,6 +88,7 @@ public class MeetingController {
                              MeetingStatisticsUseCase meetingStatisticsUseCase,
                              MeetingRightsPurchaseUseCase meetingRightsPurchaseUseCase,
                              MeetingBriefUseCase meetingBriefUseCase,
+                             MeetingBriefingUseCase meetingBriefingUseCase,
                              MeetingListUseCase meetingListUseCase,
                              MeetingDetailPageUseCase meetingDetailPageUseCase,
                              HotTagsUseCase hotTagsUseCase,
@@ -98,6 +102,7 @@ public class MeetingController {
         this.meetingStatisticsUseCase = meetingStatisticsUseCase;
         this.meetingRightsPurchaseUseCase = meetingRightsPurchaseUseCase;
         this.meetingBriefUseCase = meetingBriefUseCase;
+        this.meetingBriefingUseCase = meetingBriefingUseCase;
         this.meetingListUseCase = meetingListUseCase;
         this.meetingDetailPageUseCase = meetingDetailPageUseCase;
         this.hotTagsUseCase = hotTagsUseCase;
@@ -123,6 +128,81 @@ public class MeetingController {
         String userId = getCurrentUserId(request);
         MeetingDTO meeting = meetingApplicationService.update(String.valueOf(id), command, userId);
         return ResponseEntity.ok(ApiResponse.success(meeting));
+    }
+
+    /*
+     * 以下字面路径必须放在 GET /{id} 之前，否则 Spring 会将「my-created」等整体匹配为 {id}，Long 转换失败导致 400，前端「我的会议」列表永远拉取失败。
+     */
+
+    @Operation(summary = "我报名的会议", description = "按会议日期倒序，默认仅已发布/进行中；includeEnded=true 时包含已结束。")
+    @GetMapping("/my-registered")
+    public ResponseEntity<ApiResponse<PageResult<MeetingDTO>>> getMyRegistered(
+            @RequestParam(defaultValue = "false") boolean includeEnded,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        return ResponseEntity.ok(ApiResponse.success(
+                myMeetingsUseCase.getMyRegistered(userId, includeEnded, page, size)));
+    }
+
+    @Operation(summary = "我收藏的会议", description = "获取当前用户收藏的会议列表，按收藏时间倒序。")
+    @GetMapping("/my-favorites")
+    public ResponseEntity<ApiResponse<PageResult<MeetingDTO>>> getMyFavorites(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        return ResponseEntity.ok(ApiResponse.success(
+                myMeetingsUseCase.getMyFavorites(userId, page, size)));
+    }
+
+    @Operation(summary = "我创建的会议", description = "办会方创建的所有会议，支持状态、时间范围筛选。")
+    @GetMapping("/my-created")
+    public ResponseEntity<ApiResponse<PageResult<MeetingDTO>>> getMyCreated(
+            @RequestParam(required = false) List<String> status,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        List<Meeting.MeetingStatus> statuses = status == null || status.isEmpty()
+                ? null
+                : status.stream()
+                .map(s -> {
+                    try {
+                        return Meeting.MeetingStatus.valueOf(s.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        return null;
+                    }
+                })
+                .filter(s -> s != null)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.success(
+                myMeetingsUseCase.getMyCreated(userId, statuses, startDate, endDate, page, size)));
+    }
+
+    @Operation(
+            summary = "获取筛选选项",
+            description = "返回各筛选维度的可选值列表，供前端初始化筛选器使用。" +
+                    "包括：会议形式、会议类型、会议场景、召开时间、视图模式的所有可选值及其显示名称"
+    )
+    @GetMapping("/filter-options")
+    public ResponseEntity<ApiResponse<FilterOptionsDTO>> getFilterOptions() {
+        FilterOptionsDTO options = meetingListUseCase.getFilterOptions();
+        return ResponseEntity.ok(ApiResponse.success(options));
+    }
+
+    @Operation(
+            summary = "获取热门标签",
+            description = "按使用该标签的已发布会议数量降序，返回热门标签列表。" +
+                    "供移动端会议首页展示热门技术标签使用。"
+    )
+    @GetMapping("/hot-tags")
+    public ResponseEntity<ApiResponse<List<TagDTO>>> getHotTags(
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(ApiResponse.success(hotTagsUseCase.getHotTags(limit)));
     }
 
     @Operation(summary = "查询会议详情", description = "获取会议详情，含四级日程结构（日程日→环节→分会场→议题）。")
@@ -220,55 +300,6 @@ public class MeetingController {
     public ResponseEntity<ApiResponse<List<MeetingDTO>>> getAllMeetings() {
         List<MeetingDTO> meetings = meetingApplicationService.getAllMeetings();
         return ResponseEntity.ok(ApiResponse.success(meetings));
-    }
-
-    @Operation(summary = "我报名的会议", description = "按会议日期倒序，默认仅已发布/进行中；includeEnded=true 时包含已结束。")
-    @GetMapping("/my-registered")
-    public ResponseEntity<ApiResponse<PageResult<MeetingDTO>>> getMyRegistered(
-            @RequestParam(defaultValue = "false") boolean includeEnded,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            HttpServletRequest request) {
-        String userId = getCurrentUserId(request);
-        return ResponseEntity.ok(ApiResponse.success(
-                myMeetingsUseCase.getMyRegistered(userId, includeEnded, page, size)));
-    }
-
-    @Operation(summary = "我收藏的会议", description = "获取当前用户收藏的会议列表，按收藏时间倒序。")
-    @GetMapping("/my-favorites")
-    public ResponseEntity<ApiResponse<PageResult<MeetingDTO>>> getMyFavorites(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            HttpServletRequest request) {
-        String userId = getCurrentUserId(request);
-        return ResponseEntity.ok(ApiResponse.success(
-                myMeetingsUseCase.getMyFavorites(userId, page, size)));
-    }
-
-    @Operation(summary = "我创建的会议", description = "办会方创建的所有会议，支持状态、时间范围筛选。")
-    @GetMapping("/my-created")
-    public ResponseEntity<ApiResponse<PageResult<MeetingDTO>>> getMyCreated(
-            @RequestParam(required = false) List<String> status,
-            @RequestParam(required = false) LocalDate startDate,
-            @RequestParam(required = false) LocalDate endDate,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            HttpServletRequest request) {
-        String userId = getCurrentUserId(request);
-        List<Meeting.MeetingStatus> statuses = status == null || status.isEmpty()
-                ? null
-                : status.stream()
-                .map(s -> {
-                    try {
-                        return Meeting.MeetingStatus.valueOf(s.toUpperCase());
-                    } catch (IllegalArgumentException e) {
-                        return null;
-                    }
-                })
-                .filter(s -> s != null)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(ApiResponse.success(
-                myMeetingsUseCase.getMyCreated(userId, statuses, startDate, endDate, page, size)));
     }
 
     @Operation(summary = "会议报名列表", description = "获取某会议报名记录，支持按 status(PENDING/APPROVED/REJECTED) 筛选。")
@@ -419,6 +450,18 @@ public class MeetingController {
         return ResponseEntity.ok(ApiResponse.success(dto));
     }
 
+    @Operation(summary = "会议简报预览数据", description = "供弹窗展示的结构化简报：报名签到聚合、基本信息与规则生成的总结文案；需登录。")
+    @GetMapping("/{id}/briefing")
+    public ResponseEntity<ApiResponse<MeetingBriefingDTO>> getBriefing(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        if (authorization == null || !authorization.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.error(401, "未授权"));
+        }
+        MeetingBriefingDTO dto = meetingBriefingUseCase.getBriefing(id);
+        return ResponseEntity.ok(ApiResponse.success(dto));
+    }
+
     @Operation(summary = "会议简报下载", description = "生成会议简报文件，支持 format=pdf|word。高阶数据受权益控制。")
     @GetMapping("/{id}/brief")
     public ResponseEntity<byte[]> getBrief(
@@ -511,42 +554,5 @@ public class MeetingController {
 
         MeetingListResultDTO<MeetingCardItemDTO> result = meetingListUseCase.queryMeetingList(query);
         return ResponseEntity.ok(ApiResponse.success(result));
-    }
-
-    /**
-     * 获取筛选选项枚举值（供前端初始化筛选器）
-     * GET /api/meetings/filter-options
-     *
-     * @return 各筛选维度的可选值列表
-     */
-    @Operation(
-            summary = "获取筛选选项",
-            description = "返回各筛选维度的可选值列表，供前端初始化筛选器使用。" +
-                    "包括：会议形式、会议类型、会议场景、召开时间、视图模式的所有可选值及其显示名称"
-    )
-    @GetMapping("/filter-options")
-    public ResponseEntity<ApiResponse<FilterOptionsDTO>> getFilterOptions() {
-        FilterOptionsDTO options = meetingListUseCase.getFilterOptions();
-        return ResponseEntity.ok(ApiResponse.success(options));
-    }
-
-    /**
-     * 获取热门标签列表
-     * GET /api/meetings/hot-tags
-     *
-     * @param limit 返回数量限制，默认10个
-     * @return 热门标签列表
-     *
-     * TODO【移动端适配】：移动端会议首页展示热门标签（人工智能、云计算、区块链等）
-     */
-    @Operation(
-            summary = "获取热门标签",
-            description = "按使用该标签的已发布会议数量降序，返回热门标签列表。" +
-                    "供移动端会议首页展示热门技术标签使用。"
-    )
-    @GetMapping("/hot-tags")
-    public ResponseEntity<ApiResponse<List<TagDTO>>> getHotTags(
-            @RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(ApiResponse.success(hotTagsUseCase.getHotTags(limit)));
     }
 }

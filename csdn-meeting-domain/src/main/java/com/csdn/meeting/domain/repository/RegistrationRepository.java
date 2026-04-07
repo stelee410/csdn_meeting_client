@@ -3,6 +3,7 @@ package com.csdn.meeting.domain.repository;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.Registration;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,4 +35,9 @@ public interface RegistrationRepository {
                                                             int page, int size);
 
     void deleteById(Long id);
+
+    /**
+     * 统计指定会议在若干报名状态下的记录数（去重按行，不含已逻辑删除）
+     */
+    long countByMeetingIdAndStatuses(Long meetingId, Collection<Registration.RegistrationStatus> statuses);
 }

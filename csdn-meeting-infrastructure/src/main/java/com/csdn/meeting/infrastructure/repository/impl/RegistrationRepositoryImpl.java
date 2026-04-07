@@ -1,5 +1,6 @@
 package com.csdn.meeting.infrastructure.repository.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.csdn.meeting.domain.entity.Meeting;
@@ -11,6 +12,7 @@ import com.csdn.meeting.infrastructure.po.RegistrationPO;
 import com.csdn.meeting.infrastructure.repository.mapper.RegistrationPOMapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -92,5 +94,17 @@ public class RegistrationRepositoryImpl implements RegistrationRepository {
     @Override
     public void deleteById(Long id) {
         registrationPOMapper.deleteById(id);
+    }
+
+    @Override
+    public long countByMeetingIdAndStatuses(Long meetingId, Collection<Registration.RegistrationStatus> statuses) {
+        if (meetingId == null || statuses == null || statuses.isEmpty()) {
+            return 0;
+        }
+        LambdaQueryWrapper<RegistrationPO> w = new LambdaQueryWrapper<>();
+        w.eq(RegistrationPO::getMeetingId, meetingId);
+        w.in(RegistrationPO::getStatus, statuses.stream().map(Enum::name).collect(Collectors.toList()));
+        Long c = registrationPOMapper.selectCount(w);
+        return c == null ? 0 : c;
     }
 }

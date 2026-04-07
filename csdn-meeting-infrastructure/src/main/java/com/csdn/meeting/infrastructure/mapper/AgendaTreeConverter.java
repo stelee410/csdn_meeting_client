@@ -75,7 +75,7 @@ public class AgendaTreeConverter {
                                 List<String> guests = (List<String>) tExtra.getOrDefault("guests", Collections.emptyList());
                                 if (guests == null) guests = Collections.emptyList();
                                 String topicIntro = (String) tExtra.getOrDefault("topic_intro", "");
-                                String involvedProducts = (String) tExtra.getOrDefault("involved_products", "");
+                                String involvedProducts = extraString(tExtra, "involved_products", "involvedProducts");
                                 return new Topic(tPo.getTitle(), topicIntro, involvedProducts, guests);
                             })
                             .collect(Collectors.toList());
@@ -159,6 +159,17 @@ public class AgendaTreeConverter {
             this.sortOrder = sortOrder;
             this.extra = extra;
         }
+    }
+
+    /** 从议题 extra JSON 读取字符串，兼容 snake_case 与历史 camelCase 键名 */
+    private static String extraString(Map<String, Object> extra, String... keys) {
+        for (String key : keys) {
+            Object v = extra.get(key);
+            if (v == null) continue;
+            if (v instanceof String) return (String) v;
+            return String.valueOf(v);
+        }
+        return "";
     }
 
     private Map<String, Object> parseExtra(String json) {

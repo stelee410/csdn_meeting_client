@@ -3,6 +3,7 @@ package com.csdn.meeting.application.service;
 import com.csdn.meeting.application.dto.MeetingStatisticsDTO;
 import com.csdn.meeting.domain.entity.Meeting;
 import com.csdn.meeting.domain.entity.MeetingRights;
+import com.csdn.meeting.domain.entity.Registration;
 import com.csdn.meeting.domain.port.MeetingAnalyticsPort;
 import com.csdn.meeting.domain.port.UserProfilePort;
 import com.csdn.meeting.domain.repository.MeetingRepository;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,8 +83,12 @@ public class MeetingStatisticsUseCase {
         basic.setUv(totalUv);
         basic.setClicks(totalClicks);
         basic.setRegistrations(regCount);
-        basic.setCheckins((long) (regCount * 0.75));
-        basic.setCheckinRate(regCount > 0 ? 0.75 : 0);
+        long checkedIn = registrationRepository.countByMeetingIdAndStatuses(meetingId,
+                Collections.singletonList(Registration.RegistrationStatus.CHECKED_IN));
+        long eligible = registrationRepository.countByMeetingIdAndStatuses(meetingId,
+                Arrays.asList(Registration.RegistrationStatus.APPROVED, Registration.RegistrationStatus.CHECKED_IN));
+        basic.setCheckins(checkedIn);
+        basic.setCheckinRate(eligible > 0 ? (double) checkedIn / eligible : 0);
         basic.setExposureTrend(calcTrendPercent(todayPv, yesterdayPv));
         basic.setClicksTrend(calcTrendPercent(todayClicks, yesterdayClicks));
         basic.setConversionRate(totalClicks > 0 ? (double) regCount / totalClicks * 100 : 0);
