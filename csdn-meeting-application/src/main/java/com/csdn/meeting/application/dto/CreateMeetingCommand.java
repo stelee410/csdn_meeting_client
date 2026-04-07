@@ -16,6 +16,8 @@ public class CreateMeetingCommand {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer maxParticipants;
+    /** 举办频率：字典 meeting_frequency 的 item_code（如 RECURRING、ONCE） */
+    private String meetingFrequency;
 
     // agent.prd §1.1 新增字段
     private String organizer;
@@ -101,6 +103,14 @@ public class CreateMeetingCommand {
 
     public void setMaxParticipants(Integer maxParticipants) {
         this.maxParticipants = maxParticipants;
+    }
+
+    public String getMeetingFrequency() {
+        return meetingFrequency;
+    }
+
+    public void setMeetingFrequency(String meetingFrequency) {
+        this.meetingFrequency = meetingFrequency;
     }
 
     public String getOrganizer() {

@@ -112,6 +112,11 @@ public class Meeting extends BaseEntity {
      */
     private Integer maxParticipants;
 
+    /**
+     * 举办频率（字典 meeting_frequency 的 item_code，如 RECURRING、ONCE）
+     */
+    private String meetingFrequency;
+
     // 新增字段（agent.prd §1.1）
     private String organizer;
     private Long organizerId;         // 主办方用户ID

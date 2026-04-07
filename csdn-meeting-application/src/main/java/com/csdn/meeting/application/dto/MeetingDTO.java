@@ -23,6 +23,8 @@ public class MeetingDTO {
     private String status;
     private Integer maxParticipants;
     private Integer currentParticipants;
+    /** 举办频率字典编码 */
+    private String meetingFrequency;
     private String scale;  // 会议规模中文描述：50人以下/50-200人/200-500人/500人以上
     private List<ParticipantDTO> participants;
 
@@ -168,6 +170,14 @@ public class MeetingDTO {
 
     public void setCurrentParticipants(Integer currentParticipants) {
         this.currentParticipants = currentParticipants;
+    }
+
+    public String getMeetingFrequency() {
+        return meetingFrequency;
+    }
+
+    public void setMeetingFrequency(String meetingFrequency) {
+        this.meetingFrequency = meetingFrequency;
     }
 
     public String getScale() {

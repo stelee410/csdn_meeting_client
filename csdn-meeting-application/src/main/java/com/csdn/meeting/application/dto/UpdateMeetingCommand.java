@@ -13,6 +13,7 @@ public class UpdateMeetingCommand {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer maxParticipants;
+    private String meetingFrequency;
     private String organizer;
     private String format;
     private String meetingType;
@@ -78,6 +79,14 @@ public class UpdateMeetingCommand {
 
     public void setMaxParticipants(Integer maxParticipants) {
         this.maxParticipants = maxParticipants;
+    }
+
+    public String getMeetingFrequency() {
+        return meetingFrequency;
+    }
+
+    public void setMeetingFrequency(String meetingFrequency) {
+        this.meetingFrequency = meetingFrequency;
     }
 
     public String getOrganizer() {
