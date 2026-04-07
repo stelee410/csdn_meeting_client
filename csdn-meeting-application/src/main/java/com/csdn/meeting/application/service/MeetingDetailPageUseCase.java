@@ -313,7 +313,7 @@ public class MeetingDetailPageUseCase {
         detailDTO.setSceneName(mScene != null ? mScene.getDisplayName() : meetingDTO.getScene());
 
         detailDTO.setStatus(1); // 默认值
-        detailDTO.setStatusName(meetingDTO.getStatus());
+        detailDTO.setStatusName(meeting.getStatus() == null ? "" : meeting.getStatus().getDisplayName());
         detailDTO.setMaxParticipants(meetingDTO.getMaxParticipants());
         detailDTO.setMeetingDuration(meetingDTO.getMeetingDuration());
         detailDTO.setScheduleDays(meetingDTO.getScheduleDays());
