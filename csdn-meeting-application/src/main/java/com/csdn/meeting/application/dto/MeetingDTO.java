@@ -25,6 +25,8 @@ public class MeetingDTO {
     private Integer currentParticipants;
     /** 举办频率字典编码 */
     private String meetingFrequency;
+    /** 会议时长字典编码（half_day、one_day 等） */
+    private String meetingDuration;
     private String scale;  // 会议规模中文描述：50人以下/50-200人/200-500人/500人以上
     private List<ParticipantDTO> participants;
 
@@ -178,6 +180,14 @@ public class MeetingDTO {
 
     public void setMeetingFrequency(String meetingFrequency) {
         this.meetingFrequency = meetingFrequency;
+    }
+
+    public String getMeetingDuration() {
+        return meetingDuration;
+    }
+
+    public void setMeetingDuration(String meetingDuration) {
+        this.meetingDuration = meetingDuration;
     }
 
     public String getScale() {

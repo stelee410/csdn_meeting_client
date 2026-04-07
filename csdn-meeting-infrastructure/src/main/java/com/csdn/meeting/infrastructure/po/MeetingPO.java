@@ -95,6 +95,9 @@ public class MeetingPO {
     @TableField("meeting_frequency")
     private String meetingFrequency;
 
+    @TableField("meeting_duration")
+    private String meetingDuration;
+
     @TableField("city_code")
     private String cityCode;
 
@@ -220,6 +223,8 @@ public class MeetingPO {
     public void setMaxParticipants(Integer maxParticipants) { this.maxParticipants = maxParticipants; }
     public String getMeetingFrequency() { return meetingFrequency; }
     public void setMeetingFrequency(String meetingFrequency) { this.meetingFrequency = meetingFrequency; }
+    public String getMeetingDuration() { return meetingDuration; }
+    public void setMeetingDuration(String meetingDuration) { this.meetingDuration = meetingDuration; }
     public String getCityCode() { return cityCode; }
     public void setCityCode(String cityCode) { this.cityCode = cityCode; }
     public String getCityName() { return cityName; }

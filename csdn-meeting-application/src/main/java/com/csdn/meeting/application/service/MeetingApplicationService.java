@@ -379,6 +379,7 @@ public class MeetingApplicationService {
         meeting.setEndTime(cmd.getEndTime());
         meeting.setMaxParticipants(cmd.getMaxParticipants());
         meeting.setMeetingFrequency(trimToNull(cmd.getMeetingFrequency()));
+        meeting.setMeetingDuration(trimToNull(cmd.getMeetingDuration()));
         meeting.setOrganizer(cmd.getOrganizer());
         meeting.setFormat(parseFormat(cmd.getFormat()));
         meeting.setMeetingType(parseMeetingType(cmd.getMeetingType()));
@@ -409,6 +410,7 @@ public class MeetingApplicationService {
         if (cmd.getEndTime() != null) meeting.setEndTime(cmd.getEndTime());
         if (cmd.getMaxParticipants() != null) meeting.setMaxParticipants(cmd.getMaxParticipants());
         if (cmd.getMeetingFrequency() != null) meeting.setMeetingFrequency(trimToNull(cmd.getMeetingFrequency()));
+        if (cmd.getMeetingDuration() != null) meeting.setMeetingDuration(trimToNull(cmd.getMeetingDuration()));
         if (cmd.getOrganizer() != null) meeting.setOrganizer(cmd.getOrganizer());
         if (cmd.getFormat() != null) meeting.setFormat(parseFormat(cmd.getFormat()));
         if (cmd.getMeetingType() != null) meeting.setMeetingType(parseMeetingType(cmd.getMeetingType()));
@@ -549,6 +551,7 @@ public class MeetingApplicationService {
         dto.setMaxParticipants(meeting.getMaxParticipants());
         dto.setCurrentParticipants(meeting.getCurrentParticipants());
         dto.setMeetingFrequency(meeting.getMeetingFrequency());
+        dto.setMeetingDuration(meeting.getMeetingDuration());
         dto.setOrganizer(meeting.getOrganizer());
         dto.setFormat(meeting.getFormat() != null ? meeting.getFormat().name() : null);
         dto.setMeetingType(meeting.getMeetingType() != null ? meeting.getMeetingType().name() : null);

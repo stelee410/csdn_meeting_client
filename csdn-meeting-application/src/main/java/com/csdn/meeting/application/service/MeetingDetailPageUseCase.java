@@ -315,6 +315,7 @@ public class MeetingDetailPageUseCase {
         detailDTO.setStatus(1); // 默认值
         detailDTO.setStatusName(meetingDTO.getStatus());
         detailDTO.setMaxParticipants(meetingDTO.getMaxParticipants());
+        detailDTO.setMeetingDuration(meetingDTO.getMeetingDuration());
         detailDTO.setScheduleDays(meetingDTO.getScheduleDays());
 
         // 设置报名人数信息（从Meeting实体获取更准确的数据）

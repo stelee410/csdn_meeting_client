@@ -117,6 +117,11 @@ public class Meeting extends BaseEntity {
      */
     private String meetingFrequency;
 
+    /**
+     * 会议时长（字典 meeting_duration 的 item_code：half_day、one_day 等）
+     */
+    private String meetingDuration;
+
     // 新增字段（agent.prd §1.1）
     private String organizer;
     private Long organizerId;         // 主办方用户ID

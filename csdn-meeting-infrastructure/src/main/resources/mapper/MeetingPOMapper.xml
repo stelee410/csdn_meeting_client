@@ -2,17 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.csdn.meeting.infrastructure.repository.mapper.MeetingPOMapper">
 
+    <!-- 创建人维度列表：排除逻辑删除(status=DELETED=7)与 is_deleted=1，避免「我创建的」仍展示已删会议 -->
+    <sql id="CreatorListNotDeleted">
+        AND (is_deleted = 0 OR is_deleted IS NULL)
+        AND status != 7
+    </sql>
+
     <select id="selectByCreatorId" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
         SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        <include refid="CreatorListNotDeleted"/>
     </select>
 
     <select id="selectPageByCreatorId" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
         SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        <include refid="CreatorListNotDeleted"/>
         ORDER BY start_time DESC
     </select>
 
     <select id="selectPageByCreatorIdAndStatusIn" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
         SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        <include refid="CreatorListNotDeleted"/>
         AND status IN
         <foreach collection="statuses" item="s" open="(" separator="," close=")">
             #{s}
@@ -22,12 +31,14 @@
 
     <select id="selectPageByCreatorIdAndStartTimeBetween" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
         SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        <include refid="CreatorListNotDeleted"/>
         AND start_time &gt;= #{start} AND start_time &lt;= #{end}
         ORDER BY start_time DESC
     </select>
 
     <select id="selectPageByCreatorIdAndStatusInAndStartTimeBetween" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
         SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        <include refid="CreatorListNotDeleted"/>
         AND status IN
         <foreach collection="statuses" item="s" open="(" separator="," close=")">
             #{s}
@@ -42,6 +53,7 @@
 
     <select id="selectByCreatorIdAndStartTimeBetween" resultType="com.csdn.meeting.infrastructure.po.MeetingPO">
         SELECT * FROM t_meeting WHERE creator_id = #{creatorId}
+        <include refid="CreatorListNotDeleted"/>
         AND start_time &gt;= #{start} AND start_time &lt;= #{end}
     </select>
 

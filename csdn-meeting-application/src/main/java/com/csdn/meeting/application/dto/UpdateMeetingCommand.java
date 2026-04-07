@@ -14,6 +14,7 @@ public class UpdateMeetingCommand {
     private LocalDateTime endTime;
     private Integer maxParticipants;
     private String meetingFrequency;
+    private String meetingDuration;
     private String organizer;
     private String format;
     private String meetingType;
@@ -87,6 +88,14 @@ public class UpdateMeetingCommand {
 
     public void setMeetingFrequency(String meetingFrequency) {
         this.meetingFrequency = meetingFrequency;
+    }
+
+    public String getMeetingDuration() {
+        return meetingDuration;
+    }
+
+    public void setMeetingDuration(String meetingDuration) {
+        this.meetingDuration = meetingDuration;
     }
 
     public String getOrganizer() {

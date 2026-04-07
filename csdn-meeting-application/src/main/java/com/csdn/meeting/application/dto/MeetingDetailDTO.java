@@ -116,6 +116,9 @@ public class MeetingDetailDTO {
     @Schema(description = "四级日程（日程日→环节→分会场→议题），议题含嘉宾 guests 等扩展字段")
     private List<ScheduleDayDTO> scheduleDays;
 
+    @Schema(description = "会议时长字典编码（half_day、one_day 等）")
+    private String meetingDuration;
+
     @Schema(description = "创建时间", example = "2026-02-01 10:00:00")
     private LocalDateTime createTime;
 

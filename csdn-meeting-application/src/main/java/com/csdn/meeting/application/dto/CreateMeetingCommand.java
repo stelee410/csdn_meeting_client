@@ -18,6 +18,8 @@ public class CreateMeetingCommand {
     private Integer maxParticipants;
     /** 举办频率：字典 meeting_frequency 的 item_code（如 RECURRING、ONCE） */
     private String meetingFrequency;
+    /** 会议时长：字典 meeting_duration 的 item_code（half_day、one_day 等） */
+    private String meetingDuration;
 
     // agent.prd §1.1 新增字段
     private String organizer;
@@ -111,6 +113,14 @@ public class CreateMeetingCommand {
 
     public void setMeetingFrequency(String meetingFrequency) {
         this.meetingFrequency = meetingFrequency;
+    }
+
+    public String getMeetingDuration() {
+        return meetingDuration;
+    }
+
+    public void setMeetingDuration(String meetingDuration) {
+        this.meetingDuration = meetingDuration;
     }
 
     public String getOrganizer() {
