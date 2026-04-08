@@ -121,6 +121,16 @@ public class MeetingController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(meeting));
     }
 
+    @Operation(summary = "创建并提交审核", description = "原子化操作：校验通过后创建会议并立即提交审核，校验不通过时不创建草稿。")
+    @PostMapping("/create-and-submit")
+    public ResponseEntity<ApiResponse<MeetingDTO>> createAndSubmit(@RequestBody CreateMeetingCommand command,
+                                                                   HttpServletRequest request) {
+        String userId = getCurrentUserId(request);
+        command.setCreatorId(userId);
+        MeetingDTO meeting = meetingApplicationService.createAndSubmit(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(meeting));
+    }
+
     @Operation(summary = "更新会议", description = "更新会议信息，仅 DRAFT/REJECTED 状态可编辑。")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<MeetingDTO>> update(@PathVariable Long id, @RequestBody UpdateMeetingCommand command,

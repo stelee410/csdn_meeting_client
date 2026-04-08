@@ -97,6 +97,30 @@ public class MeetingApplicationService {
     }
 
     /**
+     * 原子化创建并提交审核：先校验完整性，通过后再落盘。
+     * 校验失败时不产生 DRAFT 记录，避免孤立草稿。
+     */
+    @Transactional
+    public MeetingDTO createAndSubmit(CreateMeetingCommand command) {
+        if (command.getTitle() == null || command.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("会议标题不能为空");
+        }
+        if (command.getCreatorId() == null || command.getCreatorId().trim().isEmpty()) {
+            throw new IllegalArgumentException("创建者ID不能为空，请携带有效的 Authorization 请求头");
+        }
+        Meeting meeting = new Meeting();
+        meeting.setMeetingId(meetingDomainService.generateMeetingId());
+        applyCreateCommandToMeeting(meeting, command);
+        meeting.setStatus(Meeting.MeetingStatus.DRAFT);
+
+        meetingDomainService.validateAgendaIntegrity(meeting);
+
+        meeting.submit();
+        Meeting savedMeeting = meetingRepository.save(meeting);
+        return toMeetingDTO(savedMeeting);
+    }
+
+    /**
      * 提交审核：先校验四级日程完整性，再 meeting.submit()
      * AgendaIntegrityException 向上传播，由 GlobalExceptionHandler 转为 400 响应
      */
